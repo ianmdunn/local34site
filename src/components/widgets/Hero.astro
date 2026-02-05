@@ -1,0 +1,142 @@
+---
+import Image from '~/components/common/Image.astro';
+import Button from '~/components/ui/Button.astro';
+
+import type { Hero as Props } from '~/types';
+import type { ImageMetadata } from 'astro';
+
+const {
+  title = await Astro.slots.render('title'),
+  subtitle = await Astro.slots.render('subtitle'),
+  tagline,
+  logo = await Astro.slots.render('logo'),
+
+  content = await Astro.slots.render('content'),
+  actions = await Astro.slots.render('actions'),
+  image = await Astro.slots.render('image'),
+
+  id,
+  bg = await Astro.slots.render('bg'),
+} = Astro.props;
+
+const backgroundModules = import.meta.glob<{ default: ImageMetadata }>(
+  '~/assets/images/backgrounds/*.{jpg,jpeg,png,webp}',
+  { eager: true }
+);
+const backgroundImages = Object.values(backgroundModules)
+  .map((m) => m?.default)
+  .filter(Boolean) as ImageMetadata[];
+const randomBackground =
+  backgroundImages.length > 0 ? backgroundImages[Math.floor(Math.random() * backgroundImages.length)] : null;
+---
+
+<section
+  class="relative z-0 min-h-screen w-full not-prose overflow-hidden -mt-[1.5rem] md:-mt-[1.5rem]"
+  style="min-height: 100vh; min-height: 100dvh;"
+  {...(id && { id })}
+>
+  <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
+    {
+      bg ? (
+        <Fragment set:html={bg} />
+      ) : randomBackground ? (
+        <Image
+          src={randomBackground}
+          alt=""
+          class="absolute inset-0 w-full h-full min-w-full min-h-full object-cover object-center"
+          widths={[1280, 1920, 2560]}
+          sizes="100vw"
+          loading="eager"
+          decoding="async"
+        />
+      ) : null
+    }
+  </div>
+  <div class="absolute inset-0 pointer-events-none bg-black/50 dark:bg-black/60" aria-hidden="true"></div>
+  {
+    logo && (
+      <div
+        class="hero-logo-overlay absolute bottom-6 right-6 md:bottom-14 md:right-14 z-[1] pointer-events-none opacity-80"
+        aria-hidden="true"
+      >
+        <div
+          class="[&_img]:w-auto [&_img]:drop-shadow-[0_0_40px_rgba(255,255,255,0.15)] [&_img]:contrast-[1.05]"
+          style="transform: rotate(-8deg);"
+        >
+          <Fragment set:html={logo} />
+        </div>
+      </div>
+    )
+  }
+  <div
+    class="relative z-[1] flex min-h-screen min-h-[100dvh] flex-col justify-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 hero-overlay-content"
+  >
+    <!-- Clear fixed header (first-child padding is cancelled by section -mt) -->
+    <div class="pt-[1.5rem] md:pt-[1.5rem] shrink-0" aria-hidden="true"></div>
+    <div class="py-12 md:py-20 flex-1 flex flex-col justify-center">
+      <div class="text-center pb-10 md:pb-16 max-w-7xl mx-auto">
+        {
+          tagline && (
+            <p
+              class="text-base text-blue-100 font-bold tracking-wide uppercase mb-3"
+              set:html={tagline}
+            />
+          )
+        }
+        {
+          title && (
+            <h1
+              class="text-4xl md:text-5xl font-bold leading-tighter tracking-tighter mb-5 font-heading text-white"
+              set:html={title}
+            />
+          )
+        }
+        <div>
+          {
+            subtitle && (
+              <p
+                class="text-lg text-slate-200 mb-10 md:mb-12"
+                set:html={subtitle}
+              />
+            )
+          }
+          {
+            actions && (
+              <div class="m-auto flex flex-wrap flex-col sm:flex-row sm:justify-center gap-x-4 gap-y-6 md:gap-y-8 hero-overlay-actions">
+                {Array.isArray(actions) ? (
+                  actions.map((action) => (
+                    <div class="flex w-full sm:w-auto sm:min-w-0">
+                      <Button {...(action || {})} class="w-full sm:mb-0 sm:flex-1 sm:min-w-[11rem]" />
+                    </div>
+                  ))
+                ) : (
+                  <Fragment set:html={actions} />
+                )}
+              </div>
+            )
+          }
+        </div>
+        {content && <Fragment set:html={content} />}
+      </div>
+      <div>
+        {
+          image && (
+            <div class="relative m-auto">
+              {typeof image === 'string' ? (
+                <Fragment set:html={image} />
+              ) : (
+                <Image
+                  class="mx-auto rounded-md w-full"
+                  widths={[400, 768, 1024, 2040]}
+                  sizes="(max-width: 767px) 400px, (max-width: 1023px) 768px, (max-width: 2039px) 1024px, 2040px"
+                  loading="eager"
+                  {...(image as { src: string; width?: number; height?: number; alt: string })}
+                />
+              )}
+            </div>
+          )
+        }
+      </div>
+    </div>
+  </div>
+</section>

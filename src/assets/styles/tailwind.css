@@ -1,0 +1,602 @@
+/* Typekit project: iqy5xra */
+@import url('https://use.typekit.net/iqy5xra.css');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Typekit (iqy5xra): ibm-plex-sans, ibm-plex-serif, ibm-plex-sans-condensed, ibm-plex-mono, archer-pro */
+    --aw-font-sans: ibm-plex-sans, sans-serif;
+    --aw-font-serif: 'ibm-plex-serif', serif;
+    --aw-font-heading: archer-pro, sans-serif;
+    --aw-font-condensed: ibm-plex-sans-condensed, sans-serif;
+    --aw-font-mono: ibm-plex-mono, monospace;
+    /* Best practice: 16px base, 1.5 line-height for body text */
+    font-size: 16px;
+  }
+  body {
+    font-family: var(--aw-font-sans);
+    font-size: 1rem;
+    line-height: 1.5;
+    -webkit-text-size-adjust: 100%;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--aw-font-heading);
+    line-height: 1.25;
+  }
+}
+
+@layer utilities {
+  .font-condensed {
+    font-family: var(--aw-font-condensed);
+  }
+  .bg-page {
+    background-color: var(--aw-color-bg-page);
+  }
+  .bg-page\/95 {
+    background-color: color-mix(in srgb, var(--aw-color-bg-page) 95%, transparent);
+  }
+  .bg-dark {
+    background-color: var(--aw-color-bg-page-dark);
+  }
+  .bg-light {
+    background-color: var(--aw-color-bg-page);
+  }
+  .text-page {
+    color: var(--aw-color-text-page);
+  }
+  .text-muted {
+    color: var(--aw-color-text-muted);
+  }
+}
+
+@layer components {
+  /** Skip link: visible on focus for keyboard and screen reader users (WCAG 2.4.1) */
+  .skip-link {
+    @apply fixed left-0 top-0 z-[10000] -translate-y-full rounded-b-md bg-primary px-4 py-3 text-center font-medium text-white shadow-lg transition-transform duration-150 focus:translate-y-0 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-primary;
+  }
+
+  /** Shared horizontal alignment for header and main content */
+  .page-container {
+    @apply max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full border font-medium text-center text-base leading-snug transition-all duration-200 ease-out cursor-pointer
+      py-3.5 px-6 md:px-7
+      focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:ring-offset-white dark:focus:ring-offset-gray-900
+      active:scale-[0.98]
+      border-gray-400 bg-transparent text-page
+      hover:bg-gray-100 hover:border-gray-600
+      dark:text-slate-300 dark:border-slate-500 dark:hover:bg-gray-800 dark:hover:border-gray-600;
+  }
+
+  .btn-primary {
+    @apply btn font-semibold bg-primary text-white border-primary
+      shadow-md shadow-primary hover:shadow-lg hover:shadow-primary-lg hover:-translate-y-0.5
+      hover:bg-secondary hover:border-secondary
+      dark:bg-primary dark:border-primary dark:shadow-primary-dark dark:hover:border-secondary dark:hover:bg-secondary;
+  }
+
+  .btn-secondary {
+    @apply btn border-2 hover:border-gray-500 dark:hover:border-slate-400;
+  }
+
+  .btn-tertiary {
+    @apply btn border-none shadow-none text-muted hover:text-gray-900 dark:text-gray-400 dark:hover:text-white;
+  }
+
+  /* Hero overlay: buttons always legible and polished on dark background */
+  .hero-overlay-actions .btn {
+    @apply rounded-none min-w-[11rem] px-8 py-4;
+  }
+
+  .hero-overlay-actions .btn-primary {
+    @apply text-primary bg-white border-white shadow-lg hover:bg-white/95 hover:border-white hover:text-secondary hover:shadow-xl hover:-translate-y-0.5
+      dark:bg-white dark:text-primary dark:border-white dark:hover:bg-white/90 dark:hover:text-secondary;
+  }
+
+  .hero-overlay-actions .btn-secondary {
+    @apply text-white border-2 border-white/90 bg-white/5 backdrop-blur-sm
+      hover:bg-white/25 hover:border-white hover:shadow-md;
+  }
+}
+
+/*
+ * Site header: always on top (fixed so it never renders under hero/main)
+ * - #header: fixed + high z-index on all viewports
+ * - .nav-drawer-backdrop: 50 (below header so drawer sits on top of overlay)
+ * - .astronav-sticky-header: z-[100] (header bar; drawer .astronav-items has 9999 inside it)
+ */
+#header {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: auto !important;
+  z-index: 10000 !important;
+}
+
+main {
+  position: relative;
+  z-index: 0;
+}
+
+/* First block under header: clear fixed header.
+ * Header is ~4rem (64px) tall.
+ * Hero component handles its own offset/spacing, but generic pages need enough padding.
+ * We use 3.5rem for mobile and 4rem for desktop.
+ */
+main > *:first-child {
+  padding-top: 3.5rem !important; /* mobile */
+}
+@media (min-width: 768px) {
+  main > *:first-child {
+    padding-top: 4rem !important; /* desktop */
+  }
+}
+
+/* Site navbar: red header – always primary so it never flashes white */
+#header .site-header {
+  border-bottom: none;
+}
+
+/* Desktop nav: vertical dividers between links (“a line within” the pages) */
+@media (min-width: 768px) {
+  #header .nav-drawer-links > li {
+    position: relative;
+  }
+  #header .nav-drawer-links > li:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: -0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1px;
+    height: 1rem;
+    background: rgba(255, 255, 255, 0.35);
+    pointer-events: none;
+  }
+}
+
+/* astro-navbar StickyHeader: scroll state – keep red (header bar never white) */
+#header .astronav-sticky-header,
+#header .astronav-sticky-header > div:first-child {
+  background-color: var(--aw-color-primary) !important;
+}
+#header .astronav-sticky-header.is-active > div:first-child,
+.dark #header .astronav-sticky-header.is-active > div:first-child,
+#header .astronav-sticky-header.is-active.dark > div:first-child {
+  background-color: var(--aw-color-primary) !important;
+}
+
+/* Mobile: scroll lock when drawer is open – body fixed so page doesn’t jump on close */
+@media (max-width: 767px) {
+  body.nav-drawer-open {
+    position: fixed;
+    left: 0;
+    right: 0;
+    width: 100%;
+    overflow: hidden;
+    /* top set by JS to -scrollY so viewport stays in place */
+  }
+}
+
+/* astro-navbar: mobile nav = sleek right-side slide-in panel */
+@media (max-width: 767px) {
+  #header:has(.astronav-items:not(.hidden)) {
+    overflow: visible;
+  }
+  #header:has(.astronav-items:not(.hidden)) .astronav-sticky-header {
+    will-change: auto;
+    transform: none;
+    overflow: visible;
+  }
+
+  /* Right-side drawer: narrower, starts at top; close row = header height so they align */
+  #header .astronav-items {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: auto !important;
+    width: min(16rem, 72vw) !important;
+    max-width: 16rem !important;
+    height: 100dvh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    padding-top: 0 !important;
+    padding-bottom: 1rem !important;
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+    background: var(--aw-color-bg-page, #fff) !important;
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12);
+    border-left: 1px solid rgba(0, 0, 0, 0.08);
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    z-index: 9999;
+    margin: 0 !important;
+    transform: translateX(100%);
+    visibility: visible !important;
+  }
+  /* Top row (Home + Close): same height and separator as list rows for one unified menu */
+  #header .astronav-items .nav-drawer-header {
+    flex-shrink: 0;
+  }
+  /* Same row height for Home row and all list items = even spacing */
+  #header .astronav-items .nav-drawer-home {
+    min-height: 2.75rem;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #header .astronav-items {
+      transition: none;
+    }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    #header .astronav-items {
+      transition:
+        transform 0.28s cubic-bezier(0.32, 0.72, 0, 1),
+        box-shadow 0.28s ease;
+    }
+  }
+
+  #header .astronav-items:not(.hidden) {
+    transform: translateX(0);
+    box-shadow: -8px 0 32px rgba(0, 0, 0, 0.15);
+  }
+
+  .dark #header .astronav-items {
+    background: var(--aw-color-bg-page-dark, #242424) !important;
+    border-left-color: rgba(255, 255, 255, 0.08);
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.3);
+  }
+
+  .dark #header .astronav-items:not(.hidden) {
+    box-shadow: -8px 0 32px rgba(0, 0, 0, 0.4);
+  }
+
+  /* Drawer list: subtle separators matching page */
+  #header .astronav-items ul li {
+    border-bottom-color: rgba(0, 0, 0, 0.06);
+  }
+  .dark #header .astronav-items ul li {
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+  }
+
+  #header .astronav-items ul {
+    width: 100%;
+    max-width: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+
+  /* Drawer nav links: same height as top row for even spacing */
+  #header .astronav-items ul a {
+    min-height: 2.75rem;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Backdrop when menu is open: tap to close; z-index 50 so it stays below header (z-[100]) */
+  #header .nav-drawer-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: 50;
+    opacity: 0;
+    pointer-events: none;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    #header .nav-drawer-backdrop {
+      transition: opacity 0.28s ease;
+    }
+  }
+  #header:has(.astronav-items:not(.hidden)) .nav-drawer-backdrop {
+    display: block;
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+/* Desktop: drawer same width as the single menu item (e.g. "How We Win"), aligned to it */
+@media (min-width: 768px) {
+  #header .nav-drawer-links > li.dropdown {
+    min-width: max-content; /* li at least as wide as "How We Win" + chevron */
+  }
+}
+#header .dropdown {
+  position: relative;
+}
+#header .dropdown-menu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  width: 100%;
+  min-width: 100%;
+  box-sizing: border-box;
+  z-index: 50;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-0.5rem);
+  visibility: hidden;
+  background: var(--aw-color-bg-page, #fff);
+  border: 1px solid rgba(0 0 0 / 0.08);
+  border-top: none;
+  border-radius: 0;
+  box-shadow: 0 4px 12px rgba(0 0 0 / 0.06);
+  pointer-events: none;
+  transition:
+    opacity 0.2s ease,
+    transform 0.25s ease-out,
+    max-height 0.3s ease-out,
+    visibility 0s linear 0.25s;
+}
+#header .dropdown:focus .dropdown-menu,
+#header .dropdown:focus-within .dropdown-menu,
+#header .dropdown:hover .dropdown-menu {
+  max-height: 6rem;
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    opacity 0.2s ease,
+    transform 0.25s ease-out,
+    max-height 0.3s ease-out,
+    visibility 0s linear 0s;
+}
+#header .dropdown-menu .nav-dropdown-list,
+#header .dropdown-menu .nav-chips-wrap {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem 0;
+}
+#header .dropdown-menu .nav-chips-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+#header .dropdown-menu .nav-chip {
+  display: inline-block;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--aw-color-primary);
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    color 0.15s ease;
+}
+#header .dropdown-menu .nav-chip:hover,
+#header .dropdown-menu .nav-chip:focus-visible {
+  background: rgba(0 0 0 / 0.1);
+  color: var(--aw-color-secondary, #960a26);
+}
+#header .dropdown-menu .nav-chip--current {
+  color: var(--aw-color-primary);
+  font-weight: 600;
+  background: rgba(0 0 0 / 0.08);
+}
+#header .dropdown-menu .nav-chip:focus-visible {
+  outline: 2px solid var(--aw-color-primary);
+  outline-offset: 2px;
+}
+#header .dropdown-menu .nav-dropdown-link {
+  display: block;
+  padding: 0.375rem 1rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--aw-color-primary);
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+#header .dropdown-menu .nav-dropdown-link:hover,
+#header .dropdown-menu .nav-dropdown-link:focus-visible {
+  background: rgba(0 0 0 / 0.06);
+  color: var(--aw-color-secondary, #960a26);
+}
+#header .dropdown-menu .nav-dropdown-link--current {
+  color: var(--aw-color-primary);
+  font-weight: 600;
+}
+#header .dropdown-menu .nav-dropdown-link:focus-visible {
+  outline: 2px solid var(--aw-color-primary);
+  outline-offset: 2px;
+}
+.dark #header .dropdown-menu {
+  background: var(--aw-color-bg-page-dark, #242424);
+  border-bottom-color: rgba(255 255 255 / 0.08);
+  box-shadow: 0 4px 12px rgba(0 0 0 / 0.2);
+}
+.dark #header .dropdown-menu .nav-dropdown-link {
+  color: var(--aw-color-primary);
+}
+.dark #header .dropdown-menu .nav-dropdown-link:hover,
+.dark #header .dropdown-menu .nav-dropdown-link:focus-visible {
+  background: rgba(255 255 255 / 0.08);
+  color: var(--aw-color-primary);
+}
+.dark #header .dropdown-menu .nav-chip {
+  color: var(--aw-color-primary);
+  background: rgba(255 255 255 / 0.08);
+}
+.dark #header .dropdown-menu .nav-chip:hover,
+.dark #header .dropdown-menu .nav-chip:focus-visible {
+  background: rgba(255 255 255 / 0.12);
+  color: var(--aw-color-primary);
+}
+.dark #header .dropdown-menu .nav-chip--current {
+  background: rgba(255 255 255 / 0.1);
+}
+
+/* Mobile: submenu panel slides in from right */
+#header .nav-submenu-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  margin-left: 0.25rem;
+  border: none;
+  border-radius: 0.375rem;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    background-color 0.12s ease;
+}
+#header .nav-submenu-toggle:hover {
+  background: rgba(0 0 0 / 0.06);
+}
+.dark #header .nav-submenu-toggle:hover {
+  background: rgba(255 255 255 / 0.08);
+}
+#header .dropdown.is-open .nav-submenu-toggle {
+  transform: rotate(180deg);
+}
+#header .nav-submenu-toggle:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+@media (min-width: 768px) {
+  #header .nav-submenu-toggle {
+    display: none;
+  }
+}
+
+/* Mobile: when a dropdown is open, its li fills the drawer so the panel can overlay */
+@media (max-width: 767px) {
+  #header .astronav-items .nav-drawer-links > li.dropdown.is-open {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    z-index: 10;
+    border: none;
+  }
+}
+
+/* Mobile submenu panel: overlay in drawer, slides in from right */
+#header .nav-submenu-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--aw-color-bg-page, #fff);
+  z-index: 10;
+  transform: translateX(100%);
+  visibility: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+#header .dropdown.is-open .nav-submenu-panel {
+  visibility: visible;
+  transform: translateX(0);
+}
+@media (prefers-reduced-motion: no-preference) {
+  #header .nav-submenu-panel {
+    transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+}
+.dark #header .nav-submenu-panel {
+  background: var(--aw-color-bg-page-dark, #242424);
+}
+#header .nav-submenu-back {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: var(--aw-color-text-page, #1a1a1a);
+  background: rgba(0 0 0 / 0.04);
+  border: none;
+  border-bottom: 1px solid rgba(0 0 0 / 0.08);
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+#header .nav-submenu-back:hover {
+  background: rgba(0 0 0 / 0.08);
+}
+#header .nav-submenu-back:focus-visible {
+  outline: 2px solid var(--aw-color-primary);
+  outline-offset: -2px;
+}
+.dark #header .nav-submenu-back {
+  color: var(--aw-color-text-page, #e2e8f0);
+  background: rgba(255 255 255 / 0.06);
+  border-bottom-color: rgba(255 255 255 / 0.08);
+}
+.dark #header .nav-submenu-back:hover {
+  background: rgba(255 255 255 / 0.1);
+}
+#header .nav-submenu-panel-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+}
+#header .nav-submenu-panel-list li {
+  border-bottom: 1px solid rgba(0 0 0 / 0.06);
+}
+.dark #header .nav-submenu-panel-list li {
+  border-bottom-color: rgba(255 255 255 / 0.06);
+}
+#header .nav-submenu-panel-list a {
+  display: flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+}
+
+[astro-icon].icon-light > * {
+  stroke-width: 1.2;
+}
+
+[astro-icon].icon-bold > * {
+  stroke-width: 2.4;
+}
+
+[data-aw-toggle-menu] path {
+  @apply transition;
+}
+[data-aw-toggle-menu].expanded g > path:first-child {
+  @apply -rotate-45 translate-y-[15px] translate-x-[-3px];
+}
+
+[data-aw-toggle-menu].expanded g > path:last-child {
+  @apply rotate-45 translate-y-[-8px] translate-x-[14px];
+}
+
+/* To deprecated */
+
+.dd *:first-child {
+  margin-top: 0;
+}

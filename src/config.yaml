@@ -1,0 +1,67 @@
+site:
+  name: Local 34-UNITE HERE!
+  site: https://dev.local34.org
+  base: /
+  trailingSlash: false
+  googleSiteVerificationId: null # Set to your Google Search Console ID when ready
+
+metadata:
+  title:
+    default: Local 34-UNITE HERE!
+    template: '%s — Local 34-UNITE HERE!'
+  description: The Union of Clerical & Technical Workers at Yale. Local 34-UNITE HERE.
+  robots:
+    index: true
+    follow: true
+  openGraph:
+    site_name: Local 34-UNITE HERE!
+    images:
+      - url: '~/assets/images/default.png'
+        width: 1200
+        height: 628
+    type: website
+  twitter:
+    handle: '@34unitehere'
+    site: '@34unitehere'
+    cardType: summary_large_image
+
+i18n:
+  language: en
+  textDirection: ltr
+
+apps:
+  blog:
+    isEnabled: false
+    postsPerPage: 6
+    post:
+      isEnabled: true
+      permalink: 'blog/%slug%'
+      robots:
+        index: true
+        follow: true
+    list:
+      isEnabled: true
+      pathname: blog
+      robots:
+        index: true
+        follow: true
+    category:
+      isEnabled: false
+      pathname: category
+      robots:
+        index: false
+    tag:
+      isEnabled: false
+      pathname: tag
+      robots:
+        index: false
+    isRelatedPostsEnabled: false
+    relatedPostsCount: 4
+
+analytics:
+  vendors:
+    googleAnalytics:
+      id: null # e.g. "G-XXXXXXXXXX"
+
+ui:
+  theme: system # system | light | dark | light:only | dark:only

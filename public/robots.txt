@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://local34.org/sitemap-index.xml

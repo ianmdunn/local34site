@@ -1,0 +1,99 @@
+---
+import Image from '~/components/common/Image.astro';
+import { PAGE_SECTION_CLASS } from '~/lib/layout';
+import PostTags from '~/components/blog/Tags.astro';
+import SocialShare from '~/components/common/SocialShare.astro';
+
+import { getPermalink, getCanonical } from '~/utils/permalinks';
+import { getFormattedDate } from '~/utils/utils';
+
+import type { Post } from '~/types';
+
+export interface Props {
+  post: Post;
+  url: string | URL;
+}
+
+const { post, url } = Astro.props;
+---
+
+<section class={PAGE_SECTION_CLASS}>
+  <article>
+    <div class="mx-auto max-w-5xl w-full">
+      <header
+        class={post.image
+          ? 'intersect-once intersect-quarter motion-safe:md:opacity-0 motion-safe:md:intersect:animate-fade'
+          : 'intersect-once intersect-quarter motion-safe:md:opacity-0 motion-safe:md:intersect:animate-fade'}
+      >
+        <div class="flex justify-between flex-col sm:flex-row mt-0 mb-2 sm:items-center">
+          <p>
+            <time datetime={String(post.publishDate)} class="inline-block">{getFormattedDate(post.publishDate)}</time>
+            {
+              post.author && (
+                <>
+                  {' '}
+                  · <span class="inline-block">{post.author}</span>
+                </>
+              )
+            }
+            {
+              post.category && (
+                <>
+                  {' '}
+                  ·{' '}
+                  <a
+                    class="hover:underline inline-block"
+                    href={String(getCanonical(getPermalink(post.category.slug, 'category')))}
+                  >
+                    {post.category.title}
+                  </a>
+                </>
+              )
+            }
+            {
+              post.readingTime && (
+                <>
+                  &nbsp;· <span>{post.readingTime}</span> min read
+                </>
+              )
+            }
+          </p>
+        </div>
+
+        <h1 class="text-3xl md:text-4xl font-bold leading-tighter tracking-tighter font-heading">
+          {post.title}
+        </h1>
+        <p class="mt-4 mb-8 text-lg text-muted dark:text-slate-400 text-justify">
+          {post.excerpt}
+        </p>
+
+        {
+          post.image ? (
+            <Image
+              src={post.image}
+              class="max-w-full lg:max-w-[900px] mx-auto mb-6 sm:rounded-md bg-gray-400 dark:bg-gray-700"
+              widths={[400, 900]}
+              sizes="(max-width: 900px) 400px, 900px"
+              alt={post?.excerpt || ''}
+              width={typeof post.image === 'object' && post.image?.width != null ? post.image.width : 900}
+              height={typeof post.image === 'object' && post.image?.height != null ? post.image.height : 506}
+              loading="eager"
+              decoding="async"
+            />
+          ) : (
+            <div class="border-t dark:border-slate-700" />
+          )
+        }
+      </header>
+      <div
+        class="prose prose-sm dark:prose-invert dark:prose-headings:text-slate-300 prose-headings:font-heading prose-headings:leading-tighter prose-headings:tracking-tighter prose-headings:font-bold prose-a:text-primary dark:prose-a:text-primary prose-img:rounded-md prose-img:shadow-lg mt-8 prose-headings:scroll-mt-[80px] prose-li:my-0"
+      >
+        <slot />
+      </div>
+      <div class="mt-8 flex justify-between flex-col sm:flex-row">
+        <PostTags tags={post.tags} class="mr-5 rtl:mr-0 rtl:ml-5" />
+        <SocialShare url={url} text={post.title} class="mt-5 sm:mt-1 align-middle text-gray-500 dark:text-slate-600" />
+      </div>
+    </div>
+  </article>
+</section>

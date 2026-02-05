@@ -1,0 +1,29 @@
+---
+/**
+ * Theme card – uses site background, border, shadow, optional primary accent.
+ * Use for content blocks that need a contained, elevated panel.
+ */
+import { twMerge } from 'tailwind-merge';
+
+export interface Props {
+  variant?: 'default' | 'primary' | 'muted' | 'success' | 'warning';
+  class?: string;
+  as?: 'div' | 'article' | 'section';
+}
+
+const { variant = 'default', class: className = '', as: Tag = 'div' } = Astro.props;
+
+const base =
+  'rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-gray-800/95 text-default shadow-lg dark:shadow-none overflow-hidden p-6';
+const variants = {
+  default: '',
+  primary: 'border-l-4 border-l-primary',
+  muted: 'bg-slate-50 dark:bg-gray-800/80',
+  success: 'border-l-4 border-l-green-500',
+  warning: 'border-l-4 border-l-yellow-500',
+};
+---
+
+<Tag class={twMerge(base, variants[variant], className)}>
+  <slot />
+</Tag>

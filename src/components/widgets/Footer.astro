@@ -1,0 +1,66 @@
+---
+import { SITE } from 'astrowind:config';
+import { getCanonical } from '~/utils/permalinks';
+
+interface Link {
+  text?: string;
+  href?: string;
+  ariaLabel?: string;
+}
+
+export interface Props {
+  socialLinks?: Array<Link>;
+  footNote?: string;
+  theme?: string;
+  address?: { name: string; line1: string; cityStateZip: string };
+  privacyPolicyUrl?: string;
+}
+
+const { socialLinks = [], footNote = '', theme = 'light', address, privacyPolicyUrl } = Astro.props;
+const isDark = theme === 'dark';
+---
+
+<footer
+  id="site-footer"
+  class:list={[isDark && 'dark', 'border-t border-gray-200 dark:border-slate-700 bg-white dark:bg-page not-prose']}
+>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1.5">
+    <div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-0.5 text-xs">
+      <a
+        href={String(getCanonical('/'))}
+        class="font-bold text-gray-900 dark:text-white hover:text-gray-600 dark:hover:text-slate-300 transition-colors shrink-0"
+      >
+        {SITE?.name ?? 'Local 34-UNITE HERE!'}
+      </a>
+      {
+        address && (
+          <address class="not-italic inline text-gray-500 dark:text-slate-400 shrink-0">
+            <span class="text-gray-600 dark:text-slate-400">
+              {address.line1}, {address.cityStateZip}
+            </span>
+          </address>
+        )
+      }
+      {footNote && <span class="text-gray-500 dark:text-slate-400 shrink-0">{footNote}</span>}
+      {
+        privacyPolicyUrl && (
+          <a
+            href={privacyPolicyUrl}
+            target="_blank"
+            rel="noopener"
+            class="text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white transition-colors shrink-0"
+          >
+            Privacy Policy
+          </a>
+        )
+      }
+      <a
+        href="#header"
+        class="text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 rounded"
+        aria-label="Back to top of page"
+      >
+        Back to top
+      </a>
+    </div>
+  </div>
+</footer>

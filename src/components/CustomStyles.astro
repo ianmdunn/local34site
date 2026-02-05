@@ -1,0 +1,131 @@
+---
+// Base font: IBM Plex Sans from Typekit (iqy5xra). Import in tailwind.css.
+// Import font so Vite resolves URL in dev and build. Inline URL in @font-face (var() is not valid in @font-face).
+import fontUrl from '~/assets/fonts/geometr415-blk-bt-black.ttf?url';
+
+// 'DM Sans'
+// Nunito
+// Dosis
+// Outfit
+// Roboto
+// Literata
+// 'IBM Plex Sans'
+// Karla
+// Poppins
+// 'Fira Sans'
+// 'Libre Franklin'
+// Inconsolata
+// Raleway
+// Oswald
+// 'Space Grotesk'
+// Urbanist
+---
+
+<style
+  is:inline
+  set:html={`/* Geometr415 Blk BT Black – hero “UNITE HERE!” */
+@font-face {
+  font-family: 'Geometr415 Blk BT';
+  src: url("${fontUrl}") format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+  /* Hero title: wrapper fits to “UNITE HERE!”, “Local 34” scales to match that width */
+  .hero-title-wrap {
+    display: inline-block;
+    text-align: center;
+    line-height: 1.1;
+  }
+  .hero-title-line1 {
+    display: block;
+    width: 100%;
+    font-size: 1.22em;
+    letter-spacing: 0.02em;
+    margin-bottom: -0.75em;
+    white-space: nowrap;
+  }
+  /* Shared Geometric font for “UNITE HERE!” in header and hero */
+  .font-geometric,
+  .hero-title-unite {
+    font-family: 'Geometr415 Blk BT', var(--aw-font-heading), sans-serif;
+  }
+  .hero-title-unite {
+    margin-top: -1em;
+    white-space: nowrap;
+  }
+  /* Home page: hero title ~2.1x (3x then shrunk 30%) */
+  #home-hero .hero-title-wrap {
+    font-size: 3rem;
+  }
+  @media (min-width: 480px) {
+    #home-hero .hero-title-wrap {
+      font-size: 4rem;
+    }
+  }
+  @media (min-width: 768px) {
+    #home-hero .hero-title-wrap {
+      font-size: 6.3rem;
+    }
+  }
+  /* Header: shift “Local 34” up so baseline lines up with “UNITE HERE!” (Geometric) */
+  .header-title-local {
+    vertical-align: 1rem;
+  }
+  /* Header: always red in light mode on all pages (override any bg-page or theme) */
+  :root:not(.dark) #header .site-header,
+  :root:not(.dark) #header .astronav-sticky-header,
+  :root:not(.dark) #header .astronav-sticky-header > div:first-child {
+    background-color: var(--aw-color-primary) !important;
+  }
+
+  /* Primary red #ba0c2f; dark mode = charcoal. Typekit (iqy5xra): ibm-plex-sans, ibm-plex-serif, ibm-plex-sans-condensed, ibm-plex-mono, archer-pro. */
+  :root {
+    --aw-font-sans: ibm-plex-sans, sans-serif;
+    --aw-font-serif: "ibm-plex-serif", serif;
+    --aw-font-heading: archer-pro, sans-serif;
+    --aw-font-condensed: ibm-plex-sans-condensed, sans-serif;
+    --aw-font-mono: ibm-plex-mono, monospace;
+
+    --aw-color-primary: #ba0c2f;
+    --aw-color-secondary: #960a26;
+    --aw-color-accent: #ba0c2f;
+
+    --aw-color-text-heading: rgb(0 0 0);
+    --aw-color-text-default: rgb(16 16 16);
+    --aw-color-text-page: rgb(16 16 16);
+    --aw-color-text-muted: rgb(16 16 16 / 66%);
+    --aw-color-bg-page: rgb(255 255 255);
+
+    --aw-color-bg-page-dark: rgb(36 36 36);
+
+    ::selection {
+      background-color: color-mix(in srgb, #ba0c2f 25%, white);
+    }
+  }
+
+  .dark {
+    --aw-font-sans: ibm-plex-sans, sans-serif;
+    --aw-font-serif: "ibm-plex-serif", serif;
+    --aw-font-heading: archer-pro, sans-serif;
+    --aw-font-condensed: ibm-plex-sans-condensed, sans-serif;
+    --aw-font-mono: ibm-plex-mono, monospace;
+
+    --aw-color-primary: #ba0c2f;
+    --aw-color-secondary: #d00e38;
+    --aw-color-accent: #ba0c2f;
+
+    --aw-color-text-heading: rgb(247 248 248);
+    --aw-color-text-default: rgb(229 236 246);
+    --aw-color-text-page: rgb(229 236 246);
+    --aw-color-text-muted: rgb(229 236 246 / 66%);
+    --aw-color-bg-page: rgb(36 36 36);
+    --aw-color-bg-page-dark: rgb(36 36 36);
+
+    ::selection {
+      background-color: color-mix(in srgb, #ba0c2f 40%, black);
+      color: rgb(255 255 255);
+    }
+  }
+`}
+></style>

@@ -1,0 +1,178 @@
+---
+/**
+ * About page (/who-we-are)
+ *
+ * Content source: sitePages/about.md.
+ * Leaders list: xlsx (src/data/2026-l34-eboard.xlsx or 2026 L34 E-Board List.xlsx).
+ */
+import PageLayout from '~/layouts/PageLayout.astro';
+import Card from '~/components/ui/Card.astro';
+import { PAGE_SECTION_CLASS } from '~/lib/layout';
+import { getEboardFromXlsx } from '~/lib/eboard';
+import { footerData } from '~/navigation';
+import { getCollection, type RenderResult } from 'astro:content';
+
+const sitePages = await getCollection('sitePages');
+const aboutEntry = sitePages.find((p) => p.slug === 'about');
+const aboutData = aboutEntry?.data ?? { title: 'Who We Are', description: '' };
+const { officersAndStaff, executiveBoard } = await getEboardFromXlsx();
+
+const pageMetadata = {
+  title: aboutData.title,
+  description: 'description' in aboutData ? aboutData.description : undefined,
+};
+
+let Content: RenderResult['Content'] | null = null;
+if (aboutEntry) {
+  const rendered = await aboutEntry.render();
+  Content = rendered.Content;
+}
+
+const proseClass =
+  'prose prose-sm max-w-none dark:prose-invert dark:prose-headings:text-slate-300 prose-headings:font-heading prose-headings:leading-tighter prose-headings:tracking-tighter prose-headings:font-bold prose-a:text-primary dark:prose-a:text-primary prose-img:rounded-md prose-img:shadow-lg mt-8 prose-ul:my-3 prose-li:my-0.5 prose-p:my-2';
+---
+
+<PageLayout metadata={pageMetadata}>
+  <section class={PAGE_SECTION_CLASS}>
+    <div class="page-title-section mx-auto max-w-7xl w-full">
+    <h1 class="font-bold font-heading text-3xl md:text-4xl leading-tighter tracking-tighter">
+        {aboutData.title}
+      </h1>
+
+      <div class="mt-8 md:mt-10">
+        <h2 class="font-bold font-heading text-xl md:text-2xl leading-tight tracking-tight text-gray-900 dark:text-white mt-0 mb-6 md:mb-8">
+          As a union, we work for:
+        </h2>
+        <div class="grid gap-6 sm:gap-8 md:grid-cols-3">
+          <Card variant="primary" class="flex flex-col">
+            <div class="mb-4 text-primary" aria-hidden="true">
+              <svg class="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m3 11 18-5v12L3 14v-3z" />
+                <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" />
+              </svg>
+            </div>
+            <h3 class="font-bold font-heading text-lg leading-tight tracking-tight text-gray-900 dark:text-white mt-0 mb-2">
+              A voice in the workplace
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mt-0 flex-grow">
+              We build unity in our workplace so that we can speak together with a strong voice.
+            </p>
+          </Card>
+          <Card variant="primary" class="flex flex-col">
+            <div class="mb-4 text-primary" aria-hidden="true">
+              <svg class="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+              </svg>
+            </div>
+            <h3 class="font-bold font-heading text-lg leading-tight tracking-tight text-gray-900 dark:text-white mt-0 mb-2">
+              Respect and opportunities
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mt-0 flex-grow">
+              We negotiate contracts to create the best possible working conditions and secure great wages and benefits.
+            </p>
+          </Card>
+          <Card variant="primary" class="flex flex-col">
+            <div class="mb-4 text-primary" aria-hidden="true">
+              <svg class="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
+                <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
+                <path d="M7 21h10" />
+                <path d="M12 3v18" />
+                <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" />
+              </svg>
+            </div>
+            <h3 class="font-bold font-heading text-lg leading-tight tracking-tight text-gray-900 dark:text-white mt-0 mb-2">
+              Fairness
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mt-0 flex-grow">
+              We represent members on issues that matter to them and advocate to improve conditions for all working people in New Haven and beyond.
+            </p>
+          </Card>
+        </div>
+      </div>
+
+      <div class={proseClass}>{Content ? <Content /> : null}</div>
+
+      <div class="mt-10">
+        <h2
+          class="font-bold font-heading text-lg md:text-xl leading-tight tracking-tight text-gray-900 dark:text-white mt-0 mb-2"
+        >
+          Local 34 Officers & Staff
+        </h2>
+        <ul
+          class="columns-1 sm:columns-2 lg:columns-3 gap-x-8 list-none pl-0 mb-0 leading-snug w-full [column-fill:balance]"
+        >
+          {
+            officersAndStaff.map((person) => (
+              <li class="break-inside-avoid py-px mb-px">
+                {person.email ? (
+                  <a
+                    href={`mailto:${person.email}`}
+                    class="font-semibold text-sm text-primary hover:underline dark:text-primary"
+                  >
+                    {person.name}
+                  </a>
+                ) : (
+                  <span class="font-semibold text-gray-900 dark:text-white text-sm">{person.name}</span>
+                )}
+                <span class="text-gray-600 dark:text-gray-400 text-xs"> — {person.title}</span>
+              </li>
+            ))
+          }
+        </ul>
+
+        <h2
+          class="font-bold font-heading text-lg md:text-xl leading-tight tracking-tight text-gray-900 dark:text-white mt-6 mb-2"
+        >
+          Executive Board
+        </h2>
+        <ul
+          class="columns-1 sm:columns-2 lg:columns-3 gap-x-8 list-none pl-0 mb-0 leading-snug w-full [column-fill:balance]"
+        >
+          {
+            executiveBoard.map((person) => (
+              <li class="break-inside-avoid py-px mb-px">
+                {person.email ? (
+                  <a
+                    href={`mailto:${person.email}`}
+                    class="font-semibold text-sm text-primary hover:underline dark:text-primary"
+                  >
+                    {person.name}
+                  </a>
+                ) : (
+                  <span class="font-semibold text-gray-900 dark:text-white text-sm">{person.name}</span>
+                )}
+                <span class="text-gray-600 dark:text-gray-400 text-xs"> — {person.area}</span>
+              </li>
+            ))
+          }
+        </ul>
+
+        {footerData.address && (
+          <div class="mt-10 pt-8 border-t border-gray-200 dark:border-gray-600">
+            <h2
+              class="font-bold font-heading text-lg md:text-xl leading-tight tracking-tight text-gray-900 dark:text-white mt-0 mb-3"
+            >
+              Union office
+            </h2>
+            <address class="not-italic text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+              <span class="font-semibold text-gray-900 dark:text-white">{footerData.address.name}</span><br />
+              {footerData.address.line1}<br />
+              {footerData.address.cityStateZip}
+            </address>
+            <p class="mt-3 text-sm">
+              <a
+                href={footerData.links.find((l) => l.text === 'Contact')?.href ?? '/contact'}
+                class="text-primary hover:underline font-medium"
+              >
+                Contact us
+              </a>
+              {' '}for general inquiries.
+            </p>
+          </div>
+        )}
+      </div>
+        </div>
+  </section>
+</PageLayout>

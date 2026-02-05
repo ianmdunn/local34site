@@ -1,0 +1,154 @@
+---
+/**
+ * How We Win – Local 34
+ *
+ * Cloned from local34.org/how-we-win/
+ * Sections: YOU!, Our Allies, Dues.
+ */
+import PageLayout from '~/layouts/PageLayout.astro';
+import { PAGE_SECTION_CLASS } from '~/lib/layout';
+import { getAsset, getPermalink } from '~/utils/permalinks';
+
+const metadata = {
+  title: 'How We Win',
+  description:
+    'Our union wins through member engagement, strong allies, and dues that fund organizing, training, negotiations, and member services. Local 34-UNITE HERE.',
+};
+
+const sectionIds = {
+  you: 'you',
+  allies: 'our-allies',
+  dues: 'dues',
+} as const;
+
+const allies = [
+  { name: 'Local 35', href: 'https://www.local35.org', logo: getAsset('how-we-win/local-35.svg') },
+  { name: 'Local 33', href: 'https://www.local33.org', logo: getAsset('how-we-win/local-33.svg') },
+  { name: 'Local 217', href: 'https://www.unitehere.org', logo: getAsset('how-we-win/local-217.svg') },
+  { name: 'New Haven Rising', href: 'https://www.newhavenrising.org', logo: getAsset('how-we-win/nhr.svg') },
+  { name: 'SUN', href: 'https://www.studentlaborunited.org', logo: getAsset('how-we-win/sun.svg') },
+];
+
+const duesActivities = [
+  'Organizing to engage members on important issues',
+  'Training & support for stewards',
+  'Contract negotiations, such as for healthcare & wages',
+  'Communications like newsletters & contract education',
+  'Legal services & national support',
+];
+---
+
+<PageLayout metadata={metadata}>
+  <section class={PAGE_SECTION_CLASS}>
+    <div class="page-title-section mx-auto max-w-7xl w-full">
+      <h1 class="font-bold font-heading text-3xl md:text-4xl leading-tighter tracking-tighter">How We Win</h1>
+    </div>
+  </section>
+
+  <!-- 1. YOU! -->
+  <section class="how-we-win-section" id={sectionIds.you}>
+    <div class="page-container">
+      <div class="mx-auto max-w-5xl w-full">
+        <h2 class="font-heading font-bold text-lg leading-tight m-0 mb-3 text-default dark:text-slate-200">1. YOU!</h2>
+        <p class="m-0 mb-4 text-muted dark:text-slate-400 leading-relaxed">
+          Our union's structure aims to engage every member. The more members get involved in the union, the more power
+          we have.
+        </p>
+        <figure class="my-6">
+          <img
+            src={getAsset('how-we-win/organizational-structure.png')}
+            alt="Organizational chart: Elected Officers, Executive Board, Committee, and Members, with arrows showing how each level connects."
+            width="800"
+            height="400"
+            class="w-full max-w-2xl h-auto rounded-lg border border-slate-200 dark:border-slate-600"
+            loading="lazy"
+          />
+        </figure>
+        <a
+          href={getPermalink('/who-we-are')}
+          class="inline-flex items-center gap-1.5 font-semibold text-primary no-underline hover:underline"
+        >
+          Our Structure
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Our Allies -->
+  <section class="how-we-win-section" id={sectionIds.allies}>
+    <div class="page-container">
+      <div class="mx-auto max-w-5xl w-full">
+        <header class="mb-4">
+          <h2 class="font-heading font-bold text-lg m-0 text-default dark:text-slate-200">2. Our Allies</h2>
+        </header>
+        <ul class="how-we-win-allies" role="list">
+          {
+            allies.map((ally) => (
+              <li>
+                <a
+                  href={ally.href}
+                  target="_blank"
+                  rel="noopener"
+                  class="how-we-win-ally flex flex-col items-center justify-center gap-2 py-3 text-default dark:text-slate-200 no-underline font-medium text-sm hover:text-primary transition-colors"
+                  title={ally.name}
+                >
+                  <img
+                    src={ally.logo}
+                    alt=""
+                    width="120"
+                    height="120"
+                    class="how-we-win-ally__logo w-[120px] h-[120px] object-contain"
+                    loading="lazy"
+                    aria-hidden="true"
+                  />
+                  <span class="text-center">{ally.name}</span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. Dues -->
+  <section class="how-we-win-section" id={sectionIds.dues}>
+    <div class="page-container">
+      <div class="mx-auto max-w-5xl w-full">
+        <h2 class="font-heading font-bold text-lg leading-tight m-0 mb-3 text-default dark:text-slate-200">3. Dues</h2>
+        <p class="m-0 mb-4 text-muted dark:text-slate-400 leading-relaxed">
+          We are a self-sustaining, not-for-profit organization, whose operating budget comes from dues set by the
+          members of our Union. Our independence enables us to provide resources to negotiate and advocate effectively
+          with our employer and to develop programs that reflect members' needs.
+        </p>
+        <p class="font-semibold mt-4 mb-2 text-default dark:text-slate-200">Activities funded by our dues include:</p>
+        <ul class="list-disc list-outside mb-4 pl-6 text-muted dark:text-slate-400 leading-relaxed space-y-1.5">
+          {duesActivities.map((item) => <li>{item}</li>)}
+        </ul>
+        <p class="m-0 text-sm text-muted dark:text-slate-400 italic">
+          Members receive reports on our Union's finances at quarterly membership meetings.
+        </p>
+      </div>
+    </div>
+  </section>
+</PageLayout>
+
+<style>
+  .how-we-win-section {
+    padding: 1.25rem 0 1.75rem;
+  }
+  .how-we-win-section:last-of-type {
+    padding-bottom: 2.5rem;
+  }
+  .how-we-win-allies {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 1rem;
+  }
+  .how-we-win-ally__logo {
+    flex-shrink: 0;
+  }
+</style>

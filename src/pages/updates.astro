@@ -1,0 +1,22 @@
+---
+/**
+ * Updates page (/updates). Blog is disabled; this is a placeholder.
+ */
+import PageLayout from '~/layouts/PageLayout.astro';
+import { getPermalink } from '~/utils/permalinks';
+---
+
+<PageLayout
+  metadata={{
+    title: 'Updates',
+    description: 'News and updates from Local 34-UNITE HERE.',
+  }}
+>
+  <div class="mx-auto max-w-7xl px-4 py-16 text-center">
+    <h1 class="mb-4 text-3xl font-bold">Updates</h1>
+    <p class="text-slate-600 dark:text-slate-400">
+      News and updates are not currently available. Check back later or
+      <a href={getPermalink('/contact')} class="text-primary underline">contact us</a> for information.
+    </p>
+  </div>
+</PageLayout>

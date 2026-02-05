@@ -1,0 +1,107 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+import { findImage } from '~/utils/images';
+import {
+  getImagesOptimized,
+  astroAssetsOptimizer,
+  unpicOptimizer,
+  isUnpicCompatible,
+  type ImageProps,
+} from '~/utils/images-optimization';
+
+type Props = ImageProps;
+type ImageType = {
+  src: string;
+  attributes: HTMLAttributes<'img'>;
+};
+
+const props = Astro.props;
+if (!props.loading) props.loading = 'lazy';
+if (!props.decoding) props.decoding = 'async';
+
+if (props.alt === undefined || props.alt === null) {
+  throw new Error();
+}
+
+props.width = typeof props.width === 'string' ? parseInt(props.width) : props.width;
+props.height = typeof props.height === 'string' ? parseInt(props.height) : props.height;
+
+// Normalize object src (e.g. post.image) to URL string so remote images use unpic.
+// For ImageMetadata (imported images), pass the object through so getImage receives it—never pass .src
+// because Vite resolves it to /@fs/... which getImage rejects.
+type SrcObject = { src: string; width?: number; height?: number };
+const getImageSource = (src: ImageProps['src']): string | undefined => {
+  if (typeof src === 'string') return src;
+  if (typeof src === 'object' && src !== null && 'src' in src) return (src as SrcObject).src;
+  return undefined;
+};
+
+const rawSrc = getImageSource(props.src);
+const isRemoteUrl = typeof rawSrc === 'string' && (rawSrc.startsWith('http://') || rawSrc.startsWith('https://'));
+const rawUrl = isRemoteUrl ? rawSrc : undefined;
+
+const srcIsObject = typeof props.src === 'object' && props.src != null && 'src' in props.src;
+if (srcIsObject && (props.width == null || props.height == null)) {
+  const obj = props.src as SrcObject;
+  props.width = props.width ?? obj.width;
+  props.height = props.height ?? obj.height;
+}
+
+const _image =
+  props.src == null || props.src === ''
+    ? undefined
+    : typeof props.src === 'object'
+      ? await findImage(props.src as string | import('astro').ImageMetadata)
+      : await findImage(rawSrc as string);
+
+let image: ImageType | undefined = undefined;
+
+if (
+  typeof _image === 'string' &&
+  isRemoteUrl &&
+  isUnpicCompatible(_image)
+) {
+  image = await getImagesOptimized(_image, props, unpicOptimizer);
+} else if (_image) {
+  try {
+    image = await getImagesOptimized(_image, props, astroAssetsOptimizer);
+  } catch (e) {
+    console.error('Image optimization failed:', _image, e instanceof Error ? e.message : e);
+    // Fallback to raw URL if optimization fails for local/imported images
+    if (isRemoteUrl && rawUrl) {
+      image = {
+        src: rawUrl,
+        attributes: {
+          width: props.width ?? undefined,
+          height: props.height ?? undefined,
+          alt: props.alt ?? '',
+          loading: (props.loading ?? 'lazy') as 'lazy' | 'eager',
+          decoding: (props.decoding ?? 'async') as 'async' | 'sync' | 'auto',
+          ...(props.class ? { class: props.class } : {}),
+        },
+      };
+    }
+  }
+}
+
+// Final fallback: if no image resolved and we have a raw URL, render it directly
+if (!image && rawUrl) {
+  image = {
+    src: rawUrl,
+    attributes: {
+      width: props.width ?? undefined,
+      height: props.height ?? undefined,
+      alt: props.alt ?? '',
+      loading: (props.loading ?? 'lazy') as 'lazy' | 'eager',
+      decoding: (props.decoding ?? 'async') as 'async' | 'sync' | 'auto',
+      ...(props.class ? { class: props.class } : {}),
+    },
+  };
+}
+---
+
+{
+  image && (
+    <img src={image.src} crossorigin="anonymous" referrerpolicy="no-referrer" {...image.attributes} />
+  )
+}

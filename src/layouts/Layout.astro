@@ -1,23 +1,268 @@
-<!doctype html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
-	</head>
-	<body>
-		<slot />
-	</body>
-</html>
+---
+import '~/assets/styles/tailwind.css';
 
-<style>
-	html,
-	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
-	}
-</style>
+import { I18N } from 'astrowind:config';
+
+import CommonMeta from '~/components/common/CommonMeta.astro';
+import Favicons from '~/components/Favicons.astro';
+import CustomStyles from '~/components/CustomStyles.astro';
+import ApplyColorMode from '~/components/common/ApplyColorMode.astro';
+import Metadata from '~/components/common/Metadata.astro';
+import SiteVerification from '~/components/common/SiteVerification.astro';
+import Analytics from '~/components/common/Analytics.astro';
+import BasicScripts from '~/components/common/BasicScripts.astro';
+import PasswordGate from '~/components/PasswordGate.jsx';
+
+// Comment the line below to disable View Transitions
+import { ClientRouter } from 'astro:transitions';
+
+import type { MetaData as MetaDataType } from '~/types';
+
+export interface Props {
+  metadata?: MetaDataType;
+}
+
+const { metadata = {} } = Astro.props;
+const { language, textDirection } = I18N;
+---
+
+<!doctype html>
+<html lang={language} dir={textDirection}>
+  <head>
+    <CommonMeta />
+    <Favicons />
+    <CustomStyles />
+    <ApplyColorMode />
+    <Metadata {...metadata} />
+    <SiteVerification />
+    <Analytics />
+
+    <!--
+      astro-navbar integration (Header.astro uses Astronav, MenuIcon, MenuItems, StickyHeader):
+      - We do NOT use Astronav closeOnClick; this script handles [data-nav-link] in capture
+        phase so nav links do a full page load (window.location.href) and View Transitions
+        don’t intercept; Header.astro marks all nav links with data-nav-link.
+      - Toggle: we listen for clicks on #astronav-menu and toggle .astronav-toggle (nav + icons).
+      - Close: backdrop, [data-nav-close], Escape, or any [data-nav-link] click closes drawer.
+      - Scroll lock: body gets .nav-drawer-open and data-nav-scroll-y; we expose __closeMobileMenu
+        so BasicScripts (resize, etc.) can close the drawer and unlock scroll.
+      - aria-expanded and aria-controls on the menu button are synced here (nav has id="main-nav").
+    -->
+    <script is:inline>
+      (function () {
+        if (window.__navMenuBound) return;
+        window.__navMenuBound = true;
+
+        var NAV = {
+          headerId: 'header',
+          menuBtnId: 'astronav-menu',
+          navSelector: '.astronav-items',
+          toggleSelector: '.astronav-toggle',
+          scrollLockClass: 'nav-drawer-open',
+          scrollYDataKey: 'nav-scroll-y',
+          linkSelector: 'a[data-nav-link]',
+          closeSelector: '[data-nav-close]',
+          backdropSelector: '[data-nav-backdrop]',
+          mobileMaxWidth: 767,
+        };
+
+        function getNav() {
+          return document.querySelector(NAV.navSelector);
+        }
+        function getMenuBtn() {
+          return document.getElementById(NAV.menuBtnId);
+        }
+        function getHeader() {
+          return document.getElementById(NAV.headerId);
+        }
+        function isOpen() {
+          var n = getNav();
+          return n && !n.classList.contains('hidden');
+        }
+        function isMobile() {
+          return window.matchMedia('(max-width: ' + NAV.mobileMaxWidth + 'px)').matches;
+        }
+
+        function lockBodyScroll() {
+          if (!isMobile()) return;
+          var y = window.scrollY;
+          document.body.setAttribute('data-' + NAV.scrollYDataKey, String(y));
+          document.body.style.top = '-' + y + 'px';
+          document.body.classList.add(NAV.scrollLockClass);
+        }
+        function unlockBodyScroll() {
+          if (!document.body.classList.contains(NAV.scrollLockClass)) return;
+          var y = parseInt(document.body.getAttribute('data-' + NAV.scrollYDataKey) || '0', 10);
+          document.body.classList.remove(NAV.scrollLockClass);
+          document.body.style.top = '';
+          document.body.removeAttribute('data-' + NAV.scrollYDataKey);
+          window.scrollTo(0, y);
+        }
+        function syncBodyScrollLock() {
+          if (isOpen() && isMobile()) lockBodyScroll();
+          else unlockBodyScroll();
+        }
+        function syncAriaExpanded() {
+          var btn = getMenuBtn();
+          var nav = getNav();
+          if (nav && !nav.id) nav.id = 'main-nav';
+          if (btn) {
+            btn.setAttribute('aria-expanded', String(isOpen()));
+            if (nav) btn.setAttribute('aria-controls', nav.id);
+          }
+        }
+        function toggleMenu(header) {
+          if (!header) return;
+          header.querySelectorAll(NAV.toggleSelector).forEach(function (el) {
+            el.classList.toggle('hidden');
+          });
+          syncBodyScrollLock();
+          syncAriaExpanded();
+        }
+        function closeMenu() {
+          if (!isOpen()) return;
+          var header = getHeader();
+          if (header) {
+            header.querySelectorAll(NAV.toggleSelector).forEach(function (el) {
+              el.classList.add('hidden');
+            });
+            header.querySelectorAll('.dropdown.is-open').forEach(function (el) {
+              el.classList.remove('is-open');
+              var panel = el.querySelector('.nav-submenu-panel');
+              if (panel) panel.setAttribute('aria-hidden', 'true');
+            });
+            header.querySelectorAll('[data-nav-submenu-toggle]').forEach(function (el) {
+              el.setAttribute('aria-expanded', 'false');
+            });
+          }
+          syncBodyScrollLock();
+          syncAriaExpanded();
+          var btn = getMenuBtn();
+          if (btn) btn.focus();
+        }
+        function findNavLink(target) {
+          if (!target || !target.closest) return null;
+          var link = target.closest(NAV.linkSelector);
+          if (!link || !link.href || link.getAttribute('href') === '#' || link.target) return null;
+          return link;
+        }
+
+        document.addEventListener(
+          'click',
+          function (e) {
+            var target = e.target;
+            if (!target || !target.closest) return;
+            var toggleBtn = target.closest && target.closest('[data-nav-submenu-toggle]');
+            if (toggleBtn) {
+              e.preventDefault();
+              e.stopPropagation();
+              var dropdown = toggleBtn.closest('.dropdown');
+              if (dropdown) {
+                dropdown.classList.toggle('is-open');
+                var open = dropdown.classList.contains('is-open');
+                toggleBtn.setAttribute('aria-expanded', open);
+                var panel = dropdown.querySelector('.nav-submenu-panel');
+                if (panel) panel.setAttribute('aria-hidden', !open);
+              }
+              return;
+            }
+            var backBtn = target.closest && target.closest('[data-nav-submenu-back]');
+            if (backBtn) {
+              e.preventDefault();
+              e.stopPropagation();
+              var dropdown = backBtn.closest('.dropdown');
+              if (dropdown) {
+                dropdown.classList.remove('is-open');
+                var btn = dropdown.querySelector('[data-nav-submenu-toggle]');
+                if (btn) btn.setAttribute('aria-expanded', 'false');
+                var panel = dropdown.querySelector('.nav-submenu-panel');
+                if (panel) panel.setAttribute('aria-hidden', 'true');
+              }
+              return;
+            }
+            if (target.closest('#' + NAV.menuBtnId)) {
+              e.preventDefault();
+              e.stopPropagation();
+              if (isMobile()) toggleMenu(target.closest('#' + NAV.headerId));
+              return;
+            }
+            if (target.closest(NAV.closeSelector)) {
+              e.preventDefault();
+              e.stopPropagation();
+              closeMenu();
+              return;
+            }
+            if (target.closest(NAV.backdropSelector)) {
+              e.preventDefault();
+              closeMenu();
+              return;
+            }
+            var link = findNavLink(target);
+            if (link && !e.ctrlKey && !e.metaKey) {
+              e.preventDefault();
+              e.stopImmediatePropagation();
+              if (isOpen()) closeMenu();
+              window.location.href = link.href;
+              return;
+            }
+          },
+          true
+        );
+
+        document.addEventListener('keydown', function (e) {
+          if (e.key !== 'Escape') return;
+          var header = getHeader();
+          var openDropdown = header && header.querySelector('.dropdown.is-open');
+          if (openDropdown && isMobile()) {
+            e.preventDefault();
+            openDropdown.classList.remove('is-open');
+            var btn = openDropdown.querySelector('[data-nav-submenu-toggle]');
+            if (btn) btn.setAttribute('aria-expanded', 'false');
+            return;
+          }
+          if (!isOpen()) return;
+          e.preventDefault();
+          closeMenu();
+        });
+
+        function onNavPageReady() {
+          syncBodyScrollLock();
+          syncAriaExpanded();
+        }
+        document.addEventListener('astro:after-swap', onNavPageReady);
+        document.addEventListener('astro:page-load', onNavPageReady);
+        var lastMobile = isMobile();
+        window.addEventListener('resize', function () {
+          var nowMobile = isMobile();
+          if (lastMobile !== nowMobile) {
+            lastMobile = nowMobile;
+            syncBodyScrollLock();
+            syncAriaExpanded();
+          }
+        });
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', function () {
+            syncAriaExpanded();
+          });
+        } else {
+          syncAriaExpanded();
+        }
+        window.__closeMobileMenu = closeMenu;
+      })();
+    </script>
+
+    <!-- View Transitions: fallback="none" per Monogram guide to avoid script quirks; sync on astro:page-load -->
+    <ClientRouter fallback="none" />
+  </head>
+
+  <body class="antialiased text-default bg-page text-base leading-normal">
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+    <PasswordGate client:load />
+    <div id="layout-root" class="flex flex-col min-h-screen min-h-dvh">
+      <slot />
+    </div>
+
+    <BasicScripts />
+    <div id="popup-portal-root"></div>
+  </body>
+</html>

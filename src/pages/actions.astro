@@ -1,0 +1,38 @@
+---
+/**
+ * Actions page (/actions)
+ *
+ * Meeting visibility tools (Zoom backgrounds, profile images) and upcoming events.
+ */
+import PageLayout from '~/layouts/PageLayout.astro';
+import { PAGE_SECTION_CLASS } from '~/lib/layout';
+import ActionCenter from '~/components/ActionCenter.jsx';
+import { getAsset } from '~/utils/permalinks';
+import { getImage } from "astro:assets";
+const metadata = {
+  title: 'Actions | Local 34',
+  description: 'United for a Great Contract! Download Zoom backgrounds, profile images, and see upcoming events.',
+};
+
+---
+
+<PageLayout metadata={metadata}>
+  <!-- Hero Section -->
+  <section class={PAGE_SECTION_CLASS}>
+    <div class="page-title-section relative max-w-7xl px-4 sm:px-6 lg:px-8 text-left">
+      <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold leading-tighter tracking-tighter mb-4 font-heading text-gray-900 dark:text-white">
+        United for a Great Contract!
+      </h1>
+      <p class="text-lg md:text-xl text-gray-600 dark:text-slate-400 mb-8">
+        Meeting visibility tools and upcoming events.
+      </p>
+    </div>
+  </section>
+
+  <!-- Content Section -->
+  <section class={PAGE_SECTION_CLASS}>
+    <div class="mx-auto max-w-7xl w-full">
+      <ActionCenter client:load zoomBase={getAsset('zoom-backgrounds')} />
+    </div>
+  </section>
+</PageLayout>

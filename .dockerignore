@@ -1,0 +1,9 @@
+dist/
+node_modules/
+.vscode/
+.github/
+local34site_clean/
+astrowind-temp/
+ghost_import.zip
+venv/
+.DS_Store

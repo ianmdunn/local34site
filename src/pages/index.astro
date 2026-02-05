@@ -1,11 +1,101 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
+/**
+ * Homepage (/)
+ *
+ * Content source: sitePages/home.md (local).
+ *
+ * Sections (in order):
+ * 1. HomeHero – full-viewport hero with background image, headline, primary actions, and get-involved CTA
+ * 2. WhoWeAreSection – value props (fair wages, stronger together, who we represent)
+ */
+import PageLayout from '~/layouts/PageLayout.astro';
+import Hero from '~/components/widgets/Hero.astro';
+import Button from '~/components/ui/Button.astro';
+import { SITE } from 'astrowind:config';
+import { getPermalink } from '~/utils/permalinks';
+import { getCollection } from 'astro:content';
+import Features3 from '~/components/widgets/Features3.astro';
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import type { ImageMetadata } from 'astro';
+
+// Random hero background (use img, not Image component)
+const bgModules = import.meta.glob<{ default: ImageMetadata }>('~/assets/images/backgrounds/*.{jpg,jpeg,png,webp}', {
+  eager: true,
+});
+const bgImages =
+  (Object.values(bgModules)
+    .map((m) => m?.default)
+    .filter(Boolean) as ImageMetadata[]) ?? [];
+const heroBackground = bgImages.length > 0 ? bgImages[Math.floor(Math.random() * bgImages.length)] : null;
+
+// Resolve home page content from local markdown (sitePages)
+const sitePages = await getCollection('sitePages');
+const homeEntry = sitePages.find((p) => p.slug === 'home');
+const homeData = homeEntry?.data ?? { title: SITE.title, description: SITE.description };
+
+const pageMetadata = {
+  title: homeEntry ? homeEntry.data.title : SITE.title,
+  description: homeEntry && 'description' in homeEntry.data ? homeEntry.data.description : SITE.description,
+};
+
+// Section 1: Hero (headline + background from backgrounds folder)
+// Homepage title: line break + custom font for “UNITE HERE!”
+const homeHeroTitleHtml =
+  '<span class="hero-title-wrap"><span class="hero-title-line1">Local 34</span><br><span class="hero-title-unite">UNITE HERE!</span></span>';
+const homeHero = {
+  tagline: '',
+  headline: homeData.title,
+  headlineHtml: homeHeroTitleHtml,
+  subtitle: 'description' in homeData ? (homeData.description ?? '') : '',
+  primaryActions: undefined as import('~/types').CallToAction[] | undefined,
+};
+// CTA in hero (cover image)
+const heroCta = {
+  title: 'Ready to win a great contract?',
+  subtitle: 'Join the campaign to win!',
+  buttonText: 'Upcoming Events and Action',
+  buttonHref: getPermalink('/actions'),
+};
+// Section 2: Who We Are (value props grid)
+const HOME_SECTION_IDS = {
+  hero: 'home-hero',
+  whoWeAre: 'who-we-are',
+} as const;
 ---
 
-<Layout>
-	<Welcome />
-</Layout>
+<PageLayout metadata={pageMetadata}>
+  <Fragment slot="announcement"></Fragment>
+  <Hero
+    id={HOME_SECTION_IDS.hero}
+    tagline={homeHero.tagline}
+    title={homeHero.headlineHtml}
+    subtitle={homeHero.subtitle}
+    actions={homeHero.primaryActions}
+  >
+    {
+      heroBackground && (
+        <img
+          slot="bg"
+          src={heroBackground.src}
+          alt=""
+          class="absolute inset-0 w-full h-full min-w-full min-h-full object-cover object-center"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+        />
+      )
+    }
+    <div slot="content" class="mt-14 md:mt-16 pt-10 md:pt-12 border-t border-white/20 border-solid">
+      <p class="text-xl font-semibold text-white mb-3">{heroCta.title}</p>
+      <p class="text-base text-slate-200 mb-8 max-w-2xl mx-auto">{heroCta.subtitle}</p>
+      <div class="flex justify-center">
+        <Button variant="primary" text={heroCta.buttonText} href={heroCta.buttonHref} class="min-w-[11rem]" />
+      </div>
+    </div>
+  </Hero>
+  <Features3
+    id={HOME_SECTION_IDS.whoWeAre}
+    title="The Union of Clerical & Technical Workers at Yale"
+    subtitle="Local 34-UNITE HERE represents over four thousand workers who make Yale University run. We fight for dignity and respect on the job and in our community."
+  />
+</PageLayout>

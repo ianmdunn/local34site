@@ -1,0 +1,17 @@
+# Astro-only. Build and start: docker compose up -d --build
+# For production static build + nginx, build with target "production".
+#
+# Dev: source is mounted so container runs the same code as local npm run dev.
+# The node_modules volume keeps the container's Linux deps instead of the host's.
+services:
+  astrowind:
+    build:
+      context: .
+      target: dev
+    container_name: astrowind
+    ports:
+      - 8080:8080
+    volumes:
+      - .:/app
+      - /app/node_modules
+    restart: unless-stopped

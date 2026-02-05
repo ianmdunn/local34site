@@ -1,0 +1,39 @@
+---
+import PageLayout from '~/layouts/PageLayout.astro';
+import { PAGE_SECTION_CLASS } from '~/lib/layout';
+import { getCollection, type CollectionEntry } from 'astro:content';
+import { isReservedSlug } from '~/utils/reservedSlugs';
+
+export async function getStaticPaths() {
+  const sitePages = await getCollection('sitePages');
+  const bySlug = new Map<string, CollectionEntry<'sitePages'>>();
+  for (const entry of sitePages) bySlug.set(entry.slug, entry);
+
+  return Array.from(bySlug.entries())
+    .filter(([slug]) => !isReservedSlug(slug))
+    .map(([slug, entry]) => ({
+      params: { slug },
+      props: { entry },
+    }));
+}
+
+const { entry } = Astro.props;
+const data = entry.data;
+const metadata = { title: data.title, description: 'description' in data ? data.description : undefined };
+
+const rendered = await entry.render();
+const Content = rendered.Content;
+const proseClass =
+  'prose prose-sm max-w-none dark:prose-invert dark:prose-headings:text-slate-300 prose-headings:font-heading prose-headings:leading-tighter prose-headings:tracking-tighter prose-headings:font-bold prose-a:text-primary dark:prose-a:text-primary prose-img:rounded-md prose-img:shadow-lg mt-8 prose-p:my-2 prose-ul:my-3 prose-li:my-0.5';
+---
+
+<PageLayout metadata={metadata}>
+  <section class={PAGE_SECTION_CLASS}>
+    <div class="mx-auto max-w-7xl w-full">
+      <h1 class="font-bold font-heading text-3xl md:text-4xl leading-tighter tracking-tighter">{data.title}</h1>
+      <div class={proseClass}>
+        {Content ? <Content /> : null}
+      </div>
+    </div>
+  </section>
+</PageLayout>
