@@ -16,9 +16,10 @@ metadata:
   openGraph:
     site_name: Local 34-UNITE HERE!
     images:
-      - url: '~/assets/images/default.png'
-        width: 1200
-        height: 628
+      # Default OG image - update if you add one to public/images/
+      # - url: '/images/default.png'
+      #   width: 1200
+      #   height: 628
     type: website
   twitter:
     handle: '@34unitehere'

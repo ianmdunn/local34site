@@ -30,6 +30,14 @@ const { language, textDirection } = I18N;
 <html lang={language} dir={textDirection}>
   <head>
     <CommonMeta />
+    <!-- Typekit: load async to avoid render-blocking (fonts: ibm-plex-sans, archer-pro, etc.) -->
+    <link
+      rel="preload"
+      href="https://use.typekit.net/iqy5xra.css"
+      as="style"
+      onload="this.onload=null;this.rel='stylesheet'"
+    />
+    <noscript><link rel="stylesheet" href="https://use.typekit.net/iqy5xra.css" /></noscript>
     <Favicons />
     <CustomStyles />
     <ApplyColorMode />
@@ -257,7 +265,7 @@ const { language, textDirection } = I18N;
 
   <body class="antialiased text-default bg-page text-base leading-normal">
     <a href="#main-content" class="skip-link">Skip to main content</a>
-    <PasswordGate client:load />
+    <PasswordGate client:idle />
     <div id="layout-root" class="flex flex-col min-h-screen min-h-dvh">
       <slot />
     </div>

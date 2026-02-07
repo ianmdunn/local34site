@@ -12,21 +12,26 @@ import PageLayout from '~/layouts/PageLayout.astro';
 import Hero from '~/components/widgets/Hero.astro';
 import Button from '~/components/ui/Button.astro';
 import { SITE } from 'astrowind:config';
-import { getPermalink } from '~/utils/permalinks';
+import { getPermalink, getAsset } from '~/utils/permalinks';
 import { getCollection } from 'astro:content';
 import Features3 from '~/components/widgets/Features3.astro';
 
-import type { ImageMetadata } from 'astro';
-
-// Random hero background (use img, not Image component)
-const bgModules = import.meta.glob<{ default: ImageMetadata }>('~/assets/images/backgrounds/*.{jpg,jpeg,png,webp}', {
-  eager: true,
-});
-const bgImages =
-  (Object.values(bgModules)
-    .map((m) => m?.default)
-    .filter(Boolean) as ImageMetadata[]) ?? [];
-const heroBackground = bgImages.length > 0 ? bgImages[Math.floor(Math.random() * bgImages.length)] : null;
+// Hero background images from public/hero-backgrounds/ – served from GCS when GCS_ENABLED
+const HERO_BG_PATHS = [
+  'hero-backgrounds/L34pick_-01.jpg',
+  'hero-backgrounds/L34pick_-02.jpg',
+  'hero-backgrounds/L34pick_-04.jpg',
+  'hero-backgrounds/L34pick_-05.jpg',
+  'hero-backgrounds/L34pick_-06.jpg',
+  'hero-backgrounds/L34pick_-07.jpg',
+  'hero-backgrounds/L34pick_-08.jpg',
+  'hero-backgrounds/L34pick_-09.jpg',
+  'hero-backgrounds/L34pick_-10.jpg',
+  'hero-backgrounds/L34pick_-11.jpg',
+  'hero-backgrounds/L34pick_-12.jpg',
+];
+const heroBgData = HERO_BG_PATHS.map((path) => ({ src: getAsset(path), srcset: '' }));
+const heroBgInitialIndex = heroBgData.length > 0 ? Math.floor(Math.random() * heroBgData.length) : 0;
 
 // Resolve home page content from local markdown (sitePages)
 const sitePages = await getCollection('sitePages');
@@ -73,15 +78,16 @@ const HOME_SECTION_IDS = {
     actions={homeHero.primaryActions}
   >
     {
-      heroBackground && (
+      heroBgData[heroBgInitialIndex] && (
         <img
+          id="home-hero-bg"
           slot="bg"
-          src={heroBackground.src}
+          src={heroBgData[heroBgInitialIndex].src}
           alt=""
-          class="absolute inset-0 w-full h-full min-w-full min-h-full object-cover object-center"
           loading="eager"
           fetchpriority="high"
           decoding="async"
+          class="absolute inset-0 w-full h-full min-w-full min-h-full object-cover object-[center_35%]"
         />
       )
     }
@@ -98,4 +104,15 @@ const HOME_SECTION_IDS = {
     title="The Union of Clerical & Technical Workers at Yale"
     subtitle="Local 34-UNITE HERE represents over four thousand workers who make Yale University run. We fight for dignity and respect on the job and in our community."
   />
+  <script define:vars={{ heroBgData }}>
+    (function () {
+      if (!heroBgData || heroBgData.length <= 1) return;
+      var el = document.getElementById('home-hero-bg');
+      if (!el) return;
+      var i = Math.floor(Math.random() * heroBgData.length);
+      var item = heroBgData[i];
+      el.src = item.src;
+      el.srcset = item.srcset || '';
+    })();
+  </script>
 </PageLayout>

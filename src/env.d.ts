@@ -4,6 +4,14 @@
 /// <reference types="vite/client" />
 /// <reference types="../vendor/integration/types.d.ts" />
 
+interface ImportMetaEnv {
+  readonly PUBLIC_LEADERBOARD_API: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+
 declare global {
   interface Window {
     __closeMobileMenu?: () => void;

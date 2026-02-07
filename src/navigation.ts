@@ -1,8 +1,13 @@
-import { getCanonical } from './utils/permalinks';
+import { getCanonical, getPathWithBase } from './utils/permalinks';
 
-/** Canonical absolute URL for nav links. Uses non-www origin so mobile (and desktop) always navigate correctly. */
+/**
+ * Nav link href: relative path on localhost (dev) for in-site navigation; full canonical URL in production.
+ */
 const navHref = (path: string): string => {
   const pathNorm = path.startsWith('/') ? path : `/${path}`;
+  if (import.meta.env.DEV) {
+    return getPathWithBase(pathNorm);
+  }
   const url = getCanonical(pathNorm);
   return typeof url === 'string' ? url : url.toString();
 };
@@ -19,7 +24,7 @@ const mainNavLinks: NavLink[] = [
   { text: 'How We Win', href: navHref('/how-we-win') },
   { text: 'Actions', href: navHref('/actions') },
   { text: "Yale's Wealth", href: navHref('/yales-wealth') },
-  { text: 'Contact', href: navHref('/contact') },
+  { text: 'Contact Us', href: navHref('/contact') },
 ];
 
 export const headerData = { links: mainNavLinks };

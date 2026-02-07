@@ -1,0 +1,12 @@
+# Apache: serve index.html for clean URLs (e.g. /actions -> /actions/index.html)
+# Required for Astro static build with trailingSlash: false
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # If the request is not for an existing file or directory
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  # Serve the index.html in that path (e.g. /actions -> /actions/index.html)
+  RewriteRule ^(.+)$ $1/index.html [L]
+</IfModule>

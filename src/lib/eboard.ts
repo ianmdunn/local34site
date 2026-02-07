@@ -86,7 +86,9 @@ export async function getEboardFromXlsx(): Promise<EboardData> {
 
   const buf = fs.readFileSync(xlsxPath);
   const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.load(buf as Buffer);
+  // ExcelJS expects Buffer; Node's Buffer type has changed in TS defs
+  // @ts-expect-error - Buffer from fs.readFileSync is compatible at runtime
+  await workbook.xlsx.load(buf);
   const worksheet = workbook.worksheets[0];
   if (!worksheet) return { officersAndStaff: [], executiveBoard: [] };
 

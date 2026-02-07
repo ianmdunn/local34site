@@ -208,6 +208,8 @@ const ActionCenter = ({ zoomBase = DEFAULT_ZOOM_BASE }) => {
                 <form
                   action="https://unitehere.jotform.com/submit/260285893381062"
                   method="post"
+                  target="_self"
+                  encType="application/x-www-form-urlencoded"
                   aria-label="Request assets by email"
                 >
                   <input type="hidden" name="formID" value="260285893381062" />
@@ -287,6 +289,8 @@ const ActionCenter = ({ zoomBase = DEFAULT_ZOOM_BASE }) => {
                   <form
                     action="https://unitehere.jotform.com/submit/260136005054039"
                     method="post"
+                    target="_self"
+                    encType="application/x-www-form-urlencoded"
                     aria-label="RSVP form"
                   >
                     <input type="hidden" name="formID" value="260136005054039" />

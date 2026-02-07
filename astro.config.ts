@@ -44,7 +44,7 @@ export default defineConfig({
 
   // Prefetch all links for faster transitions (Monogram: https://monogram.io/blog/a-guide-to-astro-navigation)
   prefetch: {
-    prefetchAll: false,
+    prefetchAll: true,
     defaultStrategy: 'hover',
   },
 
@@ -90,7 +90,7 @@ export default defineConfig({
           removeAttributeQuotes: false,
         },
       },
-      Image: false,
+      Image: true,
       JavaScript: true,
       SVG: false,
       Logger: 1,

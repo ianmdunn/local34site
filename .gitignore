@@ -21,4 +21,4 @@ pnpm-debug.log*
 
 pnpm-lock.yaml
 
-.astro
+.astrogcp-key.json

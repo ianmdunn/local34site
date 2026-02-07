@@ -52,7 +52,7 @@ const getNormalizedPost = async (post: CollectionEntry<'blog'>): Promise<Post> =
       ? (post as { data: Record<string, unknown> }).data
       : (post as Record<string, unknown>);
 
-  let Content: Awaited<ReturnType<typeof render>>['Content'];
+  let Content: Awaited<ReturnType<typeof render>>['Content'] | undefined;
   let remarkPluginFrontmatter: Awaited<ReturnType<typeof render>>['remarkPluginFrontmatter'];
   try {
     const rendered = await render(post);
@@ -66,20 +66,20 @@ const getNormalizedPost = async (post: CollectionEntry<'blog'>): Promise<Post> =
   // Support both nested (data.image) and flat (post.image) entry shapes; file-based entries use pubDate/description
   const dataRecord = data as Record<string, unknown>;
   const postRecord = post as Record<string, unknown>;
-  const rawPublishDate = dataRecord.pubDate ?? dataRecord.publishDate ?? new Date();
-  const rawUpdateDate = dataRecord.updatedDate ?? dataRecord.updateDate;
-  const title = dataRecord.title;
-  const excerpt = dataRecord.excerpt ?? dataRecord.description;
-  const rawTags = dataRecord.tags ?? [];
-  const rawCategory = dataRecord.category;
-  const author = dataRecord.author;
-  const draft = dataRecord.draft ?? false;
-  const metadata = dataRecord.metadata ?? {};
+  const rawPublishDate = (dataRecord.pubDate ?? dataRecord.publishDate ?? new Date()) as string | number | Date;
+  const rawUpdateDate = (dataRecord.updatedDate ?? dataRecord.updateDate) as string | number | Date | undefined;
+  const title = (dataRecord.title ?? '') as string;
+  const excerpt = (dataRecord.excerpt ?? dataRecord.description) as string | undefined;
+  const rawTags = (dataRecord.tags ?? []) as string[];
+  const rawCategory = dataRecord.category as string | undefined;
+  const author = dataRecord.author as string | undefined;
+  const draft = (dataRecord.draft ?? false) as boolean;
+  const metadata = (dataRecord.metadata ?? {}) as Record<string, unknown>;
   const image = dataRecord.image ?? postRecord.image;
 
   const slug = (post as { slug?: string }).slug ?? cleanSlug(id);
   const publishDate = new Date(rawPublishDate);
-  const updateDate = rawUpdateDate ? new Date(rawUpdateDate) : undefined;
+  const updateDate = rawUpdateDate ? new Date(rawUpdateDate as string | number | Date) : undefined;
 
   const category = rawCategory
     ? {
@@ -110,7 +110,7 @@ const getNormalizedPost = async (post: CollectionEntry<'blog'>): Promise<Post> =
   const resolvedImage =
     imageSrc != null && imageSrc.length > 0
       ? globKey && images[globKey]
-        ? (await images[globKey]()).default
+        ? ((await images[globKey]()) as unknown as { default: string | ImageMetadata }).default
         : imageSrc.startsWith('http') || imageSrc.startsWith('https')
           ? imageSrc
           : imageSrc

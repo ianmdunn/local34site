@@ -61,8 +61,8 @@ const proseClass =
           <Card variant="primary" class="flex flex-col">
             <div class="mb-4 text-primary" aria-hidden="true">
               <svg class="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
-                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+                <path d="M6 9a6 6 0 1 0 12 0A6 6 0 1 0 6 9" />
+                <path d="m12 15l3.4 5.89l1.598-3.233l3.598.232l-3.4-5.889M6.802 12l-3.4 5.89L7 17.657l1.598 3.232l3.4-5.889" />
               </svg>
             </div>
             <h3 class="font-bold font-heading text-lg leading-tight tracking-tight text-gray-900 dark:text-white mt-0 mb-2">
@@ -163,7 +163,7 @@ const proseClass =
             </address>
             <p class="mt-3 text-sm">
               <a
-                href={footerData.links.find((l) => l.text === 'Contact')?.href ?? '/contact'}
+                href={footerData.links.find((l) => l.text === 'Contact Us')?.href ?? '/contact'}
                 class="text-primary hover:underline font-medium"
               >
                 Contact us

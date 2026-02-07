@@ -1,6 +1,4 @@
-/* Typekit project: iqy5xra */
-@import url('https://use.typekit.net/iqy5xra.css');
-
+/* Typekit project: iqy5xra – loaded async in Layout.astro to avoid render-blocking */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -429,21 +427,27 @@ main > *:first-child {
   box-shadow: 0 4px 12px rgba(0 0 0 / 0.2);
 }
 .dark #header .dropdown-menu .nav-dropdown-link {
-  color: var(--aw-color-primary);
+  color: var(--aw-color-primary-on-dark, var(--aw-color-primary));
 }
 .dark #header .dropdown-menu .nav-dropdown-link:hover,
 .dark #header .dropdown-menu .nav-dropdown-link:focus-visible {
   background: rgba(255 255 255 / 0.08);
-  color: var(--aw-color-primary);
+  color: var(--aw-color-primary-on-dark, var(--aw-color-primary));
+}
+.dark #header .dropdown-menu .nav-dropdown-link:focus-visible {
+  outline: 2px solid var(--aw-color-primary-on-dark, var(--aw-color-primary));
 }
 .dark #header .dropdown-menu .nav-chip {
-  color: var(--aw-color-primary);
+  color: var(--aw-color-primary-on-dark, var(--aw-color-primary));
   background: rgba(255 255 255 / 0.08);
 }
 .dark #header .dropdown-menu .nav-chip:hover,
 .dark #header .dropdown-menu .nav-chip:focus-visible {
   background: rgba(255 255 255 / 0.12);
-  color: var(--aw-color-primary);
+  color: var(--aw-color-primary-on-dark, var(--aw-color-primary));
+}
+.dark #header .dropdown-menu .nav-chip:focus-visible {
+  outline: 2px solid var(--aw-color-primary-on-dark, var(--aw-color-primary));
 }
 .dark #header .dropdown-menu .nav-chip--current {
   background: rgba(255 255 255 / 0.1);

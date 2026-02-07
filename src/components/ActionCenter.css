@@ -433,14 +433,25 @@
   background: var(--aw-color-text-heading, #333);
 }
 
+/* Dark mode: .l34-dark-btn gets light bg (--aw-color-text-heading), so use dark text for contrast */
+.dark .l34-dark-btn {
+  color: #1a1a1a;
+}
+
 .l34-dark-btn:hover {
   background: #000;
+}
+
+.dark .l34-dark-btn:hover {
+  background: #333;
+  color: #fff;
 }
 
 .l34-form-container {
   margin-top: 1.25rem;
   padding-top: 1.25rem;
   border-top: 2px dashed color-mix(in srgb, var(--aw-color-text-muted, #555) 25%, transparent);
+  overflow: visible; /* avoid clipping on mobile when keyboard opens */
 }
 
 .l34-form-row {
@@ -466,6 +477,28 @@
   font-size: 1rem;
   background: var(--aw-color-bg-page, #fff);
   color: var(--aw-color-text-default, #111);
+}
+
+/* Text inputs only: reset appearance for consistent look; keep select native for mobile picker */
+.l34-form-container input.l34-input {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Mobile: prevent iOS zoom on focus (requires font-size >= 16px) and reliable tap targets */
+@media (max-width: 639px) {
+  .l34-input,
+  .l34-input::placeholder,
+  .l34-btn.l34-submit-btn {
+    font-size: 16px;
+  }
+  .l34-input {
+    min-height: 3rem;
+  }
+  .l34-btn.l34-submit-btn {
+    min-height: 3rem;
+    padding: 0.875rem 1rem;
+  }
 }
 
 .l34-input::placeholder {
@@ -556,6 +589,7 @@
   padding: 1.25rem 1.25rem;
   flex: 1;
   min-width: 0;
+  overflow: visible; /* allow form to be fully visible when keyboard opens on mobile */
 }
 
 @media (min-width: 600px) {

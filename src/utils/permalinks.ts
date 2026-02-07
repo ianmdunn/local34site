@@ -3,6 +3,7 @@ import slugify from 'limax';
 import { SITE, APP_BLOG } from 'astrowind:config';
 
 import { trim } from '~/utils/utils';
+import { getGcsUrl, isGcsEnabled } from '~/utils/gcs';
 
 export const trimSlash = (s: string) => trim(trim(s, '/'));
 const createPath = (...params: string[]) => {
@@ -143,12 +144,22 @@ export const getHomePermalink = (): string => getPermalink('/');
 export const getBlogPermalink = (): string => getPermalink(BLOG_BASE);
 
 /** */
-export const getAsset = (path: string): string =>
-  '/' +
-  [BASE_PATHNAME, path]
-    .map((el) => trimSlash(el))
-    .filter((el) => !!el)
-    .join('/');
+export const getAsset = (path: string): string => {
+  // If GCS is enabled, return GCS URL
+  if (isGcsEnabled()) {
+    const gcsUrl = getGcsUrl(path);
+    if (gcsUrl) {
+      return gcsUrl;
+    }
+  }
+  
+  // Otherwise, return local path
+  return '/' +
+    [BASE_PATHNAME, path]
+      .map((el) => trimSlash(el))
+      .filter((el) => !!el)
+      .join('/');
+};
 
 /** */
 const definitivePermalink = (permalink: string): string => createPath(BASE_PATHNAME, permalink);

@@ -22,6 +22,8 @@ export default function YaleWealthSignup({ formAction = 'https://unitehere.jotfo
           <form
             action={formAction}
             method="post"
+            target="_self"
+            encType="application/x-www-form-urlencoded"
             className="yale-wealth-signup__form"
             aria-label="Sign up for text updates"
           >

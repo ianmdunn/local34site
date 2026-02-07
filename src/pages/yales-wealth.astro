@@ -9,10 +9,12 @@ import PageLayout from '~/layouts/PageLayout.astro';
 import YaleWealthCalculator from '~/components/islands/YaleWealthCalculator.jsx';
 import YaleWealthBillboard from '~/components/islands/YaleWealthBillboard.jsx';
 import YaleWealthCardsAnim from '~/components/islands/YaleWealthCardsAnim.jsx';
-import FallingMoney from '~/components/islands/FallingMoney.jsx';
+import DollarSignTrigger from '~/components/islands/DollarSignTrigger.jsx';
+import CatchTheCash from '~/components/islands/CatchTheCash.jsx';
+import GameLaunchButton from '~/components/islands/GameLaunchButton.jsx';
 import type { MetaData } from '~/types';
 import { PAGE_SECTION_CLASS } from '~/lib/layout';
-import weCantKeepUp from '~/assets/images/WeCantKeepUp.jpg';
+import weCantKeepUp from '~/assets/images/backgrounds/WeCantKeepUp.jpg';
 import '~/components/islands/yale-wealth.css';
 
 const PAGE = {
@@ -52,6 +54,7 @@ const VERIFY_YALE_URL = 'https://president.yale.edu/posts/2025-07-03-update-on-t
       <div class="yale-wealth-content yale-wealth-billboard__inner">
         <YaleWealthBillboard client:visible />
       </div>
+      <DollarSignTrigger client:load />
     </section>
 
     <!-- 2. The Reality – editorial narrative, no card -->
@@ -65,17 +68,20 @@ const VERIFY_YALE_URL = 'https://president.yale.edu/posts/2025-07-03-update-on-t
         </header>
 
         <p class="yale-wealth-reality__lead">
-          Yale points to the tax when it announces cuts. <strong>Reality: 30 days tax, 335 days gains.</strong>
+          When Yale announces cuts, it points to the tax. <strong>The reality: <span class="yale-wealth-reality__lead-tax">30 days is taxed</span>, the other 335 days of gains—not taxed.</strong>
         </p>
         <div class="yale-wealth-reality__timeline" role="img" aria-labelledby="reality-heading" aria-label="Bar: 30 days tax $300 million, 335 days gains $3.6 billion">
           <p class="yale-wealth-reality__timeline-caption" aria-hidden="true">One year</p>
           <div class="yale-wealth-reality__days">
             <div class="yale-wealth-reality__days-row">
-              {Array.from({ length: 365 }, (_, i) => (
+              {[
+                { flex: 30, tax: true },
+                ...Array.from({ length: 11 }, () => ({ flex: 335 / 11, tax: false })),
+              ].map((m, i) => (
                 <span
-                  class={`yale-wealth-reality__day ${i < 30 ? 'yale-wealth-reality__day--tax' : 'yale-wealth-reality__day--gains'}`}
-                  style={`--day-i: ${i}`}
-                  title={i < 30 ? 'Tax paid' : 'Untaxed gains'}
+                  class={`yale-wealth-reality__day yale-wealth-reality__day--${m.tax ? 'tax' : 'gains'}`}
+                  style={`--day-i: ${i}; flex: ${m.flex} 1 0`}
+                  title={m.tax ? 'Tax paid' : 'Untaxed gains'}
                 />
               ))}
             </div>
@@ -88,10 +94,10 @@ const VERIFY_YALE_URL = 'https://president.yale.edu/posts/2025-07-03-update-on-t
           </p>
         </div>
         <p class="yale-wealth-reality__body">
-          That tax is 8% on <strong>gains</strong> only—not the endowment. When Yale says it can&apos;t afford a fair contract, remember this.
+          The tax is 8% on <strong>gains</strong> only—not on the endowment itself. So when Yale says it can&apos;t afford a fair contract, remember this chart.
         </p>
 
-        <p class="yale-wealth-reality__bridge">Meanwhile, we&apos;re falling behind.</p>
+        <p class="yale-wealth-reality__bridge">Meanwhile, our pay isn&apos;t keeping up.</p>
 
         <div class="yale-wealth-reality__wages">
           <div class="yale-wealth-reality__wages-header">
@@ -114,12 +120,13 @@ const VERIFY_YALE_URL = 'https://president.yale.edu/posts/2025-07-03-update-on-t
         </div>
 
         <p class="yale-wealth-reality__close">
-          We can&apos;t keep up. Our wages need to grow to cover real expenses—and we can&apos;t afford to sacrifice for Yale&apos;s wealth. When it&apos;s our contract, will we let them get away with the same line?
+          We shouldn&apos;t have to tighten our belts while Yale&apos;s endowment grows. When it comes to our contract, we won&apos;t let them cry poor.
         </p>
       </article>
     </section>
     <YaleWealthCardsAnim client:visible />
-    <FallingMoney client:idle />
+    <GameLaunchButton client:load />
+    <CatchTheCash client:idle />
   </div>
 </PageLayout>
 

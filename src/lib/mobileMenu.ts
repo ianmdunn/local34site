@@ -46,16 +46,16 @@ export function initMobileMenu(): void {
     e.preventDefault();
     e.stopPropagation();
     if (!isMobile()) return;
-    const isOpen = header.classList.contains('expanded');
+    const isOpen = header!.classList.contains('expanded');
     if (isOpen) closeMobileMenu();
-    else openMenu(header, btn, nav);
+    else openMenu(header!, btn!, nav!);
   }
 
   function handleKeydown(e: KeyboardEvent): void {
     if (e.key !== 'Escape') return;
-    if (header.classList.contains('expanded')) {
+    if (header!.classList.contains('expanded')) {
       closeMobileMenu();
-      btn.focus();
+      btn!.focus();
     }
   }
 
