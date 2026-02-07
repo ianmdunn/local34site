@@ -4,21 +4,31 @@
  * Layout: page-container in each section; no sizing on wrapper.
  */
 
-/* ==========================================================================
-   Design tokens
-   ========================================================================== */
+/* --- Design tokens --- */
 
 :root {
-  --yw-blue: #00356b;
   --yw-gold: #e6b800;
   --yw-green: #22c55e;
-  --yale-wealth-narrow: 42rem;
-  --yale-wealth-form: 28rem;
+  --yw-red: #b91c1c;
+  --yw-red-light: rgb(248 113 113);
+  --yw-text: #292524;
+  --yw-text-dark: #1c1917;
+  --yw-muted: #78716c;
+  --yw-green-dark: #15803d;
+  --yw-green-light: rgb(134 239 172);
+  --yw-dark-bg: rgba(30, 41, 59, 0.92);
+  --yw-dark-text: rgb(226 232 240);
+  --yw-dark-muted: rgb(148 163 184);
+  --yw-dark-title: rgb(248 250 252);
+  /* Billboard text shadows – reused across breakpoints */
+  --yw-shadow-number: 3px 3px 0 rgba(0, 0, 0, 0.9), 0 0 0 2px rgba(0, 0, 0, 0.25), 0 2px 24px rgba(0, 0, 0, 0.5), 0 6px 48px rgba(0, 0, 0, 0.35), 0 0 80px rgba(0, 0, 0, 0.15);
+  --yw-shadow-gold: 3px 3px 0 rgba(0, 0, 0, 0.9), 0 0 0 2px rgba(0, 0, 0, 0.3), 0 2px 24px rgba(0, 0, 0, 0.5), 0 6px 40px rgba(0, 0, 0, 0.3), 0 0 48px rgba(230, 184, 0, 0.25);
+  --yw-shadow-number-sm: 2px 2px 0 rgba(0, 0, 0, 0.9), 0 0 0 2px rgba(0, 0, 0, 0.25), 0 2px 16px rgba(0, 0, 0, 0.5);
+  --yw-shadow-gold-sm: 2px 2px 0 rgba(0, 0, 0, 0.9), 0 0 0 2px rgba(0, 0, 0, 0.3), 0 2px 16px rgba(0, 0, 0, 0.5), 0 0 48px rgba(230, 184, 0, 0.25);
+  --yw-shadow-title: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 2px 12px rgba(0, 0, 0, 0.6), 0 0 32px rgba(230, 184, 0, 0.2);
 }
 
-/* ==========================================================================
-   Page wrapper (background only; alignment via .page-container in sections)
-   ========================================================================== */
+/* --- Page wrapper --- */
 
 
 .yale-wealth-page {
@@ -38,7 +48,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4); /* Dark overlay */
+  background: rgba(0, 0, 0, 0.4);
   pointer-events: none;
   z-index: 0;
 }
@@ -47,9 +57,7 @@
   z-index: 1;
 }
 
-/* ==========================================================================
-   Header section (title + description; gradient underlay)
-   ========================================================================== */
+/* --- Header --- */
 
 .yale-wealth-header-section {
   position: relative;
@@ -96,9 +104,7 @@
   max-width: none;
 }
 
-/* ==========================================================================
-   Content sections (endowment, tax, dashboard – transparent, PAGE_SECTION_CLASS)
-   ========================================================================== */
+/* --- Content sections --- */
 
 .yale-wealth-endowment-section {
   background-color: transparent;
@@ -106,56 +112,61 @@
   max-width: 100%;
 }
 
-.dark .yale-wealth-endowment-section {
-  background-color: transparent;
-}
-
-/* ==========================================================================
-   The Reality – human-forward editorial (no card)
-   ========================================================================== */
+/* --- The Reality --- */
 
 .yale-wealth-reality {
-  background: linear-gradient(180deg, rgba(255, 251, 245, 0.98) 0%, rgba(255, 250, 240, 0.97) 100%);
+  background: transparent;
   color: #1c1917;
-  padding: 3rem 0 4rem;
+  padding: 1.25rem clamp(0.75rem, 3vw, 1.5rem) 1.75rem;
 }
 
 .dark .yale-wealth-reality {
-  background: linear-gradient(180deg, rgba(30, 41, 59, 0.97) 0%, rgba(15, 23, 42, 0.98) 100%);
+  background: transparent;
   color: rgb(226 232 240);
 }
 
 .yale-wealth-reality__article {
-  max-width: 64rem; /* max-w-5xl – matches rest of site */
+  max-width: 50rem;
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: clamp(1rem, 2.5vw, 1.35rem) clamp(1rem, 2.5vw, 1.35rem);
+  background: linear-gradient(180deg, #fefefe 0%, #fafaf9 100%);
+  border-radius: 10px;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.05),
+    0 8px 24px -4px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(0, 0, 0, 0.04);
 }
 
-@media (min-width: 560px) {
-  .yale-wealth-reality__article {
-    padding: 0 2rem;
-  }
+.dark .yale-wealth-reality__article {
+  background: linear-gradient(180deg, rgb(51 65 85) 0%, rgb(30 41 59) 100%);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.2),
+    0 8px 24px -4px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
 .yale-wealth-reality__header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.dark .yale-wealth-reality__header {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
 }
 
 .yale-wealth-reality__title {
   font-family: var(--aw-font-heading, inherit);
-  font-size: 1.75rem;
+  font-size: 1.25rem;
   font-weight: 700;
   line-height: 1.25;
-  color: #1c1917;
+  letter-spacing: -0.02em;
+  color: var(--yw-text-dark);
   margin: 0;
-}
-
-.dark .yale-wealth-reality__title {
-  color: rgb(248 250 252);
 }
 
 .yale-wealth-reality__source {
@@ -163,10 +174,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: 50%;
-  color: #78716c;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+  color: var(--yw-muted);
+  background: rgba(0, 0, 0, 0.04);
   transition: color 0.2s ease, background 0.2s ease;
 }
 
@@ -175,49 +187,55 @@
   background: rgba(34, 197, 94, 0.12);
 }
 
-.dark .yale-wealth-reality__source {
-  color: rgb(148 163 184);
+.yale-wealth-reality__source:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--yw-green);
+  outline-offset: 2px;
 }
 
-.dark .yale-wealth-reality__source:hover {
-  color: rgb(134 239 172);
-  background: rgba(74, 222, 128, 0.15);
+.yale-wealth-reality__lead,
+.yale-wealth-reality__body,
+.yale-wealth-reality__bridge,
+.yale-wealth-reality__close {
+  color: var(--yw-text);
+  line-height: 1.65;
 }
 
 .yale-wealth-reality__lead {
-  font-size: 1.1rem;
+  font-size: 0.9375rem;
   font-weight: 500;
-  line-height: 1.6;
-  color: #292524;
-  margin: 0 0 1.5rem;
+  margin: 0 0 0.75rem;
 }
 
-.yale-wealth-reality__lead strong {
+.yale-wealth-reality__lead strong,
+.yale-wealth-reality__body strong {
   font-weight: 600;
-  color: #15803d;
+  color: var(--yw-green-dark);
 }
 
-.dark .yale-wealth-reality__lead {
-  color: rgb(226 232 240);
-}
-
-.dark .yale-wealth-reality__lead strong {
-  color: rgb(134 239 172);
+.yale-wealth-reality__lead-tax {
+  color: var(--yw-red);
+  font-weight: 600;
 }
 
 .yale-wealth-reality__timeline {
-  margin-bottom: 1.75rem;
+  margin-bottom: 0.9rem;
+  padding: 0.6rem 0.7rem;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0.04) 100%);
+  border-radius: 8px;
+}
+
+.dark .yale-wealth-reality__timeline {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.06) 100%);
 }
 
 .yale-wealth-reality__timeline-caption {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: #78716c;
-  margin: 0 0 0.5rem;
-}
-
-.dark .yale-wealth-reality__timeline-caption {
-  color: rgb(148 163 184);
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--yw-muted);
+  margin: 0 0 0.35rem;
 }
 
 .yale-wealth-reality__days {
@@ -231,11 +249,11 @@
   flex-wrap: nowrap;
   gap: 0;
   width: 100%;
-  height: clamp(28px, 6vw, 40px);
-  min-height: 28px;
+  height: clamp(22px, 4.5vw, 30px);
+  min-height: 22px;
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .yale-wealth-reality__day {
@@ -261,11 +279,12 @@
 }
 
 .yale-wealth-reality__day--tax {
-  background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+  background: linear-gradient(180deg, #f87171 0%, #dc2626 50%, #b91c1c 100%);
+  box-shadow: 2px 0 0 rgba(0, 0, 0, 0.12);
 }
 
 .yale-wealth-reality__day--gains {
-  background: linear-gradient(180deg, #22c55e 0%, #15803d 100%);
+  background: linear-gradient(180deg, #4ade80 0%, #22c55e 50%, #15803d 100%);
 }
 
 .yale-wealth-reality__days-label {
@@ -277,15 +296,10 @@
   justify-content: center;
   pointer-events: none;
   font-family: var(--aw-font-mono);
-  font-weight: 600;
-  font-size: 0.8rem;
+  font-weight: 700;
+  font-size: 0.8125rem;
   color: #fff;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-}
-
-/* Gains label is longer when fully written out */
-.yale-wealth-reality__days-label--gains {
-  font-size: clamp(0.55rem, 1.4vw, 0.75rem);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .yale-wealth-reality__days-label--tax {
@@ -296,99 +310,69 @@
 .yale-wealth-reality__days-label--gains {
   left: 8.2%;
   right: 0;
+  font-size: clamp(0.6rem, 1.5vw, 0.8rem);
 }
 
 .yale-wealth-reality__days-legend {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
-  margin: 0.5rem 0 0;
-  font-size: 0.75rem;
+  margin: 0.35rem 0 0;
+  font-size: 0.6875rem;
   font-weight: 500;
-  color: #78716c;
+  color: var(--yw-muted);
 }
 
 .yale-wealth-reality__days-legend-tax {
-  color: #b91c1c;
+  color: var(--yw-red);
 }
 
 .yale-wealth-reality__days-legend-gains {
-  color: #15803d;
-}
-
-.dark .yale-wealth-reality__days-legend {
-  color: rgb(148 163 184);
-}
-
-.dark .yale-wealth-reality__days-legend-tax {
-  color: rgb(252 165 165);
-}
-
-.dark .yale-wealth-reality__days-legend-gains {
-  color: rgb(134 239 172);
+  color: var(--yw-green-dark);
 }
 
 .yale-wealth-reality__body {
-  font-size: 1rem;
+  font-size: 0.875rem;
   font-weight: 400;
-  line-height: 1.65;
-  color: #292524;
-  margin: 0 0 1.25rem;
-}
-
-.yale-wealth-reality__body strong {
-  font-weight: 600;
-  color: #15803d;
-}
-
-.dark .yale-wealth-reality__body {
-  color: rgb(226 232 240);
-}
-
-.dark .yale-wealth-reality__body strong {
-  color: rgb(134 239 172);
+  line-height: 1.5;
+  margin: 0 0 0.65rem;
 }
 
 .yale-wealth-reality__bridge {
-  font-size: 1rem;
-  font-weight: 500;
-  line-height: 1.6;
-  color: #292524;
-  margin: 0 0 1rem;
-}
-
-.dark .yale-wealth-reality__bridge {
-  color: rgb(226 232 240);
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  color: var(--yw-text-dark);
 }
 
 .yale-wealth-reality__wages {
-  margin-bottom: 1rem;
-  padding: 1rem 1.25rem 0.9rem;
-  background: rgba(0, 0, 0, 0.04);
-  border-radius: 10px;
+  margin-bottom: 0.6rem;
+  padding: 0.75rem 0.95rem 0.65rem;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
 }
 
 .dark .yale-wealth-reality__wages {
-  background: rgba(255, 255, 255, 0.04);
+  background: transparent;
+  border: none;
 }
 
 .yale-wealth-reality__wages-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: 0.4rem;
   margin-bottom: 0.5rem;
 }
 
 .yale-wealth-reality__wages-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #292524;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+  color: var(--yw-text-dark);
   margin: 0;
-}
-
-.dark .yale-wealth-reality__wages-title {
-  color: rgb(226 232 240);
 }
 
 .yale-wealth-reality__wages-source {
@@ -396,8 +380,8 @@
   align-items: center;
   justify-content: center;
   color: var(--aw-color-text-muted);
-  padding: 0.25rem;
-  border-radius: 6px;
+  padding: 0.35rem;
+  border-radius: 8px;
   transition: color 0.2s ease, background-color 0.2s ease;
 }
 
@@ -406,152 +390,74 @@
   background-color: rgba(0, 0, 0, 0.06);
 }
 
+.yale-wealth-reality__wages-source:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--aw-color-primary);
+  outline-offset: 2px;
+}
+
 .dark .yale-wealth-reality__wages-source:hover {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .yale-wealth-reality__close {
-  font-size: 1rem;
+  font-size: 0.875rem;
   font-weight: 500;
-  line-height: 1.6;
-  color: #292524;
+  line-height: 1.5;
   margin: 0;
+  padding: 0.5rem 0.85rem;
+  background: rgba(34, 197, 94, 0.06);
+  border-radius: 6px;
+  border-left: 3px solid var(--yw-green-dark);
 }
 
 .dark .yale-wealth-reality__close {
-  color: rgb(226 232 240);
+  background: rgba(34, 197, 94, 0.1);
 }
 
-/* ==========================================================================
-   Cards (endowment billboard only – frost for those)
-   ========================================================================== */
-
-.yale-wealth-card {
-  position: relative;
-  padding: 0.875rem 1rem !important;
-  background: rgba(255, 255, 255, 0.9) !important;
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  transition: box-shadow 0.25s ease, transform 0.25s ease;
+.dark .yale-wealth-reality__title,
+.dark .yale-wealth-reality__lead,
+.dark .yale-wealth-reality__body,
+.dark .yale-wealth-reality__bridge,
+.dark .yale-wealth-reality__close,
+.dark .yale-wealth-reality__wages-title {
+  color: var(--yw-dark-text);
 }
 
-.yale-wealth-tax-info {
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+.dark .yale-wealth-reality__title {
+  color: var(--yw-dark-title);
 }
 
-.yale-wealth-tax-info:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+.dark .yale-wealth-reality__lead strong,
+.dark .yale-wealth-reality__body strong {
+  color: var(--yw-green-light);
 }
 
-.dark .yale-wealth-card {
-  background: rgba(15, 23, 42, 0.92) !important;
+.dark .yale-wealth-reality__source,
+.dark .yale-wealth-reality__timeline-caption,
+.dark .yale-wealth-reality__days-legend {
+  color: var(--yw-dark-muted);
 }
 
-/* Endowment: Yale blue */
-.yale-wealth-card--yale-blue {
-  background: var(--yw-blue) !important;
-  color: #fff;
+.dark .yale-wealth-reality__source:hover {
+  color: var(--yw-green-light);
+  background: rgba(74, 222, 128, 0.15);
 }
 
-.yale-wealth-card--yale-blue .yale-wealth-card__title,
-.yale-wealth-card--yale-blue .yale-wealth-endowment-card__desc {
-  color: rgba(255, 255, 255, 0.85);
+.dark .yale-wealth-reality__lead-tax,
+.dark .yale-wealth-reality__days-legend-tax {
+  color: rgb(252 165 165);
 }
 
-.yale-wealth-card--yale-blue .yale-wealth-card__title .icon-wrap {
-  color: #fff;
+.dark .yale-wealth-reality__days-legend-gains {
+  color: var(--yw-green-light);
 }
 
-.yale-wealth-card--yale-blue .yale-wealth-endowment-card__value {
-  color: #fff;
-}
-
-.yale-wealth-card--yale-blue .yale-wealth-endowment-card__icon {
-  background: rgba(255, 255, 255, 0.25);
-  color: #fff;
-}
-
-/* Endowment: growth (gold) */
-.yale-wealth-card--growth {
-  background: var(--yw-gold) !important;
-  color: #1a1a1a;
-}
-
-.yale-wealth-card--growth .yale-wealth-card__title,
-.yale-wealth-card--growth .yale-wealth-endowment-card__desc {
-  color: rgba(0, 0, 0, 0.7);
-}
-
-.yale-wealth-card--growth .yale-wealth-card__title .icon-wrap {
-  color: #1a1a1a;
-}
-
-.yale-wealth-card--growth .yale-wealth-endowment-card__value {
-  color: #1a1a1a;
-}
-
-.yale-wealth-card--growth .yale-wealth-endowment-card__icon {
-  background: rgba(0, 0, 0, 0.2);
-  color: #1a1a1a;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15); /* subtle ring so circle is visible on card */
-}
-
-/* Dark: endowment cards keep brand colors */
-.dark .yale-wealth-card--yale-blue {
-  background: var(--yw-blue) !important;
-}
-
-.dark .yale-wealth-card--growth {
-  background: var(--yw-gold) !important;
-  color: #1a1a1a;
-}
-
-.dark .yale-wealth-card--growth .yale-wealth-card__title,
-.dark .yale-wealth-card--growth .yale-wealth-endowment-card__desc,
-.dark .yale-wealth-card--growth .yale-wealth-endowment-card__value {
-  color: rgba(0, 0, 0, 0.85);
-}
-
-.dark .yale-wealth-card--growth .yale-wealth-card__title .icon-wrap,
-.dark .yale-wealth-card--growth .yale-wealth-endowment-card__icon {
-  color: #1a1a1a;
-}
-
-.dark .yale-wealth-card--growth .yale-wealth-endowment-card__icon {
-  background: rgba(0, 0, 0, 0.2);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
-}
-
-/* Card title (shared) */
-.yale-wealth-card__title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 0 0 0.75rem 0;
-  font-family: var(--aw-font-sans, inherit);
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--aw-color-text-muted);
-}
-
-.yale-wealth-card__title .icon-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  color: var(--aw-color-primary);
-}
-
-/* ==========================================================================
-   Endowment billboard: no blue box, full number, high-impact
-   ========================================================================== */
+/* --- Endowment billboard --- */
 
 .yale-wealth-billboard {
   position: relative;
-  overflow: visible; /* allow amounts to show fully without clipping */
+  overflow: visible;
   padding-top: 0.5rem !important;
   padding-bottom: 0.5rem !important;
 }
@@ -600,7 +506,8 @@
   margin-bottom: 1rem;
 }
 
-.yale-wealth-billboard__title {
+.yale-wealth-billboard__title,
+.yale-wealth-billboard__counter-title {
   margin: 0;
   font-family: var(--aw-font-sans, inherit);
   font-size: clamp(0.85rem, 2.2vw, 1.05rem);
@@ -608,11 +515,13 @@
   text-transform: uppercase;
   letter-spacing: 0.18em;
   color: var(--yw-gold);
-  text-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.4),
-    0 2px 12px rgba(0, 0, 0, 0.6),
-    0 0 32px rgba(230, 184, 0, 0.2);
+  text-shadow: var(--yw-shadow-title);
   text-align: center;
+}
+
+.yale-wealth-billboard__counter-title {
+  width: 100%;
+  margin: 0 auto 0.5rem auto;
 }
 
 .yale-wealth-billboard__value {
@@ -640,12 +549,7 @@
   color: #fff;
   text-align: center;
   white-space: nowrap;
-  text-shadow:
-    3px 3px 0 rgba(0, 0, 0, 0.9),
-    0 0 0 2px rgba(0, 0, 0, 0.25),
-    0 2px 24px rgba(0, 0, 0, 0.5),
-    0 6px 48px rgba(0, 0, 0, 0.35),
-    0 0 80px rgba(0, 0, 0, 0.15);
+  text-shadow: var(--yw-shadow-number);
   word-break: break-all;
   overflow: visible;
   min-width: 0;
@@ -656,6 +560,13 @@
   display: inline;
 }
 
+/* Ensure the $ is clickable (falling-money trigger) in all browsers */
+.yale-wealth-billboard__number-prefix {
+  pointer-events: auto;
+  padding: 0.1em 0.15em;
+  margin: -0.1em -0.15em;
+}
+
 @media (min-width: 640px) {
   .yale-wealth-billboard__number {
     font-size: clamp(4rem, 9.5vw, 10rem);
@@ -664,9 +575,11 @@
   }
 }
 
-.yale-wealth-billboard__desc {
+.yale-wealth-billboard__desc,
+.yale-wealth-billboard__counter-meta {
   width: 100%;
-  margin: 1rem auto 0.75rem auto;
+  max-width: 100%;
+  margin: 0 auto;
   font-family: var(--aw-font-sans, inherit);
   font-size: clamp(0.7rem, 1.8vw, 0.82rem);
   font-weight: 800;
@@ -675,6 +588,15 @@
   color: rgba(255, 255, 255, 0.92);
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
   text-align: center;
+}
+
+.yale-wealth-billboard__desc {
+  margin: 1rem auto 0.75rem auto;
+}
+
+.yale-wealth-billboard__counter-meta {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .yale-wealth-billboard__source {
@@ -699,7 +621,6 @@
   outline-offset: 2px;
 }
 
-/* Counter: merged into same area, no separator */
 .yale-wealth-billboard__counter {
   width: 100%;
   max-width: 100%;
@@ -710,22 +631,6 @@
   text-align: center;
   position: relative;
   overflow: visible;
-}
-
-.yale-wealth-billboard__counter-title {
-  width: 100%;
-  margin: 0 auto 0.5rem auto;
-  font-family: var(--aw-font-sans, inherit);
-  font-size: clamp(0.85rem, 2.2vw, 1.05rem);
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: var(--yw-gold);
-  text-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.4),
-    0 2px 12px rgba(0, 0, 0, 0.6),
-    0 0 32px rgba(230, 184, 0, 0.2);
-  text-align: center;
 }
 
 .yale-wealth-billboard__counter .yale-wealth-endowment-card__value {
@@ -745,7 +650,6 @@
   text-align: center;
 }
 
-/* Big "+" in front of gains number */
 .yale-wealth-billboard__counter .yale-wealth-endowment-card__value::before {
   content: '+';
   flex-shrink: 0;
@@ -755,12 +659,7 @@
   line-height: 1;
   letter-spacing: -0.04em;
   color: var(--yw-gold);
-  text-shadow:
-    3px 3px 0 rgba(0, 0, 0, 0.9),
-    0 0 0 2px rgba(0, 0, 0, 0.3),
-    0 2px 24px rgba(0, 0, 0, 0.5),
-    0 6px 40px rgba(0, 0, 0, 0.3),
-    0 0 48px rgba(230, 184, 0, 0.25);
+  text-shadow: var(--yw-shadow-gold);
   pointer-events: none;
 }
 
@@ -776,7 +675,7 @@
 }
 
 .yale-wealth-billboard__counter .yale-wealth-ticker__value {
-  margin-left: 0.35em; /* nudge right to correct 2-glyph visual offset */
+  margin-left: 0.35em;
 }
 
 .yale-wealth-billboard__counter .yale-wealth-ticker,
@@ -787,12 +686,7 @@
   letter-spacing: -0.04em;
   color: var(--yw-gold);
   text-align: center;
-  text-shadow:
-    3px 3px 0 rgba(0, 0, 0, 0.9),
-    0 0 0 2px rgba(0, 0, 0, 0.3),
-    0 2px 24px rgba(0, 0, 0, 0.5),
-    0 6px 40px rgba(0, 0, 0, 0.3),
-    0 0 48px rgba(230, 184, 0, 0.25);
+  text-shadow: var(--yw-shadow-gold);
   overflow: visible;
   text-overflow: clip;
   white-space: nowrap;
@@ -814,187 +708,6 @@
   margin: 0;
 }
 
-.yale-wealth-billboard__counter-meta {
-  width: 100%;
-  max-width: 100%;
-  margin: 0 auto;
-  font-family: var(--aw-font-sans, inherit);
-  font-size: clamp(0.7rem, 1.8vw, 0.82rem);
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: rgba(255, 255, 255, 0.92);
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
-  text-align: center;
-  overflow-wrap: break-word;
-  word-wrap: break-word;
-}
-
-/* ==========================================================================
-   Endowment hero (legacy blue card): one wide 44.1B card + growth overlay
-   ========================================================================== */
-
-.yale-wealth-hero-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding-bottom: 4.5rem !important; /* room for growth chip overlay */
-  min-height: 12rem;
-}
-
-.yale-wealth-hero__base {
-  width: 100%;
-  text-align: center;
-  padding-top: 0.25rem;
-}
-
-.yale-wealth-hero__title {
-  margin: 0 0 0.5rem 0;
-  font-family: var(--aw-font-sans, inherit);
-  font-size: 0.8rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.yale-wealth-hero__value {
-  margin: 0;
-  line-height: 1;
-}
-
-.yale-wealth-hero__number {
-  display: block;
-  font-family: var(--aw-font-mono);
-  font-size: clamp(2.75rem, 11vw, 5.25rem);
-  font-weight: 900;
-  letter-spacing: -0.03em;
-  color: #fff;
-  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.25);
-}
-
-.yale-wealth-hero__desc {
-  margin: 0.5rem 0 0.75rem 0;
-  font-family: var(--aw-font-sans, inherit);
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.yale-wealth-hero__source {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.95);
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
-  transition:
-    color 0.15s ease,
-    opacity 0.15s ease;
-}
-
-.yale-wealth-hero__source:hover {
-  color: #fff;
-  opacity: 0.95;
-}
-
-/* Growth overlay: centered below, on top of the blue card */
-.yale-wealth-hero__growth {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translate(-50%, 50%);
-  width: min(100%, 22rem);
-  padding: 1rem 1.25rem;
-  background: var(--yw-gold) !important;
-  color: #1a1a1a;
-  border-radius: 0.5rem;
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.25),
-    0 2px 8px rgba(0, 0, 0, 0.15);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.yale-wealth-hero__growth-title {
-  margin: 0;
-  font-family: var(--aw-font-sans, inherit);
-  font-size: 0.7rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: rgba(0, 0, 0, 0.75);
-}
-
-.yale-wealth-hero__growth .yale-wealth-endowment-card__value {
-  font-size: clamp(1.35rem, 4vw, 1.85rem);
-  font-weight: 900;
-  color: #1a1a1a;
-  padding-right: 0;
-  justify-content: center;
-  align-items: center;
-}
-
-.yale-wealth-hero__growth .yale-wealth-ticker__value {
-  font-size: inherit;
-}
-
-.yale-wealth-hero__growth-desc,
-.yale-wealth-hero__growth .yale-wealth-endowment-card__desc {
-  margin: 0;
-  font-family: var(--aw-font-sans, inherit);
-  font-size: 0.6rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: rgba(0, 0, 0, 0.65);
-}
-
-.yale-wealth-hero__growth .yale-wealth-endowment-card__as-of {
-  font-size: 0.55rem;
-  color: rgba(0, 0, 0, 0.55);
-  margin-top: 0.25rem;
-  order: 0;
-}
-
-.dark .yale-wealth-hero__growth {
-  background: var(--yw-gold) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-}
-
-.dark .yale-wealth-hero__growth .yale-wealth-endowment-card__value,
-.dark .yale-wealth-hero__growth .yale-wealth-endowment-card__as-of {
-  color: rgba(0, 0, 0, 0.85);
-}
-
-/* Legacy endowment cards (grid) – kept for reference; hero replaces in section 1 */
-.yale-wealth-endowment-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-@media (min-width: 768px) {
-  .yale-wealth-endowment-cards {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    align-items: stretch;
-  }
-}
-
-.yale-wealth-card.yale-wealth-card--yale-blue,
-.yale-wealth-card.yale-wealth-card--growth {
-  display: flex;
-  flex-direction: column;
-  container-type: inline-size;
-  container-name: endowment-card;
-}
-
-/* Shared middle line (desc) on both endowment cards – same spacing and layout */
 .yale-wealth-endowment-card__desc {
   font-family: var(--aw-font-sans, inherit);
   font-size: 0.65rem;
@@ -1013,7 +726,6 @@
   align-items: flex-start;
   gap: 0.25rem;
   font-family: var(--aw-font-mono);
-  /* Scale with card width so number fills horizontal space */
   font-size: min(3rem, max(1.25rem, 12.5cqw));
   font-weight: 900;
   line-height: 1.1;
@@ -1021,43 +733,16 @@
   color: var(--aw-color-text-heading);
   min-width: 0;
   max-width: 100%;
-  padding-right: 3.25rem; /* clear icon so trailing digits aren’t clipped or faded */
+  padding-right: 3.25rem;
   overflow: hidden;
 }
 
-/* Ticker: value + “calculated as of” subtitle (growth card) */
 .yale-wealth-ticker {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 0.35rem;
   min-width: 0;
-}
-
-/* Growth card: large “+” as background so numbers align with left card */
-.yale-wealth-card--growth .yale-wealth-endowment-card__value {
-  position: relative;
-}
-
-/* Decorative "+" must sit behind the number so it doesn't obscure digits */
-.yale-wealth-card--growth .yale-wealth-endowment-card__value::before {
-  content: '+';
-  position: absolute;
-  left: -1.5rem;
-  top: 30%;
-  transform: translateY(-50%);
-  font-family: var(--aw-font-mono);
-  font-size: clamp(7.35rem, 25.2vw, 11.55rem);
-  font-weight: 900;
-  line-height: 1;
-  color: rgba(0, 0, 0, 0.22);
-  pointer-events: none;
-  z-index: -1;
-}
-
-.yale-wealth-card--growth .yale-wealth-ticker {
-  position: relative;
-  z-index: 0;
 }
 
 .yale-wealth-ticker__value {
@@ -1083,15 +768,9 @@
   letter-spacing: 0.02em;
   color: var(--aw-color-text-muted);
   opacity: 0.9;
-  order: -1; /* keep above value when inside flex */
+  order: -1;
   align-self: stretch;
   min-width: 0;
-}
-
-.yale-wealth-card--growth .yale-wealth-endowment-card__as-of {
-  order: 0; /* keep DOM order: value, desc, then as-of (don’t use -1) */
-  margin-top: 0.5rem;
-  color: rgba(0, 0, 0, 0.6);
 }
 
 .yale-wealth-endowment-card__icon {
@@ -1112,9 +791,6 @@
   opacity: 0.9;
 }
 
-/* Value font uses clamp() above so long numbers fit inside card */
-
-/* Shared keyframe for day pop animation */
 @keyframes yale-wealth-day-pop {
   to {
     opacity: 1;
@@ -1122,276 +798,7 @@
   }
 }
 
-.yale-wealth-tax-calc {
-  background: rgba(255, 255, 255, 0.6);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  border-radius: 10px;
-  padding: 1rem 1.25rem;
-  margin-bottom: 1rem;
-}
-
-.dark .yale-wealth-tax-calc {
-  background: rgba(30, 41, 59, 0.9);
-}
-
-.yale-wealth-tax-calc__row {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 0.75rem;
-  margin-bottom: 0.5rem;
-}
-
-.yale-wealth-tax-calc__right {
-  text-align: right;
-}
-
-.yale-wealth-tax-calc__label {
-  font-family: var(--aw-font-sans, inherit);
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--aw-color-text-muted);
-}
-
-.dark .yale-wealth-tax-calc__label {
-  color: rgb(203 213 225);
-}
-
-.yale-wealth-tax-calc__amount {
-  font-family: var(--aw-font-mono);
-  font-size: clamp(1.25rem, 2.5vw, 1.6rem);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--aw-color-text-heading);
-}
-
-.yale-wealth-tax-bar {
-  height: 48px;
-  border-radius: 8px;
-  overflow: hidden;
-  display: flex;
-  margin-top: 0.75rem;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
-}
-
-.yale-wealth-tax-bar__tax {
-  width: 8.2%;
-  min-width: 52px;
-  background: var(--aw-color-primary);
-  color: #fff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--aw-font-sans, inherit);
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.yale-wealth-tax-bar__tax sub {
-  font-size: 0.5rem;
-  opacity: 0.9;
-}
-
-.yale-wealth-tax-bar__retained {
-  flex: 1;
-  background: var(--yw-green);
-  color: #fff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--aw-font-sans, inherit);
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.yale-wealth-tax-bar__retained sub {
-  font-size: 0.55rem;
-  opacity: 0.95;
-}
-
-.yale-wealth-tax-bar__legend {
-  font-size: 0.6rem;
-  color: var(--aw-color-text-muted);
-  margin-top: 0.35rem;
-  margin-bottom: 0;
-}
-
-.dark .yale-wealth-tax-bar__legend {
-  color: rgb(203 213 225);
-}
-
-.yale-wealth-tax-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-  margin-bottom: 0;
-  min-width: 0;
-  align-self: stretch;
-}
-
-.yale-wealth-tax-info {
-  background: rgba(255, 255, 255, 0.9) !important;
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-  position: relative;
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 0.85rem;
-  padding: 0.9rem 1rem !important;
-  min-height: 0;
-  border-radius: 10px;
-}
-
-.dark .yale-wealth-tax-info {
-  background: rgba(30, 41, 59, 0.9) !important;
-}
-
-.yale-wealth-tax-info__icon {
-  width: 2rem;
-  height: 2rem;
-  border-radius: 6px;
-  background: rgba(0, 0, 0, 0.06);
-  color: var(--aw-color-text-muted);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  margin: 0;
-}
-
-.yale-wealth-tax-info__icon svg {
-  width: 1.05rem;
-  height: 1.05rem;
-}
-
-.dark .yale-wealth-tax-info__icon {
-  background: rgb(51 65 85);
-  color: rgb(203 213 225);
-}
-
-.yale-wealth-tax-info--paid .yale-wealth-tax-info__icon {
-  background: rgba(239, 68, 68, 0.12);
-  color: #dc2626;
-  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.25);
-}
-
-.dark .yale-wealth-tax-info--paid .yale-wealth-tax-info__icon {
-  background: rgb(239 68 68 / 0.2);
-  color: rgb(248 113 113);
-  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.4);
-}
-
-.yale-wealth-tax-info--growth .yale-wealth-tax-info__icon,
-.yale-wealth-tax-info__icon--growth {
-  background: #dcfce7;
-  color: var(--yw-green);
-  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.3);
-}
-
-.dark .yale-wealth-tax-info--growth .yale-wealth-tax-info__icon,
-.dark .yale-wealth-tax-info__icon--growth {
-  background: rgb(22 101 52 / 0.5);
-  color: rgb(134 239 172);
-  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.4);
-}
-
-.yale-wealth-tax-info__body {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-}
-
-.yale-wealth-tax-info__label {
-  font-family: var(--aw-font-sans, inherit);
-  font-size: 0.6rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--aw-color-text-muted);
-  margin: 0;
-}
-
-.yale-wealth-tax-info__value {
-  font-family: var(--aw-font-mono);
-  font-size: 1.35rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--aw-color-text-heading);
-  margin: 0;
-  line-height: 1.2;
-}
-
-.yale-wealth-tax-info--growth .yale-wealth-tax-info__value {
-  color: var(--yw-green);
-}
-
-.dark .yale-wealth-tax-info--growth .yale-wealth-tax-info__value {
-  color: rgb(134 239 172);
-}
-
-.yale-wealth-tax-info__copy {
-  font-size: 0.72rem;
-  line-height: 1.35;
-  color: var(--aw-color-text-muted);
-  margin: 0;
-}
-
-.dark .yale-wealth-tax-info__label {
-  color: rgb(203 213 225);
-}
-
-.dark .yale-wealth-tax-info__copy {
-  color: rgb(203 213 225);
-}
-
-/* Verify / source links (sits at bottom of tax main column) */
-
-.yale-wealth-verify-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #dc2626;
-  text-decoration: none;
-}
-
-.yale-wealth-verify-link:hover {
-  text-decoration: underline;
-}
-
-/* Dark mode: brighter verify link for contrast on dark panels */
-.dark .yale-wealth-verify-link {
-  color: rgb(248 113 113);
-}
-.dark .yale-wealth-verify-link:hover {
-  color: rgb(252 165 165);
-}
-
-.yale-wealth-verify-link__icon {
-  flex-shrink: 0;
-  width: 1rem;
-  height: 1rem;
-}
-
-.yale-wealth-endowment-card__icon.yale-wealth-verify-link:hover {
-  text-decoration: none;
-}
-
-/* ==========================================================================
-   Pay grades calculator (island)
-   ========================================================================== */
+/* --- Pay grades calculator --- */
 
 .yale-wealth-calc {
   margin: 0;
@@ -1403,48 +810,23 @@
   box-sizing: border-box;
 }
 
-/* Allow CPI-W popup to extend above the card without being clipped */
 .yale-wealth-calc--popup-open {
   overflow: visible;
 }
 
-/* Picker: grade selection */
 .yale-wealth-calc__picker {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
-.yale-wealth-calc__beat-heading {
-  margin: 0 0 0.5rem 0;
-  font-family: var(--aw-font-heading, inherit);
-  font-size: clamp(1.1rem, 3.2vw, 1.28rem);
-  font-weight: 800;
-  line-height: 1.25;
-  color: var(--aw-color-text-heading);
-  letter-spacing: -0.03em;
-}
-
-.yale-wealth-calc__beat-heading--visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* Wage comparison: what we make vs what we should make */
 .yale-wealth-calc__comparison {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: stretch;
-  gap: 0;
-  margin-bottom: 0.4rem;
+  gap: 0.4rem;
+  margin-bottom: 0.35rem;
   width: 100%;
   min-width: 0;
-  padding: 0.5rem 0;
+  padding: 0.35rem 0;
 }
 
 .yale-wealth-calc__comparison-card {
@@ -1454,16 +836,17 @@
   justify-content: center;
   text-align: center;
   gap: 0.15rem;
-  padding: 0.75rem 0.65rem;
+  padding: 0.5rem 0.5rem;
   background: transparent;
   border: none;
-  border-radius: 0;
-  min-height: 4.5rem;
+  border-radius: 6px;
+  min-height: 3.75rem;
   min-width: 0;
 }
 
 .dark .yale-wealth-calc__comparison-card {
   background: transparent;
+  border: none;
 }
 
 .yale-wealth-calc__comparison-label {
@@ -1475,61 +858,68 @@
 
 .yale-wealth-calc__comparison-value {
   font-family: var(--aw-font-mono);
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: clamp(1.1rem, 2.8vw, 1.25rem);
+  font-weight: 700;
   line-height: 1.2;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
   color: var(--aw-color-text-heading);
 }
 
 .yale-wealth-calc__comparison-meta {
-  font-size: 0.75rem;
-  font-weight: 400;
+  font-size: 0.6875rem;
+  font-weight: 500;
   color: var(--aw-color-text-muted);
-  line-height: 1.35;
+  line-height: 1.4;
   max-width: 100%;
 }
 
-/* Shortfall – emphasize the gap */
 .yale-wealth-calc__comparison-gap {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  gap: 0.2rem;
-  padding: 0.5rem 0.75rem;
-  background: rgba(239, 68, 68, 0.08);
-  border-radius: 6px;
+  gap: 0.1rem;
+  padding: 0.4rem 0.6rem;
+  background: linear-gradient(180deg, #dc2626 0%, #b91c1c 100%);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(185, 28, 28, 0.25);
 }
 
 .yale-wealth-calc__comparison-gap-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #b91c1c;
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.95);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  line-height: 1;
+  letter-spacing: 0.1em;
+  line-height: 1.2;
 }
 
 .yale-wealth-calc__comparison-gap-value {
   font-family: var(--aw-font-mono);
-  font-size: 1.15rem;
+  font-size: clamp(0.95rem, 2vw, 1.15rem);
   font-weight: 700;
-  color: #b91c1c;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: #fff;
   white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .dark .yale-wealth-calc__comparison-gap {
-  background: rgba(239, 68, 68, 0.15);
+  background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+  box-shadow: 0 2px 12px rgba(239, 68, 68, 0.2);
 }
 
-.dark .yale-wealth-calc__comparison-gap-label,
+.dark .yale-wealth-calc__comparison-gap-label {
+  color: rgba(255, 255, 255, 0.95);
+}
+
 .dark .yale-wealth-calc__comparison-gap-value {
-  color: rgb(248 113 113);
+  color: #fff;
 }
 
-/* CPI-W card: label + info icon, popup */
 .yale-wealth-calc__comparison-card--cpi {
   position: relative;
 }
@@ -1565,6 +955,18 @@
 .yale-wealth-calc__cpi-info:focus-visible {
   outline: 2px solid var(--aw-color-primary);
   outline-offset: 2px;
+}
+
+.dark .yale-wealth-calc__cpi-info {
+  color: var(--yw-dark-muted);
+}
+
+.dark .yale-wealth-calc__cpi-info:hover {
+  color: var(--aw-color-primary-on-dark, rgb(252 165 165));
+}
+
+.dark .yale-wealth-calc__cpi-info:focus-visible {
+  outline-color: var(--aw-color-primary-on-dark, var(--aw-color-primary));
 }
 
 .yale-wealth-calc__cpi-popup {
@@ -1607,7 +1009,7 @@
 
 .dark .yale-wealth-calc__cpi-popup-note {
   border-color: rgba(255, 255, 255, 0.12);
-  color: rgb(148 163 184);
+  color: var(--yw-dark-muted);
 }
 
 .yale-wealth-calc__cpi-popup-close {
@@ -1638,416 +1040,109 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
 }
 
-.dark .yale-wealth-calc__cpi-popup-close:hover {
-  background: rgba(255, 255, 255, 0.1);
+.dark .yale-wealth-calc__cpi-popup-close {
+  color: var(--yw-dark-muted);
 }
 
-/* Takeaway */
+.dark .yale-wealth-calc__cpi-popup-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--yw-dark-text);
+}
+
 .yale-wealth-calc__takeaway {
-  padding-top: 0.25rem;
+  padding: 0.4rem 0.7rem;
+  background: rgba(239, 68, 68, 0.06);
+  border-radius: 6px;
+  border-left: 3px solid var(--yw-red);
+}
+
+.dark .yale-wealth-calc__takeaway {
+  background: rgba(239, 68, 68, 0.1);
 }
 
 .yale-wealth-calc__takeaway-line {
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.875rem;
   font-weight: 500;
-  line-height: 1.5;
+  line-height: 1.45;
   color: var(--aw-color-text-default);
 }
 
 .yale-wealth-calc__takeaway-line strong {
-  color: var(--aw-color-primary);
-  font-weight: 600;
+  color: var(--yw-red);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 .yale-wealth-calc__grades {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 0.25rem;
+  gap: 0.3rem;
   margin-bottom: 0;
   width: 100%;
-}
-
-.yale-wealth-calc__steps {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  flex-wrap: wrap;
-  margin-bottom: 0;
-}
-
-.yale-wealth-calc__steps .yale-wealth-calc__steps-label {
-  font-family: var(--aw-font-heading, inherit);
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--aw-color-text-default);
-  margin: 0;
-  letter-spacing: -0.01em;
-}
-
-/* Supporting: clean stat row with dividers */
-.yale-wealth-calc__supporting {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0;
-  margin-bottom: 0.85rem;
-  padding: 0.75rem 0;
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  background: transparent;
-  border-radius: 0;
-  border-left: none;
-  border-right: none;
-}
-
-.dark .yale-wealth-calc__supporting {
-  background: transparent;
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-.yale-wealth-calc__supporting-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  min-width: 0;
-  text-align: center;
-  padding: 0 0.5rem;
-  background: none;
-  border: none;
-  border-radius: 0;
-  position: relative;
-}
-
-/* Vertical dividers between stats */
-.yale-wealth-calc__supporting-card:not(:last-child)::after {
-  content: '';
-  position: absolute;
-  right: 0;
-  top: 10%;
-  height: 80%;
-  width: 1px;
-  background-color: rgba(0, 0, 0, 0.08);
-}
-
-.dark .yale-wealth-calc__supporting-card:not(:last-child)::after {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.yale-wealth-calc__supporting-label {
-  font-family: var(--aw-font-sans, inherit);
-  font-size: 0.58rem;
-  font-weight: 600;
-  color: var(--aw-color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  line-height: 1.25;
-}
-
-.yale-wealth-calc__supporting-value {
-  font-family: var(--aw-font-mono);
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--aw-color-text-heading);
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-  font-variant-numeric: tabular-nums;
-}
-
-.dark .yale-wealth-calc__supporting-label {
-  color: rgb(148 163 184);
-}
-
-.dark .yale-wealth-calc__supporting-value {
-  color: var(--aw-color-text-heading);
-}
-
-@media (min-width: 380px) {
-  .yale-wealth-calc__supporting-value {
-    font-size: 1.05rem;
-  }
-}
-
-/* Explain block */
-.yale-wealth-calc__explain {
-  margin-bottom: 0.6rem;
-}
-
-.yale-wealth-calc__explain-line {
-  margin: 0 0 0.4rem 0;
-  font-size: 0.8rem;
-  line-height: 1.5;
-  color: var(--aw-color-text-muted);
-  letter-spacing: 0.01em;
-}
-
-.yale-wealth-calc__explain-question {
-  margin: 0;
-  font-family: var(--aw-font-heading, inherit);
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--aw-color-text-heading);
-  line-height: 1.4;
-  letter-spacing: -0.01em;
-}
-
-.dark .yale-wealth-calc__explain-line {
-  color: rgb(148 163 184);
-}
-
-/* Meta: small, at bottom */
-.yale-wealth-calc__meta {
-  margin: 0 0 0.6rem 0;
-  font-family: var(--aw-font-mono);
-  font-size: 0.7rem;
-  font-weight: 500;
-  color: var(--aw-color-text-muted);
-  line-height: 1.5;
-  letter-spacing: 0.02em;
-  font-variant-numeric: tabular-nums;
-}
-
-.dark .yale-wealth-calc__meta {
-  color: rgb(148 163 184);
-}
-
-.yale-wealth-calc__link {
-  margin: 0;
-  font-size: 0.88rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  text-align: left;
-}
-
-.yale-wealth-calc__link .yale-wealth-verify-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.yale-wealth-calc__link .yale-wealth-verify-link__icon {
-  width: 0.75rem;
-  height: 0.75rem;
-}
-
-.yale-wealth-calc__steps-buttons {
-  display: flex;
-  gap: 0.3rem;
-}
-
-.yale-wealth-calc__steps-btn {
-  padding: 0.35rem 0.65rem;
-  font-size: 0.8rem;
-  font-weight: 600;
-  border-radius: 5px;
-  background: rgba(255, 255, 255, 0.9);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-  color: #111827;
-  cursor: pointer;
-  transition:
-    background 0.2s,
-    color 0.2s;
-}
-
-.yale-wealth-calc__steps-btn:hover {
-  color: var(--aw-color-primary);
-}
-
-.yale-wealth-calc__steps-btn--active {
-  background: #fff;
-  color: var(--aw-color-primary);
-  box-shadow: 0 0 0 2px var(--aw-color-primary);
-}
-
-.yale-wealth-calc__steps-btn--active:hover {
-  background: rgba(239, 68, 68, 0.06);
 }
 
 .yale-wealth-calc__grade {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0.5rem 0.35rem;
-  border-radius: 6px;
-  background: transparent;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  color: var(--aw-color-text-muted);
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s, border-color 0.2s;
-  font-size: 0.875rem;
+  justify-content: center;
+  gap: 0.1rem;
+  padding: 0.4rem 0.3rem;
+  font-family: var(--aw-font-sans, inherit);
+  font-size: 0.8125rem;
   font-weight: 500;
+  line-height: 1.25;
+  color: var(--yw-text);
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .yale-wealth-calc__grade:hover {
-  color: var(--aw-color-text-default);
-  border-color: rgba(0, 0, 0, 0.15);
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.18);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
 
 .yale-wealth-calc__grade--active {
-  color: var(--aw-color-text-heading);
-  border-color: rgba(0, 0, 0, 0.2);
+  background: linear-gradient(180deg, #dc2626 0%, #b91c1c 100%);
+  color: #fff;
   font-weight: 600;
+  border-color: transparent;
+  box-shadow: 0 2px 8px rgba(185, 28, 28, 0.3);
 }
 
 .yale-wealth-calc__grade--active:hover {
-  border-color: rgba(0, 0, 0, 0.25);
+  background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+  box-shadow: 0 3px 10px rgba(185, 28, 28, 0.35);
 }
 
-.dark .yale-wealth-calc__grade {
-  border-color: rgba(255, 255, 255, 0.12);
-  color: rgb(148 163 184);
-}
-
-.dark .yale-wealth-calc__grade:hover {
-  color: rgb(226 232 240);
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-.dark .yale-wealth-calc__grade--active {
-  color: rgb(248 250 252);
-  border-color: rgba(255, 255, 255, 0.35);
-}
-
-.dark .yale-wealth-calc__grade--active:hover {
-  border-color: rgba(255, 255, 255, 0.45);
+.yale-wealth-calc__grade:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--yw-red);
+  outline-offset: 2px;
 }
 
 .yale-wealth-calc__grade-rate {
   font-family: var(--aw-font-mono);
+  font-size: 0.8125rem;
   font-weight: 600;
-  font-size: 0.875rem;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
 }
 
 .yale-wealth-calc__grade-label {
-  font-size: 0.75rem;
-  font-weight: 500;
-  margin-top: 0.15rem;
-  color: inherit;
+  font-size: 0.5625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
   opacity: 0.9;
 }
 
-/* Results block – inset panel like tax-calc */
-.yale-wealth-card__title--with-icon {
-  gap: 0.4rem;
-}
-
-.yale-wealth-card__title--with-icon .icon-wrap {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: 6px;
-  background: rgba(59, 130, 246, 0.12);
-  color: var(--aw-color-primary);
-}
-
-.dark .yale-wealth-card__title--with-icon .icon-wrap {
-  background: rgb(59 130 246 / 0.25);
-  color: rgb(96 165 250);
-}
-
-.yale-wealth-card__title--with-icon .icon-wrap svg {
-  width: 1rem;
-  height: 1rem;
-}
-
-/* ==========================================================================
-   Signup
-   ========================================================================== */
-
-.yale-wealth-signup {
-  max-width: var(--yale-wealth-form);
-  margin-left: auto;
-  margin-right: auto;
-  padding: 2rem 0;
-  text-align: center;
-}
-
-.yale-wealth-signup__title {
-  font-family: var(--aw-font-sans, inherit);
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: var(--aw-color-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  margin: 0 0 0.5rem 0;
-}
-
-.yale-wealth-signup__subtitle {
-  color: var(--aw-color-text-muted);
-  margin: 0 0 1.25rem 0;
-  font-size: 1rem;
-  line-height: 1.5;
-}
-
-.yale-wealth-signup__toggle {
-  display: inline-block;
-  padding: 0.6rem 1.25rem;
-  background: var(--aw-color-primary);
-  color: #fff;
-  font-family: var(--aw-font-sans, inherit);
-  text-transform: uppercase;
-  font-weight: 700;
-  font-size: 0.9rem;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.yale-wealth-signup__toggle:hover {
-  background: var(--aw-color-secondary);
-}
-
-.yale-wealth-signup__form-wrap {
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  text-align: left;
-}
-
-.yale-wealth-signup__form {
-  display: flex;
-  flex-direction: column;
-}
-
-.yale-wealth-signup__row {
-  display: flex;
-  gap: 0.75rem;
-}
-
-.yale-wealth-signup__row .yale-wealth-signup__input {
-  flex: 1;
-}
-
-.yale-wealth-signup__input {
-  width: 100%;
-  padding: 0.6rem 0.75rem;
-  border-radius: 6px;
-  margin-bottom: 0.75rem;
-  font-size: 1rem;
-  background: rgba(255, 255, 255, 0.9);
-  -webkit-backdrop-filter: blur(4px);
-  backdrop-filter: blur(4px);
-  color: var(--aw-color-text-default);
-}
-
-.yale-wealth-signup__input:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--aw-color-primary) 25%, transparent);
-}
-
-.yale-wealth-signup__disclaimer {
-  font-size: 0.8rem;
-  color: var(--aw-color-text-muted);
-  margin: -0.25rem 0 0.75rem 0;
-  line-height: 1.4;
-}
-
 .yale-wealth-signup__submit {
-  width: 100%;
-  padding: 0.75rem 1rem;
   background: var(--aw-color-primary);
   color: #fff;
   font-family: var(--aw-font-sans, inherit);
@@ -2065,9 +1160,44 @@
   background: var(--aw-color-secondary);
 }
 
-/* ==========================================================================
-   Animation
-   ========================================================================== */
+.yale-wealth-hungry-btn {
+  position: fixed;
+  bottom: 0.75rem;
+  right: 0.75rem;
+  z-index: 60;
+  display: inline-block;
+  padding: 0.35rem 0.6rem;
+  background: var(--aw-color-primary);
+  color: #fff;
+  font-family: var(--aw-font-heading, inherit);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.yale-wealth-hungry-btn:hover {
+  background: var(--aw-color-secondary);
+}
+
+.yale-wealth-hungry-btn:active {
+  transform: scale(0.98);
+}
+
+.yale-wealth-hungry-btn:focus-visible {
+  outline: 2px solid var(--aw-color-primary);
+  outline-offset: 2px;
+}
+
+.dark .yale-wealth-hungry-btn:focus-visible {
+  outline-color: var(--aw-color-primary-on-dark, var(--aw-color-primary));
+}
+
+/* --- Animation --- */
 
 .yale-wealth-fade-in {
   animation: yaleWealthFadeIn 0.3s ease-out;
@@ -2082,74 +1212,62 @@
   }
 }
 
-/* ==========================================================================
-   Dark mode (island panels – calc, signup; theme vars handle rest)
-   ========================================================================== */
+/* --- Dark mode (island panels) --- */
 
-:global(.dark) .yale-wealth-calc__grade {
-  background: rgba(30, 41, 59, 0.92);
+.dark .yale-wealth-calc__grade {
+  background: rgba(51, 65, 85, 0.6);
   color: rgb(241 245 249);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-:global(.dark) .yale-wealth-calc__grade--active {
-  background: var(--aw-color-primary);
+.dark .yale-wealth-calc__grade:hover {
+  background: rgba(71, 85, 105, 0.7);
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
-:global(.dark) .yale-wealth-calc__steps-btn {
-  background: rgba(30, 41, 59, 0.92);
-  color: rgb(241 245 249);
+.dark .yale-wealth-calc__grade--active {
+  background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%);
+  color: #fff;
+  border-color: transparent;
 }
 
-:global(.dark) .yale-wealth-calc__steps-btn--active {
-  background: var(--aw-color-primary);
+.dark .yale-wealth-calc__grade--active:hover {
+  background: linear-gradient(180deg, #f87171 0%, #ef4444 100%);
 }
 
-:global(.dark) .yale-wealth-calc__results-card {
-  background: rgba(30, 41, 59, 0.9);
-}
-
-:global(.dark) .yale-wealth-calc__result-label,
-:global(.dark) .yale-wealth-calc__result-value {
-  color: var(--aw-color-text-heading);
-}
-
-
-:global(.dark) .yale-wealth-signup__subtitle {
+.dark .yale-wealth-signup__subtitle {
   color: rgb(203 213 225);
 }
 
-:global(.dark) .yale-wealth-signup__input {
-  background: rgba(30, 41, 59, 0.92);
+.dark .yale-wealth-signup__input {
+  background: var(--yw-dark-bg);
   color: var(--aw-color-text-default);
 }
 
-:global(.dark) .yale-wealth-signup__input:focus {
+.dark .yale-wealth-signup__input:focus {
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--aw-color-primary) 25%, transparent);
 }
 
-/* ==========================================================================
-   Mobile only (max-width: 767px = below md; 480px = small; 420px = very narrow)
-   ========================================================================== */
+.dark .yale-wealth-signup__submit {
+  background: var(--aw-color-primary);
+  color: #fff;
+}
 
-/* --- 768px: performance (disable backdrop-filter on mobile) --- */
+.dark .yale-wealth-signup__submit:hover {
+  background: var(--aw-color-secondary);
+}
+
+/* --- Mobile breakpoints --- */
+
 @media (max-width: 768px) {
   .yale-wealth-page {
     background-attachment: scroll;
   }
-  .yale-wealth-card,
-  .yale-wealth-tax-calc,
-  .yale-wealth-tax-info,
   .yale-wealth-signup__input,
-  .yale-wealth-calc__steps-btn,
   .yale-wealth-calc__grade {
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
   }
-}
-
-/* --- 767px: layout, padding, header-to-title spacing --- */
-@media (max-width: 767px) {
-  /* Header: space between nav bar and title; window padding */
   .yale-wealth-header-section {
     padding-top: 1.25rem;
   }
@@ -2157,195 +1275,94 @@
     padding-left: 1.25rem;
     padding-right: 1.25rem;
   }
-
-  /* Endowment section: tighter padding so numbers + shadow fit without clipping */
   .yale-wealth-endowment-section {
     padding-left: 0.75rem;
     padding-right: 0.75rem;
+    overflow-x: clip;
   }
-
-  /* Billboard: override !important to add section spacing on mobile */
   .yale-wealth-billboard {
     padding-top: 1.25rem !important;
     padding-bottom: 0.75rem !important;
   }
-
-  /* Contain billboard overflow; numbers as large as possible, 900 weight, hard drop shadow */
-  .yale-wealth-endowment-section {
-    overflow-x: clip;
-  }
   .yale-wealth-billboard__number {
     font-size: clamp(2.75rem, 9.5vw, 5rem);
-    font-weight: 900;
-    text-shadow:
-      3px 3px 0 rgba(0, 0, 0, 0.9),
-      0 0 0 2px rgba(0, 0, 0, 0.25),
-      0 2px 24px rgba(0, 0, 0, 0.5),
-      0 6px 48px rgba(0, 0, 0, 0.35);
   }
   .yale-wealth-billboard__counter .yale-wealth-endowment-card__value::before,
   .yale-wealth-billboard__counter .yale-wealth-ticker,
   .yale-wealth-billboard__counter .yale-wealth-ticker__value {
     font-size: clamp(2.5rem, 9vw, 4.5rem);
-    font-weight: 900;
-    text-shadow:
-      3px 3px 0 rgba(0, 0, 0, 0.9),
-      0 0 0 2px rgba(0, 0, 0, 0.3),
-      0 2px 24px rgba(0, 0, 0, 0.5),
-      0 6px 40px rgba(0, 0, 0, 0.3),
-      0 0 48px rgba(230, 184, 0, 0.25);
+    text-shadow: var(--yw-shadow-gold);
   }
 }
 
-/* --- 520px: tax calc row stacks --- */
-@media (max-width: 520px) {
-  .yale-wealth-tax-calc__row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-  .yale-wealth-tax-calc__right {
-    text-align: left;
-  }
-}
-
-/* --- 480px: small mobile – tap targets, typography --- */
 @media (max-width: 480px) {
-  /* Section spacing */
   .yale-wealth-endowment-section {
     padding-top: 1.5rem;
   }
   .yale-wealth-reality {
-    padding: 2rem 0 3rem;
+    padding: 1rem 0.75rem 1.5rem;
   }
   .yale-wealth-reality__article {
-    padding: 0 1.25rem;
+    padding: 0.9rem 0.9rem;
   }
-
-  /* Cards: tighter padding for narrow viewport */
-  .yale-wealth-card {
-    padding: 0.75rem 0.8rem !important;
-  }
-
-  /* Endowment card icon */
   .yale-wealth-endowment-card__icon {
     top: 0.75rem;
     right: 0.75rem;
     width: 2rem;
     height: 2rem;
   }
-
-  /* Reality: typography on mobile */
   .yale-wealth-reality__title {
     font-size: 1.5rem;
   }
   .yale-wealth-reality__lead {
-    font-size: 1.05rem;
-  }
-  .yale-wealth-reality__days-row {
-    height: clamp(22px, 6vw, 32px);
-  }
-  .yale-wealth-reality__days-legend {
-    font-size: 0.75rem;
-  }
-  .yale-wealth-reality__body {
     font-size: 1rem;
   }
-  /* Reality bridge on mobile */
+  .yale-wealth-reality__days-row {
+    height: clamp(28px, 6vw, 36px);
+  }
   .yale-wealth-reality__bridge {
-    margin-bottom: 0.85rem;
+    margin-bottom: 0.5rem;
   }
   .yale-wealth-reality__wages {
-    margin-bottom: 0.85rem;
-    padding: 0.9rem 1rem 0.8rem;
+    margin-bottom: 0.5rem;
+    padding: 0.65rem 0.85rem 0.55rem;
   }
-
-  /* Tax bar: wrap, min tap height (legacy) */
-  .yale-wealth-tax-bar {
-    min-height: 44px;
-    height: auto;
-    flex-wrap: wrap;
-  }
-  .yale-wealth-tax-bar__tax,
-  .yale-wealth-tax-bar__retained {
-    font-size: 0.6rem;
-  }
-  .yale-wealth-tax-bar__tax sub,
-  .yale-wealth-tax-bar__retained sub {
-    font-size: 0.5rem;
-  }
-
-  /* Tax calc amounts and labels */
-  .yale-wealth-tax-calc__amount {
-    font-size: 1.1rem;
-  }
-  .yale-wealth-tax-calc__label {
-    font-size: 0.6rem;
-  }
-  .yale-wealth-tax-calc__row {
-    gap: 0.25rem;
-  }
-
-  /* Wage calculator: grades grid 2-col for tap targets */
   .yale-wealth-calc__grades {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.5rem;
   }
   .yale-wealth-calc__grade {
-    padding: 0.6rem 0.4rem;
+    padding: 0.6rem 0.5rem;
   }
-
-  /* Wage comparison: stack on narrow screens */
   .yale-wealth-calc__comparison {
     grid-template-columns: 1fr;
     grid-template-rows: auto auto auto;
     gap: 0.5rem;
   }
+  .yale-wealth-calc__comparison-card {
+    padding: 0.5rem 0.5rem;
+  }
   .yale-wealth-calc__comparison-gap {
-    padding: 0.5rem 0.65rem;
+    padding: 0.6rem 0.85rem;
   }
   .yale-wealth-calc__comparison-gap-value {
-    font-size: 1.05rem;
+    font-size: 1.15rem;
   }
 }
 
-/* --- 420px: narrow – billboard fits without clipping --- */
-@media (max-width: 420px) {
+@media (max-width: 400px) {
   .yale-wealth-billboard__number {
-    font-size: clamp(2rem, 8.5vw, 3.5rem);
-    font-weight: 900;
-    text-shadow:
-      2px 2px 0 rgba(0, 0, 0, 0.9),
-      0 0 0 2px rgba(0, 0, 0, 0.25),
-      0 2px 16px rgba(0, 0, 0, 0.5);
+    font-size: clamp(1.75rem, 8vw, 3rem);
+    text-shadow: var(--yw-shadow-number-sm);
   }
   .yale-wealth-billboard__counter .yale-wealth-endowment-card__value::before,
   .yale-wealth-billboard__counter .yale-wealth-ticker,
   .yale-wealth-billboard__counter .yale-wealth-ticker__value {
-    font-size: clamp(1.9rem, 8vw, 3.25rem);
-    font-weight: 900;
-    text-shadow:
-      2px 2px 0 rgba(0, 0, 0, 0.9),
-      0 0 0 2px rgba(0, 0, 0, 0.3),
-      0 2px 16px rgba(0, 0, 0, 0.5),
-      0 0 48px rgba(230, 184, 0, 0.25);
+    font-size: clamp(1.65rem, 7.5vw, 2.75rem);
+    text-shadow: var(--yw-shadow-gold-sm);
   }
   .yale-wealth-billboard__counter-meta {
     font-size: 0.65rem;
     letter-spacing: 0.08em;
-  }
-}
-
-/* --- 360px: very narrow – fit within viewport --- */
-@media (max-width: 360px) {
-  .yale-wealth-billboard__number {
-    font-size: clamp(1.75rem, 7.5vw, 2.75rem);
-    font-weight: 900;
-  }
-  .yale-wealth-billboard__counter .yale-wealth-endowment-card__value::before,
-  .yale-wealth-billboard__counter .yale-wealth-ticker,
-  .yale-wealth-billboard__counter .yale-wealth-ticker__value {
-    font-size: clamp(1.65rem, 7vw, 2.75rem);
-    font-weight: 900;
   }
 }
