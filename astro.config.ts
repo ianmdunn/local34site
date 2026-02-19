@@ -7,11 +7,8 @@ import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import tailwind from '@astrojs/tailwind';
 import mdx from '@astrojs/mdx';
-import partytown from '@astrojs/partytown';
 import icon from 'astro-icon';
 import compress from 'astro-compress';
-import type { AstroIntegration } from 'astro';
-
 import astrowind from './vendor/integration';
 
 import { readingTimeRemarkPlugin, responsiveTablesRehypePlugin, lazyImagesRehypePlugin } from './src/utils/frontmatter';
@@ -29,14 +26,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // - Config: config.yaml → vendor integration → virtual module astrowind:config → SITE, METADATA, etc.
 // ---------------------------------------------------------------------------
 
-const hasExternalScripts = false;
-const whenExternalScripts = (items: (() => AstroIntegration) | (() => AstroIntegration)[] = []) =>
-  hasExternalScripts ? (Array.isArray(items) ? items.map((item) => item()) : [items()]) : [];
-
 export default defineConfig({
   // Fallback; astrowind integration overwrites from config.yaml
-  site: 'https://dev.local34.org',
+  site: 'https://local34.org',
   output: 'static',
+  trailingSlash: 'never',
 
   devToolbar: {
     enabled: false,
@@ -52,7 +46,11 @@ export default defineConfig({
   redirects: {},
 
   image: {
-    remotePatterns: [],
+    remotePatterns: [
+      { protocol: 'https', hostname: '**.run.app', pathname: '/assets/**' },
+      { protocol: 'https', hostname: '**.run.app', pathname: '/**' }, // Directus image proxy ?id=...
+      { protocol: 'https', hostname: 'storage.googleapis.com', pathname: '/**' }, // GCS-hosted public assets
+    ],
   },
 
   integrations: [
@@ -76,12 +74,6 @@ export default defineConfig({
         ],
       },
     }),
-
-    ...whenExternalScripts(() =>
-      partytown({
-        config: { forward: ['dataLayer.push'] },
-      })
-    ),
 
     compress({
       CSS: true,
@@ -107,7 +99,11 @@ export default defineConfig({
   },
 
   vite: {
-    envPrefix: ['VITE_'],
+    envPrefix: ['VITE_', 'PUBLIC_'],
+    server: {
+      // Allow source map requests from DevTools (fixes Safari "access control checks" on .js.map)
+      cors: true,
+    },
     resolve: {
       alias: {
         '~': path.resolve(__dirname, './src'),

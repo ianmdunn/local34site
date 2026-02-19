@@ -1,6 +1,6 @@
 import { isUnpicCompatible, unpicOptimizer, astroAssetsOptimizer } from './images-optimization';
 import type { ImageMetadata } from 'astro';
-import type { OpenGraph } from '@astrolib/seo';
+import type { OpenGraph, OpenGraphMedia } from '@astrolib/seo';
 import type { ImagesOptimizer } from './images-optimization';
 /** The optimized image shape returned by our ImagesOptimizer */
 type OptimizedImage = Awaited<ReturnType<ImagesOptimizer>>[0];
@@ -64,14 +64,12 @@ export const adaptOpenGraphImages = async (
   const defaultWidth = 1200;
   const defaultHeight = 626;
 
-  const adaptedImages = await Promise.all(
+  const adaptedImages: Array<OpenGraphMedia | null> = await Promise.all(
     images.map(async (image) => {
       if (image?.url) {
         const resolvedImage = (await findImage(image.url)) as ImageMetadata | string | undefined;
         if (!resolvedImage) {
-          return {
-            url: '',
-          };
+          return null;
         }
 
         let _image: OptimizedImage | undefined;
@@ -95,18 +93,21 @@ export const adaptOpenGraphImages = async (
             url: 'src' in _image && typeof _image.src === 'string' ? String(new URL(_image.src, astroSite)) : '',
             width: 'width' in _image && typeof _image.width === 'number' ? _image.width : undefined,
             height: 'height' in _image && typeof _image.height === 'number' ? _image.height : undefined,
+            alt: image.alt,
+            type: image.type,
+            secureUrl: image.secureUrl,
           };
         }
-        return {
-          url: '',
-        };
+        return null;
       }
 
-      return {
-        url: '',
-      };
+      return null;
     })
   );
 
-  return { ...openGraph, ...(adaptedImages ? { images: adaptedImages } : {}) };
+  const sanitizedImages: OpenGraphMedia[] = adaptedImages.filter(
+    (image): image is OpenGraphMedia => Boolean(image?.url?.trim())
+  );
+
+  return { ...openGraph, ...(sanitizedImages.length ? { images: sanitizedImages } : { images: [] }) };
 };

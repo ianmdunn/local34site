@@ -11,13 +11,13 @@ const isDev = import.meta.env.DEV;
 ---
 
 <!-- In production only: if we're on www, send user to the same page on non-www. In dev, never redirect (e.g. localhost). -->
-<script is:inline define:vars={{ canonicalOrigin, baseHref, isDev }}>
+<script is:inline define:vars={{ canonicalOrigin, isDev }}>
   (function () {
     if (isDev) return;
-    var canonicalHost = new URL(canonicalOrigin).hostname;
-    var onWww = location.hostname.startsWith('www.');
+    const canonicalHost = new URL(canonicalOrigin).hostname;
+    const onWww = location.hostname.startsWith('www.');
     if (!onWww || location.hostname !== 'www.' + canonicalHost) return;
-    var intended = canonicalOrigin + location.pathname + location.search + location.hash;
+    const intended = canonicalOrigin + location.pathname + location.search + location.hash;
     location.replace(intended);
   })();
 </script>

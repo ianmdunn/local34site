@@ -16,7 +16,7 @@ export interface Props {
   privacyPolicyUrl?: string;
 }
 
-const { socialLinks = [], footNote = '', theme = 'light', address, privacyPolicyUrl } = Astro.props;
+const { footNote = '', theme = 'light', address, privacyPolicyUrl } = Astro.props;
 const isDark = theme === 'dark';
 ---
 
@@ -49,18 +49,12 @@ const isDark = theme === 'dark';
             target="_blank"
             rel="noopener"
             class="text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white transition-colors shrink-0"
+            data-cta="footer_privacy"
           >
             Privacy Policy
           </a>
         )
       }
-      <a
-        href="#header"
-        class="text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 rounded"
-        aria-label="Back to top of page"
-      >
-        Back to top
-      </a>
     </div>
   </div>
 </footer>

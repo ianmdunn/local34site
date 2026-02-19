@@ -4,7 +4,7 @@
  */
 
 .page-title-section {
-  padding-top: 6rem; /* Default padding for mobile */
+  padding-top: 1.5rem;
   padding-bottom: 0;
   margin-bottom: 0;
 }
@@ -16,12 +16,12 @@
 
 @media (min-width: 768px) {
   .page-title-section {
-    padding-top: 7rem; /* Tighter padding for larger screens */
+    padding-top: 1.5rem;
   }
 }
 
 @media (min-width: 1024px) {
   .page-title-section {
-    padding-top: 8rem; /* Even tighter for very large screens if desired */
+    padding-top: 1.5rem;
   }
 }

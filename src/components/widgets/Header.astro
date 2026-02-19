@@ -14,7 +14,6 @@ import { Astronav, MenuItems, MenuIcon, StickyHeader } from 'astro-navbar';
 
 const { links } = headerData;
 const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
-const firstLink = links[0];
 
 function isCurrent(href: string): boolean {
   const path = href.replace(/^https?:\/\/[^/]+/, '').replace(/\/$/, '') || '/';
@@ -27,7 +26,7 @@ const navLinkAttrs = {
   'data-nav-link': true,
 };
 const liBaseClass = 'border-b border-gray-100 dark:border-slate-700/80 md:border-0 last:border-0 nav-drawer-li';
-const firstLiClass = 'hidden md:list-item nav-drawer-first-li';
+const firstLiClass = 'nav-drawer-first-li';
 ---
 
 <header id="header" role="banner">
@@ -35,14 +34,14 @@ const firstLiClass = 'hidden md:list-item nav-drawer-first-li';
   <StickyHeader
     class="site-header sticky top-0 z-[100] flex-none w-full mx-auto bg-primary md:bg-primary dark:bg-primary dark:md:bg-primary backdrop-blur-sm"
     scrollY={60}
-    defaultClass="pt-6 pb-4 md:py-4 border-transparent"
-    activeClass="pt-6 pb-4 md:py-4 bg-primary md:bg-primary md:backdrop-blur-md site-header--scrolled"
+    defaultClass="pt-5 pb-5 md:py-4 md:pt-5 border-transparent"
+    activeClass="pt-5 pb-5 md:py-4 md:pt-5 bg-primary md:bg-primary md:backdrop-blur-md site-header--scrolled"
   >
-    <div class="page-container md:flex justify-between items-center">
+    <div class="page-container md:flex justify-between items-center md:items-start">
       <Astronav>
         <div class="flex w-full md:w-auto justify-between items-center">
           <a
-            class="flex items-center font-heading text-lg font-bold tracking-tight whitespace-nowrap text-white hover:text-white dark:hover:text-black focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary rounded transition-colors"
+            class="flex items-center font-heading text-lg font-bold tracking-tight whitespace-nowrap text-white hover:text-white hover:opacity-90 dark:hover:text-black dark:hover:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary rounded transition-colors"
             href={String(getCanonical('/'))}
             data-astro-prefetch="false"
             data-nav-link
@@ -51,37 +50,22 @@ const firstLiClass = 'hidden md:list-item nav-drawer-first-li';
           </a>
           <div class="flex items-center md:hidden">
             <MenuIcon
-              class="w-6 h-6 text-white flex flex-col justify-center items-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary rounded p-1 -mr-1"
+              class="w-6 h-6 text-white flex flex-col justify-center items-center cursor-pointer hover:opacity-85 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary rounded p-1 -mr-1 transition-opacity"
             />
           </div>
         </div>
         <MenuItems
-          class="hidden md:!flex items-center md:w-full md:h-auto md:flex-row md:justify-end md:self-center w-full"
+          class="hidden md:!flex items-center md:ml-auto md:h-auto md:flex-row md:justify-end md:self-center w-full"
           aria-label="Main navigation"
         >
           <div
-            class="nav-drawer-header md:hidden flex items-center justify-between shrink-0 min-h-[2.75rem] px-3 py-0 border-b border-gray-100 dark:border-slate-700/80"
+            class="nav-drawer-header md:hidden flex items-center justify-end shrink-0 min-h-[2.75rem] px-3 py-0 border-b border-gray-100 dark:border-slate-700/80"
           >
-            {
-              firstLink ? (
-                <a
-                  href={firstLink.href}
-                  {...navLinkAttrs}
-                  class:list={[
-                    'nav-drawer-home text-sm font-medium md:sr-only flex items-center min-h-[2.75rem] py-0 rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset text-gray-800 hover:text-primary dark:text-slate-200 dark:hover:text-primary',
-                    isCurrent(firstLink.href) && 'font-semibold text-primary dark:text-primary',
-                  ]}
-                  aria-current={isCurrent(firstLink.href) ? 'page' : undefined}
-                >
-                  {firstLink.text}
-                </a>
-              ) : null
-            }
             <button
               type="button"
               data-nav-close
               aria-label="Close menu"
-              class="nav-drawer-close-btn flex items-center justify-center gap-2 min-w-[2.75rem] min-h-[2.75rem] -mr-1 text-gray-600 hover:text-primary dark:text-slate-400 dark:hover:text-primary rounded-md hover:bg-gray-100 dark:hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset transition-colors ml-auto"
+              class="nav-drawer-close-btn flex items-center justify-center gap-2 min-w-[2.75rem] min-h-[2.75rem] -mr-1 text-gray-600 hover:text-primary hover:bg-gray-100 dark:text-slate-400 dark:hover:text-primary dark:hover:bg-slate-800 rounded-md active:bg-gray-200 dark:active:bg-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset transition-colors ml-auto"
             >
               <span aria-hidden="true" class="flex flex-col justify-center items-center w-6 h-6">
                 <svg
@@ -111,22 +95,23 @@ const firstLiClass = 'hidden md:list-item nav-drawer-first-li';
                 const hasChildren = link.children && link.children.length > 0;
                 const parentCurrent = isCurrent(link.href);
                 const linkBaseClass =
-                  'block px-3 py-4 md:px-0 md:py-0 md:inline-flex min-h-[4rem] items-center transition-colors duration-150 ease-in-out focus:outline-none focus-visible:ring-2 focus:ring-primary focus-visible:ring-inset rounded-md md:min-h-0 md:text-white md:hover:text-white dark:md:hover:text-black text-gray-800 hover:text-primary dark:text-slate-200 dark:hover:text-primary active:bg-gray-100 dark:active:bg-slate-800/80 md:active:bg-transparent';
-                const currentClass = 'font-semibold text-primary dark:text-primary md:!text-white nav-link--current';
+                  'block px-3 py-4 md:px-0 md:py-0 md:inline-flex min-h-[4rem] items-center transition-colors duration-150 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-inset rounded-md md:min-h-0 md:text-white md:hover:text-white md:hover:opacity-90 dark:md:text-white dark:md:hover:text-black text-gray-800 hover:text-primary dark:text-slate-200 dark:hover:text-primary active:bg-gray-100 dark:active:bg-slate-800/80 md:active:bg-transparent';
+                const currentClass = 'font-black text-primary dark:text-primary md:!text-white nav-link--current';
                 if (hasChildren) {
                   const children = link.children!;
                   const childCurrent = children.some((c) => isCurrent(c.href));
                   const submenuId = `submenu-${i}-${link.text.toLowerCase().replace(/\s+/g, '-')}`;
                   return (
-                    <li
-                      class:list={[liBaseClass, isFirst && firstLiClass, 'dropdown']}
-                      role="none"
-                    >
+                    <li class:list={[liBaseClass, isFirst && firstLiClass, 'dropdown']}>
                       <span class="inline-flex items-center md:flex md:w-full">
                         <a
                           href={link.href}
                           {...navLinkAttrs}
-                          class:list={[linkBaseClass, (parentCurrent || childCurrent) && currentClass, 'inline-flex items-center gap-0.5']}
+                          class:list={[
+                            linkBaseClass,
+                            (parentCurrent || childCurrent) && currentClass,
+                            'inline-flex items-center gap-0.5',
+                          ]}
                           aria-current={parentCurrent ? 'page' : undefined}
                           aria-haspopup="true"
                           aria-expanded="false"
@@ -134,7 +119,16 @@ const firstLiClass = 'hidden md:list-item nav-drawer-first-li';
                         >
                           {link.text}
                           <span class="hidden md:inline ml-0.5" aria-hidden="true">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            >
                               <path d="M6 9l6 6 6-6" />
                             </svg>
                           </span>
@@ -148,12 +142,22 @@ const firstLiClass = 'hidden md:list-item nav-drawer-first-li';
                           data-nav-submenu-toggle
                           data-no-nav-close
                         >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                          <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                          >
                             <path d="M6 9l6 6 6-6" />
                           </svg>
                         </button>
                       </span>
-                      <!-- Desktop: drawer same width as this menu item only -->
+                      {/* Desktop: drawer same width as this menu item only */}
                       <div class="dropdown-menu hidden md:!block" role="list" aria-label={`${link.text} submenu`}>
                         <div class="nav-chips-wrap">
                           {children.map((child) => {
@@ -171,7 +175,7 @@ const firstLiClass = 'hidden md:list-item nav-drawer-first-li';
                           })}
                         </div>
                       </div>
-                      <!-- Mobile: sliding panel (chips slide out to left) -->
+                      {/* Mobile: sliding panel (chips slide out to left) */}
                       <div
                         id={submenuId}
                         class="nav-submenu-panel md:hidden"
@@ -179,13 +183,18 @@ const firstLiClass = 'hidden md:list-item nav-drawer-first-li';
                         aria-label={`${link.text} submenu`}
                         aria-hidden="true"
                       >
-                        <button
-                          type="button"
-                          class="nav-submenu-back"
-                          aria-label="Back to menu"
-                          data-nav-submenu-back
-                        >
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <button type="button" class="nav-submenu-back" aria-label="Back to menu" data-nav-submenu-back>
+                          <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            aria-hidden="true"
+                          >
                             <path d="M19 12H5M12 19l-7-7 7-7" />
                           </svg>
                           Back
@@ -194,7 +203,7 @@ const firstLiClass = 'hidden md:list-item nav-drawer-first-li';
                           {children.map((child) => {
                             const cur = isCurrent(child.href);
                             return (
-                              <li role="none">
+                              <li>
                                 <a
                                   href={child.href}
                                   {...navLinkAttrs}
@@ -212,10 +221,11 @@ const firstLiClass = 'hidden md:list-item nav-drawer-first-li';
                   );
                 }
                 return (
-                  <li class:list={[liBaseClass, isFirst && firstLiClass]} role="none">
+                  <li class:list={[liBaseClass, isFirst && firstLiClass]}>
                     <a
                       href={link.href}
                       {...navLinkAttrs}
+                      {...(link.text === 'Contact Us' && { 'data-cta': 'nav_contact' })}
                       class:list={[linkBaseClass, parentCurrent && currentClass]}
                       aria-current={parentCurrent ? 'page' : undefined}
                     >

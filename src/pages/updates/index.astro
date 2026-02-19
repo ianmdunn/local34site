@@ -1,0 +1,68 @@
+---
+/**
+ * Updates list page (/updates). News and updates from Directus CMS.
+ */
+import PageLayout from '~/layouts/PageLayout.astro';
+import { PAGE_SECTION_CLASS } from '~/lib/layout';
+import UpdateCard from '~/components/updates/UpdateCard.astro';
+import '~/components/updates/updates.css';
+import { fetchUpdates, toUpdateItem, getDirectusToken } from '~/utils/directus';
+
+const metadata = {
+  title: 'Updates',
+  description: 'News and updates from Local 34-UNITE HERE.',
+};
+
+// Fetch from Directus; show all items (filterByStatus: false to include migrated posts that may have null status)
+const rawUpdates = await fetchUpdates({
+  limit: 50,
+  sort: '-date',
+  filterByStatus: false,
+});
+const accessToken = await getDirectusToken();
+const updates = rawUpdates.map((item) => toUpdateItem(item, { accessToken: accessToken ?? undefined }));
+---
+
+<PageLayout metadata={metadata}>
+  <section class={PAGE_SECTION_CLASS} data-section="updates-hero" id="updates-hero">
+    <div class="page-title-section relative max-w-7xl px-4 sm:px-6 lg:px-8 text-left">
+      <h1
+        class="text-3xl md:text-4xl lg:text-5xl font-bold leading-tighter tracking-tighter mb-4 font-heading text-gray-900 dark:text-white"
+      >
+        News & Updates
+      </h1>
+      <p class="text-lg md:text-xl text-gray-600 dark:text-slate-400 mb-8">The latest from Local 34-UNITE HERE.</p>
+      <div class="updates-page-header-accent" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <section class={PAGE_SECTION_CLASS} data-section="updates-list" id="updates-list">
+    <div class="mx-auto max-w-7xl w-full">
+      {
+        updates.length > 0 ? (
+          <ul class="updates-list" role="list">
+            {updates.map((update, index) => (
+              <li>
+                <UpdateCard update={update} featured={index === 0} />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div class="updates-empty">
+            <p class="text-slate-600 dark:text-slate-400 text-lg">
+              No updates yet. Check back soon or{' '}
+              <a
+                href="/contact"
+                class="text-primary font-medium underline hover:no-underline"
+                data-cta="updates_contact"
+              >
+                contact us
+              </a>{' '}
+              for information.
+            </p>
+          </div>
+        )
+      }
+    </div>
+  </section>
+</PageLayout>

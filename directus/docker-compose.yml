@@ -1,0 +1,65 @@
+# Directus + PostgreSQL + GCS (Google Cloud Storage) for file uploads
+# Usage: cp .env.example .env && edit .env, then docker compose up -d
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: directus-postgres
+    restart: unless-stopped
+    volumes:
+      - directus_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${DB_USER:-directus}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE:-local34site-directus-db}
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER:-directus}']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  directus:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: directus
+    restart: unless-stopped
+    ports:
+      - '${DIRECTUS_PORT:-8055}:8055'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      # Mount GCS service account key (create from GCP Console → IAM → Service Accounts)
+      - ${GCS_KEY_PATH:-../.gcp/local34org-assets-c2d6db5f8970.json}:/directus/gcs-credentials/key.json:ro
+      # Optional: persist uploads locally as fallback (GCS is primary)
+      - directus_uploads:/directus/uploads
+      # Optional: custom extensions
+      # - ./extensions:/directus/extensions
+    environment:
+      # Database
+      DB_CLIENT: pg
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: ${DB_DATABASE:-local34site-directus-db}
+      DB_USER: ${DB_USER:-directus}
+      DB_PASSWORD: ${DB_PASSWORD}
+      # Required: generate with `openssl rand -hex 32`
+      KEY: ${KEY}
+      SECRET: ${SECRET}
+      # Public URL (update for production)
+      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:8055}
+      # Admin user (optional, for first-run setup)
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      # GCS Storage - files uploaded to Directus go here
+      STORAGE_LOCATIONS: gcs
+      STORAGE_GCS_DRIVER: gcs
+      STORAGE_GCS_BUCKET: ${GCS_BUCKET}
+      STORAGE_GCS_KEY_FILENAME: /directus/gcs-credentials/key.json
+      # GCS public endpoint (for building file URLs in your app)
+      GCS_BUCKET_URL: ${GCS_BUCKET_URL:-https://storage.googleapis.com/local34site-directus-db}
+
+volumes:
+  directus_data:
+  directus_uploads:

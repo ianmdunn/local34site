@@ -1,6 +1,6 @@
 /**
  * Google Cloud Storage utilities
- * 
+ *
  * Configure GCS by setting environment variables:
  * - GCS_BUCKET_NAME: Your GCS bucket name (e.g., "local34-assets")
  * - GCS_BUCKET_URL: Public URL of your bucket (e.g., "https://storage.googleapis.com/local34-assets" or custom domain)
@@ -9,8 +9,8 @@
 
 const GCS_BUCKET_NAME = import.meta.env.GCS_BUCKET_NAME || process.env.GCS_BUCKET_NAME;
 const GCS_BUCKET_URL = import.meta.env.GCS_BUCKET_URL || process.env.GCS_BUCKET_URL;
-const GCS_ENABLED = 
-  import.meta.env.GCS_ENABLED === 'true' || 
+const GCS_ENABLED =
+  import.meta.env.GCS_ENABLED === 'true' ||
   import.meta.env.PUBLIC_GCS_ENABLED === 'true' ||
   process.env.GCS_ENABLED === 'true';
 
@@ -21,7 +21,7 @@ export const getGcsBaseUrl = (): string | null => {
   if (!GCS_ENABLED || !GCS_BUCKET_URL) {
     return null;
   }
-  
+
   // Ensure URL doesn't end with a slash
   return GCS_BUCKET_URL.replace(/\/$/, '');
 };
@@ -50,7 +50,7 @@ export const getGcsUrl = (path: string): string | null => {
 
   // Remove leading slash if present
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
-  
+
   return `${baseUrl}/${cleanPath}`;
 };
 

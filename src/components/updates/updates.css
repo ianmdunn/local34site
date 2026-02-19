@@ -1,0 +1,197 @@
+/**
+ * Updates page (/updates) – news & updates feed + single post detail.
+ * Page-scoped; only loaded on updates index and [slug].
+ */
+
+/* Updates list page */
+.updates-page-header-accent {
+  width: 4rem;
+  height: 4px;
+  background: linear-gradient(90deg, var(--aw-color-primary) 0%, var(--aw-color-secondary, #960a26) 100%);
+  border-radius: 2px;
+}
+.updates-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.updates-list > li {
+  margin: 0;
+}
+.updates-card__link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  outline: none;
+}
+.updates-card__link:focus-visible .updates-card {
+  @apply ring-2 ring-primary ring-offset-2 ring-offset-white dark:ring-offset-gray-900;
+}
+.updates-card {
+  display: grid;
+  gap: 0;
+  @apply rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-gray-800/95 overflow-hidden;
+  transition:
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+.updates-card--has-image {
+  grid-template-columns: 1fr;
+}
+@media (min-width: 768px) {
+  .updates-card--has-image {
+    grid-template-columns: 18rem 1fr;
+  }
+}
+.updates-card__link:hover .updates-card,
+.updates-card__link:focus-visible .updates-card {
+  @apply shadow-lg dark:shadow-xl;
+  border-color: rgb(148 163 184 / 0.5);
+  transform: translateY(-2px);
+}
+.dark .updates-card__link:hover .updates-card,
+.dark .updates-card__link:focus-visible .updates-card {
+  border-color: rgb(71 85 105 / 0.7);
+}
+.updates-card--featured {
+  @apply border-l-4 border-l-primary;
+}
+.updates-card__image {
+  @apply relative block overflow-hidden bg-gray-200 dark:bg-gray-700;
+  aspect-ratio: 16 / 10;
+}
+@media (min-width: 768px) {
+  .updates-card__image {
+    aspect-ratio: auto;
+    min-height: 12rem;
+  }
+}
+.updates-card__image img {
+  @apply absolute inset-0 w-full h-full object-cover;
+  object-position: center 40%;
+  transition: transform 0.35s ease;
+}
+.updates-card__link:hover .updates-card__image img {
+  transform: scale(1.04);
+}
+.updates-card__body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 1.25rem 1.5rem;
+}
+@media (min-width: 768px) {
+  .updates-card__body {
+    padding: 1.5rem 2rem;
+    justify-content: center;
+  }
+}
+.updates-card__meta {
+  @apply flex flex-wrap items-center gap-x-1.5 text-sm text-muted dark:text-slate-400 mb-2;
+}
+.updates-card__meta-sep {
+  @apply text-slate-300 dark:text-slate-500;
+}
+.updates-card__title {
+  @apply font-heading font-bold leading-snug tracking-tight text-gray-900 dark:text-slate-100 mb-2;
+  font-size: 1.125rem;
+  line-height: 1.35;
+  transition: color 0.15s ease;
+}
+@media (min-width: 640px) {
+  .updates-card__title {
+    font-size: 1.25rem;
+  }
+}
+.updates-card__link:hover .updates-card__title {
+  @apply text-primary;
+}
+.updates-card__excerpt {
+  @apply text-muted dark:text-slate-400 text-sm leading-relaxed mt-0 mb-3 flex-grow;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+@media (min-width: 640px) {
+  .updates-card__excerpt {
+    font-size: 0.9375rem;
+    -webkit-line-clamp: 2;
+  }
+}
+.updates-card__cta {
+  @apply text-sm font-medium text-primary;
+  margin-top: auto;
+}
+.updates-card__link:hover .updates-card__cta {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.updates-empty {
+  @apply rounded-xl border border-dashed border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-gray-800/60 py-16 px-8 text-center;
+}
+
+/* Update post detail page (/updates/[slug]) */
+.update-post {
+  padding-top: 1.5rem;
+  padding-bottom: 3rem;
+}
+.update-post__inner {
+  max-width: 48rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+.update-post__nav {
+  margin-bottom: 1.5rem;
+}
+.update-post__breadcrumb {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  @apply flex flex-wrap items-center gap-x-2 text-sm;
+}
+.update-post__back {
+  @apply font-medium text-muted hover:text-primary dark:text-slate-400 dark:hover:text-primary transition-colors;
+}
+.update-post__header {
+  margin-bottom: 1.5rem;
+}
+.update-post__meta {
+  @apply flex flex-wrap items-center gap-x-2 text-sm text-muted dark:text-slate-400 mb-3;
+}
+.update-post__meta-sep {
+  @apply text-slate-300 dark:text-slate-500;
+}
+.update-post__title {
+  @apply font-heading font-bold leading-tight tracking-tight text-gray-900 dark:text-white;
+  font-size: 1.875rem;
+  line-height: 1.25;
+}
+@media (min-width: 768px) {
+  .update-post__title {
+    font-size: 2.25rem;
+  }
+}
+.update-post__image {
+  @apply rounded-xl overflow-hidden shadow-lg mb-8 bg-gray-200 dark:bg-gray-700;
+}
+.update-post__image img {
+  @apply w-full aspect-video object-cover block;
+  object-position: center 40%;
+}
+.update-post__content {
+  margin-bottom: 2rem;
+}
+.update-post__excerpt-only {
+  @apply text-gray-600 dark:text-slate-400 text-lg leading-relaxed;
+}
+.update-post__footer {
+  @apply pt-8 border-t border-slate-200 dark:border-slate-600;
+}
+.update-post__back-cta {
+  @apply inline-flex items-center gap-2 text-sm font-medium text-muted hover:text-primary dark:text-slate-400 dark:hover:text-primary transition-colors;
+}

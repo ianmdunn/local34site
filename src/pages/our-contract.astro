@@ -6,7 +6,7 @@
  */
 import PageLayout from '~/layouts/PageLayout.astro';
 import { PAGE_SECTION_CLASS } from '~/lib/layout';
-import { getCollection, type RenderResult } from 'astro:content';
+import { getCollection } from 'astro:content';
 import { getAsset } from '~/utils/permalinks';
 
 const sitePages = await getCollection('sitePages');
@@ -16,6 +16,14 @@ const contractData = contractEntry?.data ?? { title: 'Our Contract', description
 const pageMetadata = {
   title: contractData.title,
   description: 'description' in contractData ? contractData.description : undefined,
+  openGraph: {
+    images: [
+      {
+        url: getAsset('our-contract/local-34-contract.png'),
+        alt: 'Local 34 contract cover',
+      },
+    ],
+  },
 };
 
 const sectionSlugs = ['contract-1', 'contract-2', 'contract-3'] as const;
@@ -54,7 +62,7 @@ const contractLinks: Array<{ href: string; label: string; image: string }> = [
 ---
 
 <PageLayout metadata={pageMetadata}>
-  <section class={PAGE_SECTION_CLASS}>
+  <section class={PAGE_SECTION_CLASS} data-section="our-contract" id="our-contract">
     <div class="page-title-section mx-auto max-w-7xl w-full">
       <h1 class="font-bold font-heading text-3xl md:text-4xl leading-tighter tracking-tighter">
         {contractData.title}
@@ -66,14 +74,21 @@ const contractLinks: Array<{ href: string; label: string; image: string }> = [
       }
 
       <p class="mt-4 text-base text-gray-600 dark:text-gray-400">
-      Below are our full contract, our most recent contract update booklet, and our current Memorandum of Agreement (MOA) between Locals 34 & 35 and Yale University 
+        Below are our full contract, our most recent contract update booklet, and our current Memorandum of Agreement
+        (MOA) between Locals 34 & 35 and Yale University
       </p>
 
       <div class="our-contract-grid mt-8 grid grid-cols-1 gap-6 sm:grid-cols-3 sm:gap-8 max-w-7xl mx-auto w-full">
         {
           sections.map((section, i) => (
             <div class="our-contract-column">
-              <a class="our-contract-link" href={contractLinks[i].href} target="_blank" rel="noopener">
+              <a
+                class="our-contract-link"
+                href={contractLinks[i].href}
+                target="_blank"
+                rel="noopener"
+                data-cta={`contract_doc_${i + 1}`}
+              >
                 {contractLinks[i].image ? (
                   <img class="our-contract-link-image" src={contractLinks[i].image} alt={contractLinks[i].label} />
                 ) : (

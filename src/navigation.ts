@@ -20,10 +20,17 @@ export interface NavLink {
 
 const mainNavLinks: NavLink[] = [
   { text: 'Who We Are', href: navHref('/who-we-are') },
-  { text: 'Our Contract', href: navHref('/our-contract') },
-  { text: 'How We Win', href: navHref('/how-we-win') },
-  { text: 'Actions', href: navHref('/actions') },
+  {
+    text: 'How We Win',
+    href: navHref('/how-we-win'),
+    children: [
+      { text: 'Actions', href: navHref('/actions') },
+      { text: 'Upcoming Events', href: navHref('/actions') + '#events' },
+    ],
+  },
   { text: "Yale's Wealth", href: navHref('/yales-wealth') },
+  { text: "We Can't Keep Up", href: navHref('/wecantkeepup') },
+  { text: 'Our Contract', href: navHref('/our-contract') },
   { text: 'Contact Us', href: navHref('/contact') },
 ];
 

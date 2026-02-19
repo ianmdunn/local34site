@@ -26,9 +26,7 @@
               "type": "number"
             }
           },
-          "required": [
-            "src"
-          ],
+          "required": ["src"],
           "additionalProperties": false
         },
         "content": {
@@ -86,9 +84,7 @@
                         "type": "number"
                       }
                     },
-                    "required": [
-                      "url"
-                    ],
+                    "required": ["url"],
                     "additionalProperties": false
                   }
                 },
@@ -123,10 +119,7 @@
           "type": "string"
         }
       },
-      "required": [
-        "title",
-        "slug"
-      ],
+      "required": ["title", "slug"],
       "additionalProperties": false
     }
   },

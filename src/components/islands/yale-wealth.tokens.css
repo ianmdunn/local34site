@@ -1,0 +1,26 @@
+/**
+ * Yale's Wealth – design tokens
+ * Scoped to :root; uses site vars (--aw-color-*, --aw-font-heading).
+ */
+
+:root {
+  --yw-gold: #e6b800;
+  --yw-green: #22c55e;
+  --yw-red: #b91c1c;
+  --yw-red-light: rgb(248 113 113);
+  --yw-text: #292524;
+  --yw-text-dark: #1c1917;
+  --yw-muted: #78716c;
+  --yw-green-dark: #15803d;
+  --yw-green-light: rgb(134 239 172);
+  --yw-dark-bg: rgba(30, 41, 59, 0.92);
+  --yw-dark-text: rgb(226 232 240);
+  --yw-dark-muted: rgb(148 163 184);
+  --yw-dark-title: rgb(248 250 252);
+  /* Billboard text shadows – reused across breakpoints */
+  --yw-shadow-number: 3px 3px 0 rgba(0, 0, 0, 0.9), 0 0 0 2px rgba(0, 0, 0, 0.25), 0 2px 24px rgba(0, 0, 0, 0.5), 0 6px 48px rgba(0, 0, 0, 0.35), 0 0 80px rgba(0, 0, 0, 0.15);
+  --yw-shadow-gold: 3px 3px 0 rgba(0, 0, 0, 0.9), 0 0 0 2px rgba(0, 0, 0, 0.3), 0 2px 24px rgba(0, 0, 0, 0.5), 0 6px 40px rgba(0, 0, 0, 0.3), 0 0 48px rgba(230, 184, 0, 0.25);
+  --yw-shadow-number-sm: 2px 2px 0 rgba(0, 0, 0, 0.9), 0 0 0 2px rgba(0, 0, 0, 0.25), 0 2px 16px rgba(0, 0, 0, 0.5);
+  --yw-shadow-gold-sm: 2px 2px 0 rgba(0, 0, 0, 0.9), 0 0 0 2px rgba(0, 0, 0, 0.3), 0 2px 16px rgba(0, 0, 0, 0.5), 0 0 48px rgba(230, 184, 0, 0.25);
+  --yw-shadow-title: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 2px 12px rgba(0, 0, 0, 0.6), 0 0 32px rgba(230, 184, 0, 0.2);
+}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, Fragment } from 'react';
 import Matter from 'matter-js';
 import { GROWTH_PER_SECOND } from '~/lib/yaleWealthGrowth';
 import { CATCH_GAME_ACTIVATE, CATCH_GAME_STOP, CATCH_GAME_ACTIVE_CHANGED } from '~/lib/catchGameEvents';
@@ -29,12 +29,12 @@ const GAME_CONFIG = {
   bill: {
     width: 25,
     aspectRatio: 2.61,
-    restitution: 0.0,       // No bounce (paper)
-    friction: 0.01,        // Very slippery (so they slide off the dog's back)
-    frictionAir: 0.04,      // Less drag (faster falling)
-    frictionStatic: 0.2,    // No static friction (prevent piling up)
-    density: 0.001,         // Light
-    initialAngularVelocity: 0.9,
+    restitution: 0.0, // No bounce (paper)
+    friction: 0.01, // Very slippery (so they slide off the dog's back)
+    frictionAir: 0.035, // Slightly less drag for more float
+    frictionStatic: 0.2, // No static friction (prevent piling up)
+    density: 0.001, // Light
+    initialAngularVelocity: 1.4,
     spawnXSpread: 200,
     spawnYMin: -60,
     spawnYRange: 80,
@@ -43,23 +43,24 @@ const GAME_CONFIG = {
   },
 
   dog: {
-    spriteScale: 1,
+    spriteScale: 0.64,
     animFps: 15,
-    mouthOffsetX: 0.52,
-    mouthOffsetY: 0.40,
-    collisionRadius: 35,
+    mouthOffsetX: 0.5,
+    mouthOffsetY: 0.38,
+    collisionRadius: 30,
     restitution: 0.8,
   },
 
   suction: {
-    collectRadius: 40,
-    range: 150,             // Restored base size
-    influenceRadius: 220,
-    pullStrength: 35,
-    shrinkStartDist: 150,
-    suckProgressRate: 0.6,
+    collectRadius: 48,
+    range: 150,
+    influenceRadius: 260,
+    pullStrength: 48,
+    shrinkStartDist: 170,
+    suckProgressRate: 0.9,
     squeezeX: 1.5,
-    finalPull: 1.5,
+    finalPull: 2.2,
+    frontBuffer: 45,
   },
 
   joystick: {
@@ -71,17 +72,17 @@ const GAME_CONFIG = {
   },
 
   physics: {
-    gravityScale: 1.5,      // Slightly increased gravity to help clear screen
+    gravityScale: 1.5, // Slightly increased gravity to help clear screen
     wallThickness: 10,
     wallOffset: 15,
     floorOffset: 10,
     groundSnapThreshold: 20,
     groundYOffset: 10,
     offBottomThreshold: 80,
-    windFreq1: 0.0005,        // Faster wind fluctuation
-    windFreq2: 0.002,
-    windAmp1: 0.0015,       // Stronger wind for flutter
-    windAmp2: 0.0010,
+    windFreq1: 0.0008,
+    windFreq2: 0.0025,
+    windAmp1: 0.0012,
+    windAmp2: 0.0008,
   },
 
   layout: {
@@ -180,7 +181,9 @@ function ThumbJoystick({ onInput, containerRef }) {
       out.x = stickPos.x;
       out.y = stickPos.y;
     };
-    return () => { onInput.current = null; };
+    return () => {
+      onInput.current = null;
+    };
   }, [stickPos, onInput]);
 
   const handleStart = (clientX, clientY) => {
@@ -253,8 +256,8 @@ function ThumbJoystick({ onInput, containerRef }) {
   }, []);
 
   const j = GAME_CONFIG.joystick;
-  const thumbOffsetX = stickPos.x * (j.size - j.thumbSize) / 2;
-  const thumbOffsetY = stickPos.y * (j.size - j.thumbSize) / 2;
+  const thumbOffsetX = (stickPos.x * (j.size - j.thumbSize)) / 2;
+  const thumbOffsetY = (stickPos.y * (j.size - j.thumbSize)) / 2;
 
   return (
     <div
@@ -314,6 +317,7 @@ export default function CatchTheCash() {
   const [isActive, setIsActive] = useState(false);
   const [showPopup, setShowPopup] = useState(true);
   const [isStopped, setIsStopped] = useState(false);
+  const isStoppedRef = useRef(false);
   const [elapsedMs, setElapsedMs] = useState(0);
 
   const canvasRef = useRef(null);
@@ -334,16 +338,25 @@ export default function CatchTheCash() {
   const isActiveRef = useRef(false);
   const [isMobile] = useState(() => isMobileDevice());
   const [totalMoneyCollected, setTotalMoneyCollected] = useState(0);
+  const totalMoneyCollectedRef = useRef(0);
   const [highScores, setHighScores] = useState([]);
   const [newHighScoreRank, setNewHighScoreRank] = useState(null);
   const [initials, setInitials] = useState('');
+
+  // Keep refs in sync for use in onStop (Escape/dog quit)
+  useEffect(() => {
+    totalMoneyCollectedRef.current = totalMoneyCollected;
+  }, [totalMoneyCollected]);
+  useEffect(() => {
+    isStoppedRef.current = isStopped;
+  }, [isStopped]);
 
   // Load high scores on mount
   useEffect(() => {
     const fetchScores = async () => {
       // Use GCP Function URL directly
       const API_URL = import.meta.env.PUBLIC_LEADERBOARD_API || 'https://leaderboard-fbzec7gezq-uc.a.run.app';
-      
+
       try {
         const res = await fetch(API_URL);
         if (res.ok) {
@@ -371,7 +384,8 @@ export default function CatchTheCash() {
 
   // Check for high score when stopped
   useEffect(() => {
-    if (isStopped && totalMoneyCollected > 50) { // Minimum score to qualify
+    if (isStopped && totalMoneyCollected > 50) {
+      // Minimum score to qualify
       const checkScore = async () => {
         try {
           let scores = [];
@@ -408,7 +422,7 @@ export default function CatchTheCash() {
 
           if (qualifies) {
             // Find rank
-            let rank = scores.findIndex(s => totalMoneyCollected > s.score);
+            let rank = scores.findIndex((s) => totalMoneyCollected > s.score);
             if (rank === -1) rank = scores.length;
             setNewHighScoreRank(rank);
             setInitials('');
@@ -425,9 +439,22 @@ export default function CatchTheCash() {
 
   const saveHighScore = async () => {
     if (initials.trim().length === 0) return;
-    
-    const newEntry = { initials: initials.toUpperCase().slice(0, 3), score: totalMoneyCollected };
-    
+
+    const yaleJackpot = Math.floor((elapsedMs / 1000) * GROWTH_PER_SECOND);
+    if (typeof window.__trackEvent === 'function') {
+      window.__trackEvent('catch_cash_leaderboard_save', {
+        game: 'catch_the_cash',
+        score: totalMoneyCollected,
+        rank: newHighScoreRank !== null ? newHighScoreRank + 1 : null,
+        yale_jackpot: yaleJackpot,
+      });
+    }
+    const newEntry = {
+      initials: initials.toUpperCase().slice(0, 3),
+      score: totalMoneyCollected,
+      yaleJackpot,
+    };
+
     // Optimistic update for UI
     const optimisticScores = [...highScores];
     const rank = newHighScoreRank !== null ? newHighScoreRank : optimisticScores.length;
@@ -439,13 +466,13 @@ export default function CatchTheCash() {
       // Save to Cloud
       // Use GCP Function URL directly
       const API_URL = import.meta.env.PUBLIC_LEADERBOARD_API || 'https://leaderboard-fbzec7gezq-uc.a.run.app';
-      
+
       const res = await fetch(API_URL, {
         method: 'POST',
         body: JSON.stringify(newEntry),
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json' },
       });
-      
+
       if (res.ok) {
         const cloudScores = await res.json();
         setHighScores(cloudScores);
@@ -466,7 +493,7 @@ export default function CatchTheCash() {
   // ---------------------------------------------------------------------------
 
   useEffect(() => {
-    function onActivate(e) {
+    function onActivate() {
       // Clear any existing timeout (game never ends automatically)
       if (sessionTimeoutRef.current) {
         clearTimeout(sessionTimeoutRef.current);
@@ -483,6 +510,14 @@ export default function CatchTheCash() {
 
     function onStop() {
       if (!isActiveRef.current) return;
+      // Fire GA event only for quit via Escape/dog (not when QUIT from game-over, that already fires)
+      if (!isStoppedRef.current && typeof window.__trackEvent === 'function') {
+        const elapsed = sessionStartRef.current ? Math.round((Date.now() - sessionStartRef.current) / 1000) : 0;
+        window.__trackEvent('catch_cash_quit', {
+          score: totalMoneyCollectedRef.current,
+          duration_seconds: elapsed,
+        });
+      }
       if (sessionTimeoutRef.current) {
         clearTimeout(sessionTimeoutRef.current);
         sessionTimeoutRef.current = null;
@@ -500,6 +535,24 @@ export default function CatchTheCash() {
       if (sessionTimeoutRef.current) clearTimeout(sessionTimeoutRef.current);
     };
   }, []);
+
+  // ---------------------------------------------------------------------------
+  // Escape key quits the game at any time
+  // ---------------------------------------------------------------------------
+
+  useEffect(() => {
+    if (!isActive) return;
+
+    function onKeyDown(e) {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent(CATCH_GAME_STOP));
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isActive]);
 
   // ---------------------------------------------------------------------------
   // Session elapsed timer (for HUD)
@@ -656,7 +709,7 @@ export default function CatchTheCash() {
         render: { visible: false },
         label: 'wall',
       };
-      
+
       const leftWall = Bodies.rectangle(
         -p.wallThickness / 2 - p.wallOffset,
         viewportHeight / 2,
@@ -664,7 +717,7 @@ export default function CatchTheCash() {
         viewportHeight * 2,
         wallOpts
       );
-      
+
       const rightWall = Bodies.rectangle(
         viewportWidth + p.wallThickness / 2 + p.wallOffset,
         viewportHeight / 2,
@@ -689,19 +742,14 @@ export default function CatchTheCash() {
     World.add(world, currentWalls);
 
     const d = GAME_CONFIG.dog;
-    const dogBody = Bodies.circle(
-      GAME_CONFIG.pointer.offscreenX,
-      GAME_CONFIG.pointer.offscreenY,
-      d.collisionRadius,
-      {
-        isStatic: true,
-        restitution: d.restitution,
-        friction: 0,
-        frictionAir: 0,
-        label: 'dog',
-        render: { visible: false },
-      }
-    );
+    const dogBody = Bodies.circle(GAME_CONFIG.pointer.offscreenX, GAME_CONFIG.pointer.offscreenY, d.collisionRadius, {
+      isStatic: true,
+      restitution: d.restitution,
+      friction: 0,
+      frictionAir: 0,
+      label: 'dog',
+      render: { visible: false },
+    });
     World.add(world, dogBody);
 
     const ctx = canvas.getContext('2d');
@@ -714,7 +762,7 @@ export default function CatchTheCash() {
     const resizeObserver = new ResizeObserver(() => {
       updateBounds();
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      
+
       // Remove old walls and add new ones for new viewport size
       World.remove(world, currentWalls);
       currentWalls = createWalls();
@@ -759,73 +807,71 @@ export default function CatchTheCash() {
     });
 
     // Suction: RADIAL MOUTH FIELD (Omni-directional gentle pull)
-      Events.on(engine, 'beforeUpdate', () => {
-        const px = pointerPositionRef.current.x;
-        const py = pointerPositionRef.current.y;
-        const facingLeft = lastPointerXRef.current != null
-          ? pointerFacingRef.current < 0
-          : px > viewportWidth / 2;
-        const s = GAME_CONFIG.suction;
-        const d = GAME_CONFIG.dog;
-        const dogSize = s.range * d.spriteScale;
-        const mouthOffsetX = facingLeft ? 1 - d.mouthOffsetX : d.mouthOffsetX;
-        const mouthX = px + (mouthOffsetX - 0.5) * dogSize;
-        const mouthY = py + (d.mouthOffsetY - 0.5) * dogSize;
+    Events.on(engine, 'beforeUpdate', () => {
+      const px = pointerPositionRef.current.x;
+      const py = pointerPositionRef.current.y;
+      const facingLeft = lastPointerXRef.current != null ? pointerFacingRef.current < 0 : px > viewportWidth / 2;
+      const s = GAME_CONFIG.suction;
+      const d = GAME_CONFIG.dog;
+      const dogSize = s.range * d.spriteScale;
+      const mouthOffsetX = facingLeft ? 1 - d.mouthOffsetX : d.mouthOffsetX;
+      const mouthX = px + (mouthOffsetX - 0.5) * dogSize;
+      const mouthY = py + (d.mouthOffsetY - 0.5) * dogSize;
 
-        const toCollect = [];
-        Composite.allBodies(world).forEach((body) => {
-          if (body.billValue == null) return;
-          
-          const dx = body.position.x - mouthX;
-          const dy = body.position.y - mouthY;
-          const dist = Math.hypot(dx, dy);
-          
-          // Check if bill is in front of the dog (relative to dog center)
-          // Positive buffer allows catching bills slightly behind the visual center point
-          const dxCenter = body.position.x - px;
-          const isInFront = facingLeft ? dxCenter < 20 : dxCenter > -20;
+      const toCollect = [];
+      Composite.allBodies(world).forEach((body) => {
+        if (body.billValue == null) return;
 
-          const radius = s.influenceRadius ?? 250;
-          
-          if (body.suctionProgress != null) {
-            body.suctionProgress += s.suckProgressRate ?? 0.2;
-            const pull = (s.finalPull ?? 1.0) * body.mass;
-            const invDist = 1 / (dist + 1);
-            Body.applyForce(body, body.position, { x: (-dx * invDist) * pull, y: (-dy * invDist) * pull });
-            
-            if (dist < 15 || body.suctionProgress >= 1) {
-              toCollect.push({ body, value: body.billValue });
-              if (body.render) {
-                body.render.visible = false;
-                body.render.opacity = 0;
-              }
+        const dx = body.position.x - mouthX;
+        const dy = body.position.y - mouthY;
+        const dist = Math.hypot(dx, dy);
+
+        // Check if bill is in front of the dog (relative to dog center)
+        const frontBuffer = s.frontBuffer ?? 20;
+        const dxCenter = body.position.x - px;
+        const isInFront = facingLeft ? dxCenter < frontBuffer : dxCenter > -frontBuffer;
+
+        const radius = s.influenceRadius ?? 250;
+
+        if (body.suctionProgress != null) {
+          body.suctionProgress += s.suckProgressRate ?? 0.2;
+          const pull = (s.finalPull ?? 1.0) * body.mass;
+          const invDist = 1 / (dist + 1);
+          Body.applyForce(body, body.position, { x: -dx * invDist * pull, y: -dy * invDist * pull });
+
+          if (dist < 15 || body.suctionProgress >= 1) {
+            toCollect.push({ body, value: body.billValue });
+            if (body.render) {
+              body.render.visible = false;
+              body.render.opacity = 0;
             }
-          } else if (dist < s.collectRadius && isInFront) {
-            body.suctionProgress = 0;
-            body.isSensor = true; // Disable collisions once eating starts so it can't be knocked away
-          } else if (dist < radius && isInFront) {
-            const t = 1 - dist / radius; // 0 at edge, 1 at center
-          // Gentle linear pull
-          const force = (s.pullStrength ?? 25) * t * body.mass * 0.0001; 
-          
+          }
+        } else if (dist < s.collectRadius && isInFront) {
+          body.suctionProgress = 0;
+          body.isSensor = true; // Disable collisions once eating starts so it can't be knocked away
+        } else if (dist < radius && isInFront) {
+          const t = 1 - dist / radius; // 0 at edge, 1 at center
+          const force = (s.pullStrength ?? 25) * t * body.mass * 0.0001;
+
           const ux = dx / dist;
           const uy = dy / dist;
-          
-          // Add flutter
-          const fx = (Math.random() - 0.5) * force * 2;
-          const fy = (Math.random() - 0.5) * force * 2;
 
-          Body.applyForce(body, body.position, { 
-            x: -ux * force + fx, 
-            y: -uy * force + fy 
+          // Stronger flutter for paper-like wobble as bills get pulled in
+          const flutterScale = 3.5;
+          const fx = (Math.random() - 0.5) * force * flutterScale;
+          const fy = (Math.random() - 0.5) * force * flutterScale;
+
+          Body.applyForce(body, body.position, {
+            x: -ux * force + fx,
+            y: -uy * force + fy,
           });
-          
-          // Damping: slow down to spiral in instead of orbit
+
+          // Lighter damping so bills keep more motion (floating feel)
           Body.setVelocity(body, {
-            x: body.velocity.x * 0.92,
-            y: body.velocity.y * 0.92
+            x: body.velocity.x * 0.94,
+            y: body.velocity.y * 0.94,
           });
-          
+
           const shrinkStart = s.shrinkStartDist ?? 100;
           body.suctionScale = dist < shrinkStart ? Math.max(0.4, dist / shrinkStart) : 1;
         } else {
@@ -853,9 +899,11 @@ export default function CatchTheCash() {
 
     Events.on(engine, 'beforeUpdate', () => {
       const w = GAME_CONFIG.physics;
-      const wind = Math.sin(engine.timing.timestamp * w.windFreq1) * w.windAmp1 + Math.cos(engine.timing.timestamp * w.windFreq2) * w.windAmp2;
+      const t = engine.timing.timestamp;
+      const windX = Math.sin(t * w.windFreq1) * w.windAmp1 + Math.cos(t * w.windFreq2) * w.windAmp2;
+      const windY = Math.sin(t * 0.0003) * 0.00025 + Math.cos(t * 0.0007) * 0.00016;
       Composite.allBodies(world).forEach((body) => {
-        if (!body.isStatic) Body.applyForce(body, body.position, { x: wind * body.mass, y: 0 });
+        if (!body.isStatic) Body.applyForce(body, body.position, { x: windX * body.mass, y: windY * body.mass });
       });
     });
 
@@ -910,7 +958,7 @@ export default function CatchTheCash() {
         const d = GAME_CONFIG.dog;
         const dogSize = s.range * d.spriteScale;
         const dogSprites = dogSpritesRef.current;
-        const frameIndex = Math.floor(performance.now() / 1000 * d.animFps) % DOG_FRAMES.length;
+        const frameIndex = Math.floor((performance.now() / 1000) * d.animFps) % DOG_FRAMES.length;
         const dogImg = dogSprites[frameIndex];
         if (dogImg) {
           ctx.save();
@@ -965,7 +1013,7 @@ export default function CatchTheCash() {
         // Pick one randomly to ensure variety (mix of $1, $5, $10, $20)
         const idx = Math.floor(Math.random() * affordable.length);
         const billData = affordable[idx];
-        
+
         growthAccumulatorRef.current -= billData.value;
         spawned++;
 
@@ -1059,56 +1107,62 @@ export default function CatchTheCash() {
         >
           <div
             style={{
-              maxWidth: 480,
+              maxWidth: 340,
               background: '#1a1a1a',
               borderRadius: 4,
-              padding: '8px', // Outer bezel padding
+              padding: '6px',
               boxShadow: '0 20px 60px rgba(0, 0, 0, 0.8)',
               border: '2px solid #444',
             }}
           >
-            <div style={{
-              border: '4px solid #000',
-              background: '#000',
-              padding: '32px 28px',
-              textAlign: 'center',
-              boxShadow: 'inset 0 0 20px rgba(0,0,0,0.5)',
-            }}>
+            <div
+              style={{
+                border: '4px solid #000',
+                background: '#000',
+                padding: '20px 22px',
+                textAlign: 'center',
+                boxShadow: 'inset 0 0 20px rgba(0,0,0,0.5)',
+              }}
+            >
               <h2
                 style={{
                   margin: 0,
-                  fontSize: '3.5rem',
+                  fontSize: '2.25rem',
                   fontWeight: 400,
                   color: '#ffaa00',
                   textShadow: '0 0 10px rgba(255, 170, 0, 0.5)',
                   lineHeight: 1,
                   textTransform: 'uppercase',
-                  marginBottom: '16px',
+                  marginBottom: '10px',
                 }}
               >
                 Catch the Cash
               </h2>
               <p
                 style={{
-                  margin: '16px 0 32px',
-                  fontSize: '1.5rem',
-                  lineHeight: 1.4,
+                  margin: '10px 0 18px',
+                  fontSize: '1.1rem',
+                  lineHeight: 1.35,
                   color: '#fbbf24',
                   textShadow: '0 0 2px #b45309',
                 }}
               >
-                The money falling is Yale&apos;s endowment growth—in real time. Every dollar represents what the $44 billion fund gains each second.
+                The money falling is Yale&apos;s endowment growth—in real time. Every dollar represents what the $44
+                billion fund gains each second.
               </p>
               <button
                 type="button"
                 onClick={() => {
                   setShowPopup(false);
                   sessionStartRef.current = Date.now();
+                  if (typeof window.__trackEvent === 'function') {
+                    window.__trackEvent('catch_cash_start', {});
+                  }
                 }}
                 aria-label="Start the game"
                 style={{
-                  padding: '12px 40px',
-                  fontSize: '2rem',
+                  padding: '8px 24px',
+                  fontSize: '1.5rem',
                   fontWeight: 400,
                   color: '#000',
                   background: '#ffaa00',
@@ -1118,10 +1172,10 @@ export default function CatchTheCash() {
                   fontFamily: '"VT323", monospace',
                   textTransform: 'uppercase',
                 }}
-                onMouseEnter={e => e.target.style.background = '#ffc54d'}
-                onMouseLeave={e => e.target.style.background = '#ffaa00'}
+                onMouseEnter={(e) => (e.target.style.background = '#ffc54d')}
+                onMouseLeave={(e) => (e.target.style.background = '#ffaa00')}
               >
-                INSERT COIN
+                PLAY
               </button>
             </div>
           </div>
@@ -1151,23 +1205,35 @@ export default function CatchTheCash() {
               textAlign: 'right',
             }}
           >
-            <div style={{
-              background: '#111',
-              border: '2px solid #222',
-              padding: '10px', // Reduced padding
-              boxShadow: 'inset 0 0 10px #000',
-            }}>
+            <div
+              style={{
+                background: '#111',
+                border: '2px solid #222',
+                padding: '10px', // Reduced padding
+                boxShadow: 'inset 0 0 10px #000',
+              }}
+            >
               {/* Timer Header */}
-              <div style={{ 
-                display: 'flex', 
-                justifyContent: 'space-between', 
-                alignItems: 'center',
-                borderBottom: '2px dashed #333',
-                paddingBottom: '4px',
-                marginBottom: '8px'
-              }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  borderBottom: '2px dashed #333',
+                  paddingBottom: '4px',
+                  marginBottom: '8px',
+                }}
+              >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444', animation: 'pulse-red 1.5s infinite' }} />
+                  <div
+                    style={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: '50%',
+                      background: '#ef4444',
+                      animation: 'pulse-red 1.5s infinite',
+                    }}
+                  />
                   <span style={{ fontSize: '1rem', color: '#ef4444', letterSpacing: '0.1em' }}>REC</span>
                 </div>
                 <span style={{ fontSize: '1.2rem', color: '#ef4444', letterSpacing: '0.1em' }}>
@@ -1180,7 +1246,14 @@ export default function CatchTheCash() {
                 <div style={{ fontSize: '0.9rem', color: '#666', textTransform: 'uppercase', marginBottom: '0px' }}>
                   YALE JACKPOT
                 </div>
-                <div style={{ fontSize: '2rem', color: '#ffaa00', lineHeight: '0.9', textShadow: '0 0 8px rgba(255, 170, 0, 0.4)' }}>
+                <div
+                  style={{
+                    fontSize: '2rem',
+                    color: '#ffaa00',
+                    lineHeight: '0.9',
+                    textShadow: '0 0 8px rgba(255, 170, 0, 0.4)',
+                  }}
+                >
                   ${Math.floor((elapsedMs / 1000) * GROWTH_PER_SECOND).toLocaleString()}
                 </div>
               </div>
@@ -1190,14 +1263,31 @@ export default function CatchTheCash() {
                 <div style={{ fontSize: '0.9rem', color: '#666', textTransform: 'uppercase', marginBottom: '0px' }}>
                   YOUR SCORE
                 </div>
-                <div style={{ fontSize: '2rem', color: '#22c55e', lineHeight: '0.9', textShadow: '0 0 8px rgba(34, 197, 94, 0.4)' }}>
+                <div
+                  style={{
+                    fontSize: '2rem',
+                    color: '#22c55e',
+                    lineHeight: '0.9',
+                    textShadow: '0 0 8px rgba(34, 197, 94, 0.4)',
+                  }}
+                >
                   ${totalMoneyCollected.toLocaleString()}
                 </div>
               </div>
 
               {/* Stop Button */}
               <button
-                onClick={() => setIsStopped(true)}
+                onClick={() => {
+                  setIsStopped(true);
+                  if (typeof window.__trackEvent === 'function') {
+                    const yaleJackpot = Math.floor((elapsedMs / 1000) * GROWTH_PER_SECOND);
+                    window.__trackEvent('catch_cash_complete', {
+                      score: totalMoneyCollected,
+                      duration_seconds: Math.round(elapsedMs / 1000),
+                      yale_jackpot: yaleJackpot,
+                    });
+                  }
+                }}
                 style={{
                   marginTop: '4px',
                   width: '100%',
@@ -1244,27 +1334,30 @@ export default function CatchTheCash() {
         >
           <div
             style={{
-              maxWidth: 500,
+              maxWidth: 480,
+              width: 'min(92vw, 480px)',
               maxHeight: '90vh',
               overflowY: 'auto',
               background: '#1a1a1a',
               borderRadius: 4,
-              padding: '4px', // Reduced bezel
+              padding: '4px',
               border: '2px solid #444',
               boxShadow: '0 0 50px rgba(255, 170, 0, 0.2)',
             }}
           >
-            <div style={{
-              background: '#000',
-              border: '4px solid #000',
-              padding: '20px', // Reduced padding
-              textAlign: 'center',
-              boxShadow: 'inset 0 0 30px rgba(0,0,0,0.8)',
-            }}>
+            <div
+              style={{
+                background: '#000',
+                border: '4px solid #000',
+                padding: '24px 28px',
+                textAlign: 'center',
+                boxShadow: 'inset 0 0 30px rgba(0,0,0,0.8)',
+              }}
+            >
               <h2
                 style={{
-                  margin: '0 0 16px',
-                  fontSize: '3rem', // Reduced font size
+                  margin: '0 0 14px',
+                  fontSize: '2.75rem',
                   fontWeight: 400,
                   color: '#ffaa00',
                   textTransform: 'uppercase',
@@ -1275,125 +1368,278 @@ export default function CatchTheCash() {
               >
                 {newHighScoreRank !== null ? 'HIGH SCORE!' : 'GAME OVER'}
               </h2>
-              
-              <div style={{ margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ borderBottom: '2px dashed #333', paddingBottom: '16px' }}>
-                  <div style={{ fontSize: '1rem', color: '#666', textTransform: 'uppercase', marginBottom: '4px' }}>
-                    YALE JACKPOT
-                  </div>
-                  <div style={{ fontSize: '2.5rem', color: '#fff', textShadow: '0 0 5px #fff', lineHeight: 1 }}>
-                    ${Math.floor((elapsedMs / 1000) * GROWTH_PER_SECOND).toLocaleString()}
-                  </div>
-                </div>
-                
-                <div>
-                  <div style={{ fontSize: '1rem', color: '#666', textTransform: 'uppercase', marginBottom: '4px' }}>
-                    YOUR SCORE
-                  </div>
-                  <div style={{ fontSize: '2.5rem', color: '#22c55e', textShadow: '0 0 5px #22c55e', lineHeight: 1 }}>
-                    ${totalMoneyCollected.toLocaleString()}
-                  </div>
+
+              <div
+                style={{
+                  margin: '0 auto 14px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'stretch',
+                  gap: '12px',
+                  maxWidth: 280,
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    gap: '20px',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    borderBottom: '2px dashed #333',
+                    paddingBottom: '14px',
+                  }}
+                >
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                    <span
+                      style={{
+                        color: '#666',
+                        fontSize: '0.75rem',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                      }}
+                    >
+                      Yale Jackpot
+                    </span>
+                    <span
+                      style={{
+                        color: '#fff',
+                        fontSize: '1.5rem',
+                        textShadow: '0 0 5px #fff',
+                        fontVariantNumeric: 'tabular-nums',
+                      }}
+                    >
+                      ${Math.floor((elapsedMs / 1000) * GROWTH_PER_SECOND).toLocaleString()}
+                    </span>
+                  </span>
+                  <span style={{ color: '#444', fontSize: '1rem' }}>|</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                    <span
+                      style={{
+                        color: '#666',
+                        fontSize: '0.75rem',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.05em',
+                      }}
+                    >
+                      Your Score
+                    </span>
+                    <span
+                      style={{
+                        color: '#22c55e',
+                        fontSize: '1.5rem',
+                        textShadow: '0 0 5px #22c55e',
+                        fontVariantNumeric: 'tabular-nums',
+                      }}
+                    >
+                      ${totalMoneyCollected.toLocaleString()}
+                    </span>
+                  </span>
                 </div>
 
-                {/* Pinball Leaderboard */}
-                <div style={{ 
-                  background: '#111', 
-                  border: '2px solid #333',
-                  padding: '12px',
-                  fontFamily: '"VT323", monospace',
-                  marginTop: '8px',
-                  boxShadow: 'inset 0 0 20px #000'
-                }}>
-                  <div style={{ 
-                    color: '#ffaa00', 
-                    fontSize: '1.2rem',
-                    textAlign: 'center', 
-                    marginBottom: '8px',
-                    textDecoration: 'underline',
-                    textUnderlineOffset: '4px',
-                  }}>
-                    HALL OF FAME
+                {/* Leaderboard: rank, initials, score */}
+                <div
+                  style={{
+                    fontFamily: '"VT323", monospace',
+                    marginTop: '2px',
+                    textAlign: 'center',
+                  }}
+                >
+                  <div
+                    style={{
+                      color: '#ffaa00',
+                      fontSize: '0.95rem',
+                      textAlign: 'center',
+                      marginBottom: '4px',
+                      textDecoration: 'underline',
+                      textUnderlineOffset: '2px',
+                    }}
+                  >
+                    TOP SCORES — Yale just keeps on making money
                   </div>
-                  
-                  {highScores.map((entry, i) => (
-                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', color: i === newHighScoreRank ? '#fff' : '#d97706', fontSize: '1.2rem', marginBottom: '4px', textShadow: i === newHighScoreRank ? '0 0 5px #fff' : 'none' }}>
-                      <span>{i + 1}. {entry.initials}</span>
-                      <span>${entry.score.toLocaleString()}</span>
-                    </div>
-                  ))}
-                  
-                  {newHighScoreRank !== null && (
-                    <div style={{ marginTop: '12px', borderTop: '2px dashed #333', paddingTop: '12px' }}>
-                      <div style={{ color: '#fff', marginBottom: '8px', fontSize: '1.2rem', animation: 'glow 1s infinite' }}>ENTER INITIALS</div>
-                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                        <input
-                          autoFocus
-                          value={initials}
-                          onChange={(e) => setInitials(e.target.value.toUpperCase().slice(0, 3))}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') saveHighScore();
-                          }}
+
+                  {/* Table: rank, initials, caught */}
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '36px 1fr 72px',
+                      gap: '0 12px',
+                      alignItems: 'center',
+                      width: '100%',
+                      fontSize: '1rem',
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {highScores.map((entry, i) => (
+                      <Fragment key={i}>
+                        <span style={{ color: i === newHighScoreRank ? '#fff' : '#d97706', textAlign: 'right' }}>
+                          {i + 1}.
+                        </span>
+                        <span
                           style={{
-                            background: '#000',
-                            border: '2px solid #ffaa00',
-                            color: '#ffaa00',
-                            fontSize: '1.5rem',
-                            fontFamily: '"VT323", monospace',
-                            width: '100px',
+                            color: i === newHighScoreRank ? '#fff' : '#d97706',
+                            textShadow: i === newHighScoreRank ? '0 0 5px #fff' : 'none',
                             textAlign: 'center',
-                            padding: '4px',
-                            outline: 'none',
-                            letterSpacing: '4px'
-                          }}
-                          placeholder="___"
-                        />
-                        <button
-                          onClick={saveHighScore}
-                          style={{
-                            background: '#ffaa00',
-                            color: '#000',
-                            border: 'none',
-                            padding: '0 16px',
-                            fontSize: '1.2rem',
-                            fontFamily: '"VT323", monospace',
-                            cursor: 'pointer'
                           }}
                         >
-                          OK
-                        </button>
+                          {entry.initials ?? '—'}
+                        </span>
+                        <span
+                          style={{
+                            textAlign: 'right',
+                            fontVariantNumeric: 'tabular-nums',
+                            color: i === newHighScoreRank ? '#fff' : '#d97706',
+                            textShadow: i === newHighScoreRank ? '0 0 5px #fff' : 'none',
+                          }}
+                        >
+                          ${entry.score.toLocaleString()}
+                        </span>
+                      </Fragment>
+                    ))}
+
+                    {newHighScoreRank !== null && (
+                      <div
+                        style={{
+                          gridColumn: '1 / -1',
+                          marginTop: '6px',
+                          borderTop: '2px dashed #333',
+                          paddingTop: '6px',
+                          textAlign: 'center',
+                        }}
+                      >
+                        <div
+                          style={{
+                            color: '#fff',
+                            marginBottom: '6px',
+                            fontSize: '1rem',
+                            animation: 'glow 1s infinite',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          ENTER INITIALS
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
+                          <input
+                            autoFocus
+                            value={initials}
+                            onChange={(e) => setInitials(e.target.value.toUpperCase().slice(0, 3))}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') saveHighScore();
+                            }}
+                            style={{
+                              background: '#000',
+                              border: '2px solid #ffaa00',
+                              color: '#ffaa00',
+                              fontSize: '1.4rem',
+                              fontFamily: '"VT323", monospace',
+                              width: '88px',
+                              height: '36px',
+                              lineHeight: 1,
+                              textAlign: 'center',
+                              padding: '6px 8px',
+                              outline: 'none',
+                              letterSpacing: '2px',
+                              boxSizing: 'border-box',
+                            }}
+                            placeholder="___"
+                          />
+                          <button
+                            onClick={saveHighScore}
+                            style={{
+                              background: '#ffaa00',
+                              color: '#000',
+                              border: 'none',
+                              height: '36px',
+                              padding: '0 16px',
+                              fontSize: '1.15rem',
+                              fontFamily: '"VT323", monospace',
+                              cursor: 'pointer',
+                              boxSizing: 'border-box',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            OK
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '12px' }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsStopped(false);
+                        setNewHighScoreRank(null);
+                        setInitials('');
+                        sessionStartRef.current = Date.now();
+                        setElapsedMs(0);
+                        setTotalMoneyCollected(0);
+                        if (typeof window.__trackEvent === 'function') {
+                          window.__trackEvent('catch_cash_play_again', {});
+                        }
+                      }}
+                      style={{
+                        padding: '10px 20px',
+                        flex: 1,
+                        minWidth: 110,
+                        fontSize: '1.4rem',
+                        fontWeight: 400,
+                        color: '#000',
+                        background: '#fff',
+                        border: '4px solid #999',
+                        cursor: 'pointer',
+                        fontFamily: '"VT323", monospace',
+                        textTransform: 'uppercase',
+                        boxShadow: '0 0 10px rgba(255,255,255,0.3)',
+                      }}
+                      onMouseEnter={(e) => (e.target.style.background = '#e5e5e5')}
+                      onMouseLeave={(e) => (e.target.style.background = '#fff')}
+                    >
+                      PLAY
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (typeof window.__trackEvent === 'function') {
+                          window.__trackEvent('catch_cash_quit', {
+                            score: totalMoneyCollected,
+                            duration_seconds: Math.round(elapsedMs / 1000),
+                          });
+                        }
+                        window.dispatchEvent(new CustomEvent(CATCH_GAME_STOP));
+                      }}
+                      style={{
+                        padding: '10px 20px',
+                        flex: 1,
+                        minWidth: 110,
+                        fontSize: '1.4rem',
+                        fontWeight: 400,
+                        color: '#999',
+                        background: 'transparent',
+                        border: '2px solid #555',
+                        cursor: 'pointer',
+                        fontFamily: '"VT323", monospace',
+                        textTransform: 'uppercase',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.background = '#333';
+                        e.target.style.color = '#fff';
+                        e.target.style.borderColor = '#666';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.background = 'transparent';
+                        e.target.style.color = '#999';
+                        e.target.style.borderColor = '#555';
+                      }}
+                    >
+                      QUIT
+                    </button>
+                  </div>
                 </div>
               </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setIsStopped(false);
-                  setNewHighScoreRank(null);
-                  setInitials('');
-                  sessionStartRef.current = Date.now();
-                  setElapsedMs(0);
-                  setTotalMoneyCollected(0);
-                }}
-                style={{
-                  padding: '10px 32px',
-                  fontSize: '1.5rem',
-                  fontWeight: 400,
-                  color: '#000',
-                  background: '#fff',
-                  border: '4px solid #999',
-                  cursor: 'pointer',
-                  fontFamily: '"VT323", monospace',
-                  textTransform: 'uppercase',
-                  boxShadow: '0 0 10px rgba(255,255,255,0.3)',
-                }}
-                onMouseEnter={e => e.target.style.background = '#e5e5e5'}
-                onMouseLeave={e => e.target.style.background = '#fff'}
-              >
-                INSERT COIN
-              </button>
             </div>
           </div>
         </div>
@@ -1416,9 +1662,7 @@ export default function CatchTheCash() {
       )}
 
       {/* Mobile thumb joystick */}
-      {isMobile && !showPopup && (
-        <ThumbJoystick onInput={joystickInputRef} containerRef={canvasContainerRef} />
-      )}
+      {isMobile && !showPopup && <ThumbJoystick onInput={joystickInputRef} containerRef={canvasContainerRef} />}
 
       <div
         ref={canvasContainerRef}

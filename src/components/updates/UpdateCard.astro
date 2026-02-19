@@ -1,0 +1,50 @@
+---
+import type { UpdateItem } from '~/utils/directus';
+import { getFormattedDate } from '~/utils/utils';
+
+export interface Props {
+  update: UpdateItem;
+  featured?: boolean;
+}
+
+const { update, featured = false } = Astro.props;
+
+const cardClasses = [
+  'updates-card',
+  'intersect-once intersect-quarter motion-safe:md:opacity-0 motion-safe:md:intersect:animate-fade',
+  featured && 'updates-card--featured',
+  update.imageUrl ? 'updates-card--has-image' : '',
+]
+  .filter(Boolean)
+  .join(' ');
+
+const href = update.slug ? `/updates/${update.slug}` : `/updates/${update.id}`;
+---
+
+<a
+  href={href}
+  class="updates-card__link group"
+  data-cta="update_article_click"
+  data-update-id={update.id}
+  data-update-title={update.title}
+>
+  <article class={cardClasses}>
+    {
+      update.imageUrl && (
+        <div class="updates-card__image">
+          <img src={update.imageUrl} alt={update.title} loading="lazy" decoding="async" width="900" height="506" />
+        </div>
+      )
+    }
+    <div class="updates-card__body">
+      <div class="updates-card__meta">
+        <time datetime={update.date.toISOString()}>{getFormattedDate(update.date)}</time>
+        {update.author && <span class="updates-card__meta-sep">·</span>}
+        {update.author && <span>{update.author}</span>}
+      </div>
+      <h2 class="updates-card__title">{update.title}</h2>
+      {update.excerpt && <p class="updates-card__excerpt">{update.excerpt}</p>}
+      <span class="updates-card__cta">Read article<span aria-hidden="true"> →</span></span>
+    </div>
+  </article>
+</a>

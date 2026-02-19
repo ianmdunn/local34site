@@ -1,0 +1,142 @@
+/**
+ * Yale's Wealth – media query overrides
+ */
+
+/* --- Motion preferences --- */
+
+@media (prefers-reduced-motion: no-preference) {
+  .yale-wealth-reality__day {
+    animation: yale-wealth-day-pop 0.4s ease-out forwards;
+    animation-delay: calc(var(--day-i, 0) * 1.2ms);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .yale-wealth-reality__day {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* --- Desktop up --- */
+
+@media (min-width: 640px) {
+  .yale-wealth-billboard__number {
+    font-size: clamp(4rem, 9.5vw, 10rem);
+    word-break: normal;
+    letter-spacing: -0.06em;
+  }
+}
+
+/* --- Tablet and down --- */
+
+@media (max-width: 768px) {
+  .yale-wealth-page {
+    background-attachment: scroll;
+  }
+  .yale-wealth-calc__grade {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+  .yale-wealth-header-section {
+    padding-top: 4.5rem;
+  }
+  .yale-wealth-header-section .page-container {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+  .yale-wealth-endowment-section {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    overflow-x: clip;
+  }
+  .yale-wealth-billboard {
+    padding-top: 1.25rem !important;
+    padding-bottom: 0.75rem !important;
+  }
+  .yale-wealth-billboard__number {
+    font-size: clamp(2.75rem, 9.5vw, 5rem);
+  }
+  .yale-wealth-billboard__counter .yale-wealth-endowment-card__value::before,
+  .yale-wealth-billboard__counter .yale-wealth-ticker,
+  .yale-wealth-billboard__counter .yale-wealth-ticker__value {
+    font-size: clamp(2.5rem, 9vw, 4.5rem);
+    text-shadow: var(--yw-shadow-gold);
+  }
+}
+
+/* --- Mobile --- */
+
+@media (max-width: 480px) {
+  .yale-wealth-endowment-section {
+    padding-top: 1.5rem;
+  }
+  .yale-wealth-reality {
+    padding: 1rem 0.75rem 1.5rem;
+  }
+  .yale-wealth-reality__article {
+    padding: 0.9rem 0.9rem;
+  }
+  .yale-wealth-endowment-card__icon {
+    top: 0.75rem;
+    right: 0.75rem;
+    width: 2rem;
+    height: 2rem;
+  }
+  .yale-wealth-reality__title {
+    font-size: 1.5rem;
+  }
+  .yale-wealth-reality__lead {
+    font-size: 1rem;
+  }
+  .yale-wealth-reality__days-row {
+    height: clamp(28px, 6vw, 36px);
+  }
+  .yale-wealth-reality__bridge {
+    margin-bottom: 0.5rem;
+  }
+  .yale-wealth-reality__wages {
+    margin-bottom: 0.5rem;
+    padding: 0.65rem 0.85rem 0.55rem;
+  }
+  .yale-wealth-calc__grades {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+  .yale-wealth-calc__grade {
+    padding: 0.6rem 0.5rem;
+  }
+  .yale-wealth-calc__comparison {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 0.5rem;
+  }
+  .yale-wealth-calc__comparison-card {
+    padding: 0.5rem 0.5rem;
+  }
+  .yale-wealth-calc__comparison-gap {
+    padding: 0.6rem 0.85rem;
+  }
+  .yale-wealth-calc__comparison-gap-value {
+    font-size: 1.15rem;
+  }
+}
+
+/* --- Small mobile --- */
+
+@media (max-width: 400px) {
+  .yale-wealth-billboard__number {
+    font-size: clamp(1.75rem, 8vw, 3rem);
+    text-shadow: var(--yw-shadow-number-sm);
+  }
+  .yale-wealth-billboard__counter .yale-wealth-endowment-card__value::before,
+  .yale-wealth-billboard__counter .yale-wealth-ticker,
+  .yale-wealth-billboard__counter .yale-wealth-ticker__value {
+    font-size: clamp(1.65rem, 7.5vw, 2.75rem);
+    text-shadow: var(--yw-shadow-gold-sm);
+  }
+  .yale-wealth-billboard__counter-meta {
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+  }
+}

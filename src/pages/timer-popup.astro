@@ -1,0 +1,173 @@
+---
+/**
+ * Timer popup – standalone tool, no site layout.
+ * Self-contained minimal HTML. Opened via window.open from Yale's Wealth.
+ */
+import TimerToolLayout from '~/layouts/TimerToolLayout.astro';
+import MeetingTimer from '~/components/islands/MeetingTimer.jsx';
+import BackgroundCycler from '~/components/islands/BackgroundCycler';
+import { getAsset } from '~/utils/permalinks';
+
+import '~/components/islands/meeting-timer.css';
+import '~/components/islands/wecantkeepup-poster.css';
+
+const HERO_BG_PATHS = [
+  'hero-backgrounds/L34pick_-01.jpg',
+  'hero-backgrounds/L34pick_-02.jpg',
+  'hero-backgrounds/L34pick_-04.jpg',
+  'hero-backgrounds/L34pick_-05.jpg',
+  'hero-backgrounds/L34pick_-06.jpg',
+  'hero-backgrounds/L34pick_-07.jpg',
+  'hero-backgrounds/L34pick_-08.jpg',
+  'hero-backgrounds/L34pick_-09.jpg',
+  'hero-backgrounds/L34pick_-10.jpg',
+  'hero-backgrounds/L34pick_-11.jpg',
+  'hero-backgrounds/L34pick_-12.jpg',
+];
+const heroBgUrls: string[] = HERO_BG_PATHS.map((p) => getAsset(p));
+---
+
+<TimerToolLayout title="Timer">
+  <script slot="head" is:inline>
+    (function () {
+      if (!window.opener) return;
+      function resizeToContent() {
+        const chromeW = window.outerWidth - window.innerWidth;
+        const chromeH = window.outerHeight - window.innerHeight;
+        const w = Math.ceil(document.documentElement.scrollWidth) + chromeW;
+        const h = Math.ceil(document.documentElement.scrollHeight) + chromeH;
+        try {
+          window.resizeTo(Math.max(320, w), Math.max(200, h));
+        } catch {
+          /* resizeTo throws in cross-origin/restricted contexts */
+        }
+      }
+      if (document.readyState !== 'complete') {
+        window.addEventListener('load', () => setTimeout(resizeToContent, 100));
+      } else {
+        setTimeout(resizeToContent, 50);
+      }
+      window.addEventListener('astro:page-load', () => setTimeout(resizeToContent, 100));
+    })();
+  </script>
+
+  <div class="timer-tool">
+    <BackgroundCycler client:load imageUrls={heroBgUrls} />
+    <div
+      class="timer-tool__banner timer-tool__banner--top wecantkeepup-banner wecantkeepup-banner--top"
+      aria-hidden="true"
+    >
+      WE CAN&apos;T KEEP UP!
+    </div>
+    <div class="timer-tool__content">
+      <MeetingTimer client:load />
+    </div>
+    <div
+      class="timer-tool__banner timer-tool__banner--bottom wecantkeepup-banner wecantkeepup-banner--bottom"
+      aria-hidden="true"
+    >
+      OUR WORK MAKES YALE WORK!
+    </div>
+  </div>
+</TimerToolLayout>
+
+<style is:global>
+  /* Timer tool – standalone, no layout dependencies */
+  :root {
+    --aw-color-primary: #b10c2f;
+    --aw-color-secondary: #960a26;
+    --aw-color-text-heading: #1c1917;
+    --aw-color-text-muted: #78716c;
+    --aw-color-text-default: #1c1917;
+    --aw-color-primary-on-dark: #fca5a5;
+    --aw-font-heading: 'Ramo de Jazmin', Georgia, serif;
+    --aw-font-sans: system-ui, -apple-system, sans-serif;
+    --aw-font-mono: ui-monospace, monospace;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: transparent;
+    overflow-x: hidden;
+  }
+
+  .timer-tool {
+    position: relative;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  /* Background – portaled to body */
+  .timer-page__bg-wrap,
+  .timer-tool .timer-page__bg-wrap {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    z-index: -1 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+  }
+
+  .timer-page__bg-cycle {
+    position: absolute !important;
+    inset: 0 !important;
+  }
+
+  .timer-page__bg-layer {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    opacity: 0;
+    transition: opacity 0.6s ease-in-out;
+  }
+
+  .timer-page__bg-layer.is-visible {
+    opacity: 1;
+  }
+
+  .timer-page__overlay {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 1 !important;
+    background: rgba(177, 12, 47, 0.25) !important;
+  }
+
+  .timer-page__vignette {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 1 !important;
+    background: radial-gradient(ellipse 75% 75% at 50% 50%, transparent 35%, rgba(0, 0, 0, 0.25) 100%) !important;
+  }
+
+  .timer-tool__banner--top {
+    flex-shrink: 0;
+    background: transparent;
+    padding: 1.25rem 0.75rem 1rem;
+    font-size: clamp(2rem, 8vw, 3.5rem);
+  }
+
+  .timer-tool__content {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem 1.5rem;
+    min-height: 0;
+  }
+
+  .timer-tool__banner--bottom {
+    flex-shrink: 0;
+  }
+</style>

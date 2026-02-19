@@ -56,4 +56,11 @@ export default [
   {
     ignores: ['dist', 'node_modules', '.github', 'types.generated.d.ts', '.astro'],
   },
+  // CommonJS by design (GCP Functions, .cjs scripts)
+  {
+    files: ['gcp-function/**', 'scripts/*.cjs'],
+    rules: {
+      '@typescript-eslint/no-require-imports': 'off',
+    },
+  },
 ];

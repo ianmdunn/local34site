@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { CATCH_GAME_ACTIVATE, CATCH_GAME_STOP, CATCH_GAME_ACTIVE_CHANGED } from '~/lib/catchGameEvents';
 
 const TRIGGER_CONFIG = {
@@ -42,14 +42,20 @@ export default function DollarSignTrigger() {
     }
 
     const timers = [];
-    timers.push(setTimeout(() => {
-      detach = attach();
-      if (!detach) {
-        TRIGGER_CONFIG.retryDelaysMs.forEach((delay) => {
-          timers.push(setTimeout(() => { if (!detach) detach = attach(); }, delay));
-        });
-      }
-    }, 0));
+    timers.push(
+      setTimeout(() => {
+        detach = attach();
+        if (!detach) {
+          TRIGGER_CONFIG.retryDelaysMs.forEach((delay) => {
+            timers.push(
+              setTimeout(() => {
+                if (!detach) detach = attach();
+              }, delay)
+            );
+          });
+        }
+      }, 0)
+    );
 
     return () => {
       timers.forEach(clearTimeout);

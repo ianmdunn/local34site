@@ -23,9 +23,7 @@ const gridClass = gridColsClass[columns as keyof typeof gridColsClass] ?? '';
 
 {
   (items?.length ?? 0) > 0 && (
-    <div
-      class={twMerge('grid mx-auto gap-8 md:gap-y-12', gridClass, containerClass)}
-    >
+    <div class={twMerge('grid mx-auto gap-8 md:gap-y-12', gridClass, containerClass)}>
       {items.map(({ title, description, callToAction, classes: itemClasses = {} }) => (
         <div class="intersect-once motion-safe:md:opacity-0 motion-safe:md:intersect:animate-fade">
           <div class={twMerge('flex flex-row max-w-md', panelClass, itemClasses?.panel)}>

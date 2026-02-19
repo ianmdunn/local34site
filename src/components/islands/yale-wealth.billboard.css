@@ -1,0 +1,350 @@
+/**
+ * Yale's Wealth – billboard + endowment card / ticker styles
+ */
+
+.yale-wealth-billboard {
+  position: relative;
+  overflow: visible;
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+}
+
+.yale-wealth-billboard__overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 70% 50% at 50% 48%,
+    rgba(0, 0, 0, 0.55) 0%,
+    rgba(0, 0, 0, 0.25) 45%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+.yale-wealth-billboard__inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  min-height: 10rem;
+  min-width: 0;
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+.yale-wealth-billboard__content {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  text-align: center;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+.yale-wealth-billboard__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.yale-wealth-billboard__title,
+.yale-wealth-billboard__counter-title {
+  margin: 0;
+  font-family: var(--aw-font-sans, inherit);
+  font-size: clamp(0.85rem, 2.2vw, 1.05rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--yw-gold);
+  text-shadow: var(--yw-shadow-title);
+  text-align: center;
+}
+
+.yale-wealth-billboard__counter-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.yale-wealth-billboard__counter-title-row .yale-wealth-assumptions {
+  position: relative;
+}
+
+.yale-wealth-billboard__counter-title-row .yale-wealth-assumptions__info {
+  color: var(--yw-gold);
+}
+
+.yale-wealth-billboard__counter-title-row .yale-wealth-assumptions__info:hover {
+  color: #fff;
+}
+
+.yale-wealth-billboard__counter-title {
+  width: auto;
+  margin: 0;
+}
+
+.yale-wealth-billboard__value {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  line-height: 1.08;
+  text-align: center;
+  overflow: visible;
+  min-width: 0;
+}
+
+.yale-wealth-billboard__number {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  flex-wrap: nowrap;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  font-family: var(--aw-font-mono);
+  font-size: clamp(4rem, 12vw, 9rem);
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  text-shadow: var(--yw-shadow-number);
+  word-break: break-all;
+  overflow: visible;
+  min-width: 0;
+}
+
+.yale-wealth-billboard__number-prefix,
+.yale-wealth-billboard__number-value {
+  display: inline;
+}
+
+/* Ensure the $ is clickable (falling-money trigger) in all browsers */
+.yale-wealth-billboard__number-prefix {
+  pointer-events: auto;
+  padding: 0.1em 0.15em;
+  margin: -0.1em -0.15em;
+}
+
+.yale-wealth-billboard__desc,
+.yale-wealth-billboard__counter-meta {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  font-family: var(--aw-font-sans, inherit);
+  font-size: clamp(0.7rem, 1.8vw, 0.82rem);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: rgba(255, 255, 255, 0.92);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  text-align: center;
+}
+
+.yale-wealth-billboard__desc {
+  margin: 1rem auto 0.75rem auto;
+}
+
+.yale-wealth-billboard__counter-meta {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+.yale-wealth-billboard__source {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--yw-gold);
+  padding: 0.35rem;
+  border-radius: 6px;
+  transition: color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.yale-wealth-billboard__source:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.yale-wealth-billboard__source:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--yw-gold);
+  outline-offset: 2px;
+}
+
+.yale-wealth-billboard__counter {
+  width: 100%;
+  max-width: 100%;
+  margin-top: 1.75rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-top: 0;
+  text-align: center;
+  position: relative;
+  overflow: visible;
+}
+
+.yale-wealth-billboard__counter .yale-wealth-endowment-card__value {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  padding-right: 0;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15em;
+  min-width: 0;
+  max-width: 100%;
+  overflow: visible;
+  text-align: center;
+}
+
+.yale-wealth-billboard__counter .yale-wealth-endowment-card__value::before {
+  content: '+';
+  flex-shrink: 0;
+  font-family: var(--aw-font-mono);
+  font-size: clamp(2.5rem, 8vw, 5.75rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: var(--yw-gold);
+  text-shadow: var(--yw-shadow-gold);
+  pointer-events: none;
+}
+
+.yale-wealth-billboard__counter .yale-wealth-ticker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  text-align: center;
+}
+
+.yale-wealth-billboard__counter .yale-wealth-ticker__value {
+  margin-left: 0.35em;
+}
+
+.yale-wealth-billboard__counter .yale-wealth-ticker,
+.yale-wealth-billboard__counter .yale-wealth-ticker__value {
+  font-family: var(--aw-font-mono);
+  font-size: clamp(2.5rem, 8vw, 5.75rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  color: var(--yw-gold);
+  text-align: center;
+  text-shadow: var(--yw-shadow-gold);
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+  min-width: 0;
+  max-width: none;
+}
+
+.yale-wealth-billboard__counter-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 100%;
+  gap: 0.25rem;
+}
+
+.yale-wealth-billboard__counter-block .yale-wealth-endowment-card__value {
+  margin: 0;
+}
+
+.yale-wealth-endowment-card__desc {
+  font-family: var(--aw-font-sans, inherit);
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--aw-color-text-muted);
+  line-height: 1.3;
+}
+
+.yale-wealth-endowment-card__value {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  font-family: var(--aw-font-mono);
+  font-size: min(3rem, max(1.25rem, 12.5cqw));
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--aw-color-text-heading);
+  min-width: 0;
+  max-width: 100%;
+  padding-right: 3.25rem;
+  overflow: hidden;
+}
+
+.yale-wealth-ticker {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.yale-wealth-ticker__value {
+  font: inherit;
+  font-family: var(--aw-font-mono);
+  font-size: inherit;
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* "As of" line: same placement and style on both endowment cards (above value); monospace so it lines up with $ amount */
+.yale-wealth-endowment-card__as-of {
+  font-family: var(--aw-font-sans, inherit);
+  font-size: 0.6rem;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  color: var(--aw-color-text-muted);
+  opacity: 0.9;
+  order: -1;
+  align-self: stretch;
+  min-width: 0;
+}
+
+.yale-wealth-endowment-card__icon {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--aw-color-primary);
+  color: #fff;
+}
+
+.yale-wealth-endowment-card__icon:hover {
+  opacity: 0.9;
+}

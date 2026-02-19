@@ -1,12 +1,21 @@
-# Apache: serve index.html for clean URLs (e.g. /actions -> /actions/index.html)
-# Required for Astro static build with trailingSlash: false
-<IfModule mod_rewrite.c>
-  RewriteEngine On
-  RewriteBase /
+# -----------------------------------------------------------------------------
+# Local 34 – Apache .htaccess
+# Used when deployed to Apache (e.g. Kattare FTP). For nginx, see nginx/nginx.conf
+# -----------------------------------------------------------------------------
 
-  # If the request is not for an existing file or directory
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  # Serve the index.html in that path (e.g. /actions -> /actions/index.html)
-  RewriteRule ^(.+)$ $1/index.html [L]
-</IfModule>
+RewriteEngine On
+
+# Redirect HTTP to HTTPS (must run first)
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+# 301 redirects to external forms (case-insensitive [NC]; ? makes trailing slash optional)
+RewriteRule ^34release/?$ https://unitehere.jotform.com/250433623428049 [R=301,L,NC]
+RewriteRule ^committee/?$ https://unitehere.jotform.com/201285597453866 [R=301,L,NC]
+RewriteRule ^dues/?$ https://unitehere.jotform.com/210524637953054 [R=301,L,NC]
+RewriteRule ^keyleader/?$ https://unitehere.jotform.com/230054849699066 [R=301,L,NC]
+RewriteRule ^membership/?$ https://unitehere.jotform.com/210524637953054 [R=301,L,NC]
+RewriteRule ^neo/?$ https://unitehere.jotform.com/213354825569060 [R=301,L,NC]
+RewriteRule ^release/?$ https://unitehere.jotform.com/210554330753045 [R=301,L,NC]
+RewriteRule ^story/?$ https://unitehere.jotform.com/253006827516153 [R=301,L,NC]
+RewriteRule ^tip/?$ https://unitehere.jotform.com/210524637953054 [R=301,L,NC]

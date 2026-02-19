@@ -28,7 +28,12 @@ const {
 const actionsToRender = callToAction ? [callToAction] : actions;
 ---
 
-<WidgetWrapper id={id} isDark={isDark} containerClass={typeof classes?.container === 'string' ? classes.container : ''} bg={typeof bg === 'string' ? bg : undefined}>
+<WidgetWrapper
+  id={id}
+  isDark={isDark}
+  containerClass={typeof classes?.container === 'string' ? classes.container : ''}
+  bg={typeof bg === 'string' ? bg : undefined}
+>
   <div
     class="max-w-5xl mx-auto text-center p-6 rounded-md shadow-xl dark:shadow-none dark:border dark:border-slate-600"
   >

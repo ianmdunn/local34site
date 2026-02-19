@@ -2,3 +2,8 @@ dist
 node_modules
 .github
 .changeset
+.astro
+
+# prettier-plugin-astro parsing edge cases: conditional JSX with fragments
+src/components/common/Analytics.astro
+src/components/common/AnalyticsEnhanced.astro

@@ -1,13 +1,50 @@
 ---
-import { GoogleAnalytics } from '@astrolib/analytics';
 import { ANALYTICS } from 'astrowind:config';
+
+const gaId = ANALYTICS?.vendors?.googleAnalytics?.id;
 ---
 
 {
-  ANALYTICS?.vendors?.googleAnalytics?.id ? (
-    <GoogleAnalytics
-      id={String(ANALYTICS.vendors.googleAnalytics.id)}
-      partytown={ANALYTICS?.vendors?.googleAnalytics?.partytown}
-    />
+  gaId ? (
+    <script is:inline define:vars={{ gaId }}>
+      (function () {
+        if (window.__gaBootstrapped) return;
+        window.__gaBootstrapped = true;
+
+        function loadGA() {
+          window.dataLayer = window.dataLayer || [];
+          function gtagShim() {
+            window.dataLayer.push(arguments);
+          }
+          if (typeof window.gtag !== 'function') {
+            window.gtag = gtagShim;
+          }
+          window.gtag('js', new Date());
+          window.gtag('config', gaId);
+
+          var gtagSrc = 'https://www.googletagmanager.com/gtag/js?id=' + gaId;
+          if (!document.querySelector('script[src="' + gtagSrc + '"]')) {
+            var s = document.createElement('script');
+            s.async = true;
+            s.src = gtagSrc;
+            s.addEventListener('load', function () {
+              window.dispatchEvent(new Event('ga:ready'));
+            });
+            document.head.appendChild(s);
+          }
+
+          document.addEventListener('astro:page-load', function () {
+            window.gtag('config', gaId, {
+              page_path: location.pathname + location.search,
+              page_title: document.title,
+              page_location: location.href,
+            });
+          });
+
+          window.dispatchEvent(new Event('ga:ready'));
+        }
+        loadGA();
+      })();
+    </script>
   ) : null
 }

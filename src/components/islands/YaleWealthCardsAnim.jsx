@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -55,15 +55,20 @@ export default function YaleWealthCardsAnim() {
             scrollTrigger: { trigger: realitySection, ...triggerOpts },
           });
         }
-        gsap.from(realitySection.querySelectorAll('.yale-wealth-reality__body, .yale-wealth-reality__bridge, .yale-wealth-reality__wages, .yale-wealth-reality__close'), {
-          opacity: 0,
-          y: 8,
-          duration: DURATION * 0.6,
-          stagger: STAGGER,
-          delay: STAGGER * 2.5,
-          ease: 'power3.out',
-          scrollTrigger: { trigger: realitySection, ...triggerOpts },
-        });
+        gsap.from(
+          realitySection.querySelectorAll(
+            '.yale-wealth-reality__body, .yale-wealth-reality__bridge, .yale-wealth-reality__wages, .yale-wealth-reality__close'
+          ),
+          {
+            opacity: 0,
+            y: 8,
+            duration: DURATION * 0.6,
+            stagger: STAGGER,
+            delay: STAGGER * 2.5,
+            ease: 'power3.out',
+            scrollTrigger: { trigger: realitySection, ...triggerOpts },
+          }
+        );
       }
     }, rootRef);
 

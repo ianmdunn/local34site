@@ -1,0 +1,101 @@
+---
+/**
+ * Single update detail page (/updates/[slug]).
+ */
+import PageLayout from '~/layouts/PageLayout.astro';
+import { PAGE_SECTION_CLASS } from '~/lib/layout';
+import '~/components/updates/updates.css';
+import { fetchUpdates, toUpdateItem, getDirectusToken } from '~/utils/directus';
+import { sanitizeHtml } from '~/utils/sanitize';
+import { getFormattedDate } from '~/utils/utils';
+
+export async function getStaticPaths() {
+  const rawUpdates = await fetchUpdates({
+    limit: 100,
+    sort: '-date',
+    filterByStatus: false,
+  });
+  const accessToken = await getDirectusToken();
+  const updates = rawUpdates.map((u) => toUpdateItem(u, { accessToken: accessToken ?? undefined }));
+  return updates.map((update) => ({
+    params: { slug: update.slug || update.id },
+    props: { update },
+  }));
+}
+
+const { update } = Astro.props;
+
+const metadata = {
+  title: update.title,
+  description: update.excerpt || `News and updates from Local 34-UNITE HERE.`,
+  openGraph: update.imageUrl
+    ? {
+        images: [{ url: update.imageUrl, width: 1200, height: 630 }],
+        type: 'article',
+      }
+    : undefined,
+};
+
+const proseClass =
+  'update-post__prose prose prose-base max-w-none dark:prose-invert dark:prose-headings:text-slate-200 prose-headings:font-heading prose-headings:leading-tighter prose-headings:tracking-tighter prose-headings:font-bold prose-a:text-primary dark:prose-a:text-primary prose-img:rounded-lg prose-img:shadow-md prose-pre:rounded-lg prose-blockquote:border-l-primary prose-blockquote:bg-slate-50 dark:prose-blockquote:bg-slate-800/50 prose-blockquote:py-1 prose-blockquote:px-4 prose-p:leading-relaxed prose-p:my-4 prose-ul:my-4 prose-ol:my-4 prose-li:my-1 prose-h2:mt-10 prose-h2:mb-4 prose-h3:mt-8 prose-h3:mb-3 prose-h2:scroll-mt-20 prose-h3:scroll-mt-20';
+---
+
+<PageLayout metadata={metadata}>
+  <article class={`${PAGE_SECTION_CLASS} update-post`} data-section="update-article" id="update-article">
+    <div class="update-post__inner">
+      <nav class="update-post__nav" aria-label="Breadcrumb">
+        <ol class="update-post__breadcrumb" itemscope itemtype="https://schema.org/BreadcrumbList">
+          <li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+            <a href="/updates" itemprop="item" class="update-post__back" data-cta="update_back_list">
+              <span itemprop="name">News & Updates</span>
+            </a>
+            <meta itemprop="position" content="1" />
+          </li>
+        </ol>
+      </nav>
+
+      <header class="update-post__header">
+        <div class="update-post__meta">
+          <time datetime={update.date.toISOString()} itemprop="datePublished">
+            {getFormattedDate(update.date)}
+          </time>
+          {
+            update.author && (
+              <>
+                <span class="update-post__meta-sep" aria-hidden="true">
+                  ·
+                </span>
+                <span itemprop="author" itemscope itemtype="https://schema.org/Person">
+                  <span itemprop="name">{update.author}</span>
+                </span>
+              </>
+            )
+          }
+        </div>
+        <h1 class="update-post__title">{update.title}</h1>
+      </header>
+
+      {
+        update.imageUrl && (
+          <div class="update-post__image">
+            <img src={update.imageUrl} alt={update.title} width="900" height="506" />
+          </div>
+        )
+      }
+
+      <div class="update-post__content">
+        {
+          update.content ? (
+            <div class={proseClass} set:html={sanitizeHtml(update.content)} />
+          ) : (
+            update.excerpt && <p class="update-post__excerpt-only">{update.excerpt}</p>
+          )
+        }
+      </div>
+
+      <footer class="update-post__footer">
+        <a href="/updates" class="update-post__back-cta" data-cta="update_back_cta"> ← Back to News & Updates </a>
+      </footer>
+    </div>
+  </article>
+</PageLayout>

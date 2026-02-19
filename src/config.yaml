@@ -1,6 +1,6 @@
 site:
   name: Local 34-UNITE HERE!
-  site: https://dev.local34.org
+  site: https://local34.org
   base: /
   trailingSlash: false
   googleSiteVerificationId: null # Set to your Google Search Console ID when ready
@@ -16,10 +16,8 @@ metadata:
   openGraph:
     site_name: Local 34-UNITE HERE!
     images:
-      # Default OG image - update if you add one to public/images/
-      # - url: '/images/default.png'
-      #   width: 1200
-      #   height: 628
+      - url: '~/assets/images/backgrounds/L34pick_-09.jpg'
+        alt: Local 34 members rallying in New Haven
     type: website
   twitter:
     handle: '@34unitehere'
@@ -62,7 +60,11 @@ apps:
 analytics:
   vendors:
     googleAnalytics:
-      id: null # e.g. "G-XXXXXXXXXX"
-
+      # Set your GA4 Measurement ID here.
+      # Get it from: Admin → Data streams → your stream → Measurement ID
+      id: 'G-57W5LDSJJR'
+      # Partytown off: astro.config has hasExternalScripts=false so Partytown isn't loaded.
+      # Scripts must run in main thread to execute.
+      partytown: false
 ui:
   theme: system # system | light | dark | light:only | dark:only

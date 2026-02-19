@@ -2,14 +2,14 @@
 
 ---
 
-    <script is:inline>
-      (function () {
-        if (window.basic_script) return;
-        window.basic_script = true;
+<script is:inline>
+  (function () {
+    if (window.basic_script) return;
+    window.basic_script = true;
 
-        // Constants
-        const MOBILE_BREAKPOINT = 767; // in px
-        const HEADER_SCROLL_THRESHOLD = 60; // in px
+    // Constants
+    const MOBILE_BREAKPOINT = 767; // in px
+    const HEADER_SCROLL_THRESHOLD = 60; // in px
 
     function applyTheme(theme) {
       if (theme === 'dark') {
@@ -182,77 +182,83 @@
     },
 
     start() {
-      const intersectClasses = [
-        'intersect:',
-        ':intersect:',
-        'intersect ',
-        ' intersect',
-      ];
+      const intersectClasses = ['intersect:', ':intersect:', 'intersect ', ' intersect'];
 
-      const selectors = intersectClasses.map(function (cls) { return '[class*="' + cls + '"]'; }).join(',');
+      const selectors = intersectClasses
+        .map(function (cls) {
+          return '[class*="' + cls + '"]';
+        })
+        .join(',');
       this.elements = Array.from(document.querySelectorAll(selectors));
 
-      this.elements.forEach(function (el) {
-        el.setAttribute('no-intersect', '');
-        el._intersectionThreshold = this.getThreshold(el);
-      }.bind(this));
+      this.elements.forEach(
+        function (el) {
+          el.setAttribute('no-intersect', '');
+          el._intersectionThreshold = this.getThreshold(el);
+        }.bind(this)
+      );
 
+      // eslint-disable-next-line @typescript-eslint/no-this-alias -- needed for nested callback
       const self = this;
       const callback = function (entries) {
-            const handleIntersect = function (entry) {
-              const target = entry.target;
-              const threshold = target._intersectionThreshold;
-              const isVisible = target.classList.contains('intersect-no-queue')
-                ? entry.isIntersecting
-                : entry.intersectionRatio >= threshold;
+        const handleIntersect = function (entry) {
+          const target = entry.target;
+          const threshold = target._intersectionThreshold;
+          const isVisible = target.classList.contains('intersect-no-queue')
+            ? entry.isIntersecting
+            : entry.intersectionRatio >= threshold;
 
-              if (target.classList.contains('intersect-no-queue')) {
-                if (entry.isIntersecting) {
-                  target.removeAttribute('no-intersect');
-                  if (target.classList.contains('intersect-once')) {
-                    self.observer.unobserve(target);
-                  }
-                } else {
-                  target.setAttribute('no-intersect', '');
-                }
-                return;
+          if (target.classList.contains('intersect-no-queue')) {
+            if (entry.isIntersecting) {
+              target.removeAttribute('no-intersect');
+              if (target.classList.contains('intersect-once')) {
+                self.observer.unobserve(target);
               }
+            } else {
+              target.setAttribute('no-intersect', '');
+            }
+            return;
+          }
 
-              if (isVisible) {
-                if (!target.hasAttribute('data-animated')) {
-                  target.removeAttribute('no-intersect');
-                  target.setAttribute('data-animated', 'true');
+          if (isVisible) {
+            if (!target.hasAttribute('data-animated')) {
+              target.removeAttribute('no-intersect');
+              target.setAttribute('data-animated', 'true');
 
-                  const delay = self.animationCounter * self.delayBetweenAnimations;
-                  self.animationCounter++;
+              const delay = self.animationCounter * self.delayBetweenAnimations;
+              self.animationCounter++;
 
-                  target.style.transitionDelay = delay + 'ms';
-                  target.style.animationDelay = delay + 'ms';
+              target.style.transitionDelay = delay + 'ms';
+              target.style.animationDelay = delay + 'ms';
 
-                  if (target.classList.contains('intersect-once')) {
-                    self.observer.unobserve(target);
-                  }
-                }
-              } else {
-                target.setAttribute('no-intersect', '');
-                target.removeAttribute('data-animated');
-                target.style.transitionDelay = '';
-                target.style.animationDelay = '';
-
-                self.animationCounter = 0;
+              if (target.classList.contains('intersect-once')) {
+                self.observer.unobserve(target);
               }
-            };
+            }
+          } else {
+            target.setAttribute('no-intersect', '');
+            target.removeAttribute('data-animated');
+            target.style.transitionDelay = '';
+            target.style.animationDelay = '';
 
-            entries.forEach(function (entry) {
-              requestAnimationFrame(function () { handleIntersect(entry); });
-            });
-          };
+            self.animationCounter = 0;
+          }
+        };
+
+        entries.forEach(function (entry) {
+          requestAnimationFrame(function () {
+            handleIntersect(entry);
+          });
+        });
+      };
 
       this.observer = new IntersectionObserver(callback, { threshold: [0, 0.25, 0.5, 0.99] });
 
-      this.elements.forEach(function (el) {
-        this.observer.observe(el);
-      }.bind(this));
+      this.elements.forEach(
+        function (el) {
+          this.observer.observe(el);
+        }.bind(this)
+      );
     },
 
     /* 

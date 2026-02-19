@@ -152,47 +152,56 @@ export const getAsset = (path: string): string => {
       return gcsUrl;
     }
   }
-  
+
   // Otherwise, return local path
-  return '/' +
+  return (
+    '/' +
     [BASE_PATHNAME, path]
       .map((el) => trimSlash(el))
       .filter((el) => !!el)
-      .join('/');
+      .join('/')
+  );
 };
 
 /** */
 const definitivePermalink = (permalink: string): string => createPath(BASE_PATHNAME, permalink);
 
 /** */
-const resolveHref = (item: any): string | undefined => {
+interface ItemWithUrl {
+  url: string;
+  type?: string;
+}
+
+const resolveHref = (item: unknown): string | undefined => {
   if (typeof item === 'string') {
     return getPermalink(item);
-  } else if (typeof item === 'object' && item !== null && item.url) {
-    switch (item.type) {
+  } else if (typeof item === 'object' && item !== null && 'url' in item) {
+    const obj = item as ItemWithUrl;
+    switch (obj.type) {
       case 'home':
         return getHomePermalink();
       case 'blog':
         return getBlogPermalink();
       case 'asset':
-        return getAsset(item.url);
+        return getAsset(obj.url);
       default:
-        return getPermalink(item.url, item.type);
+        return getPermalink(obj.url, obj.type);
     }
   }
   return undefined;
 };
 
-export const applyGetPermalinks = (menu: object = {}) => {
+export const applyGetPermalinks = (menu: object | unknown = {}): unknown => {
   if (Array.isArray(menu)) {
     return menu.map((item) => applyGetPermalinks(item));
   } else if (typeof menu === 'object' && menu !== null) {
-    const obj: { [key: string]: any } = {};
-    for (const key in menu) {
+    const obj: { [key: string]: unknown } = {};
+    const menuObj = menu as Record<string, unknown>;
+    for (const key in menuObj) {
       if (key === 'href') {
-        obj[key] = resolveHref((menu as any)[key]);
+        obj[key] = resolveHref(menuObj[key]);
       } else {
-        obj[key] = applyGetPermalinks((menu as any)[key]);
+        obj[key] = applyGetPermalinks(menuObj[key] as object);
       }
     }
     return obj;

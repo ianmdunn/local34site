@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { getAccumulatedGrowth } from '~/lib/yaleWealthGrowth';
 
 function formatGrowth(value) {
@@ -26,7 +26,7 @@ function formatAsOf(date) {
 const PLACEHOLDER_VALUE = '$0';
 const PLACEHOLDER_AS_OF = '—';
 
-export default function YaleWealthProjectedReturns({ children }) {
+export default function YaleWealthProjectedReturns({ onMetaChange }) {
   const [mounted, setMounted] = useState(false);
   const [value, setValue] = useState(0);
   const [asOf, setAsOf] = useState(PLACEHOLDER_AS_OF);
@@ -47,7 +47,14 @@ export default function YaleWealthProjectedReturns({ children }) {
     return () => cancelAnimationFrame(raf);
   }, [mounted]);
 
-  const showLive = typeof window !== 'undefined' && mounted;
+  useEffect(() => {
+    if (onMetaChange) {
+      const meta = `Since June 30, 2025 • As of: ${mounted ? asOf : PLACEHOLDER_AS_OF}`;
+      onMetaChange(meta);
+    }
+  }, [mounted, asOf, onMetaChange]);
+
+  const showLive = mounted;
   return (
     <div className="yale-wealth-billboard__counter-block" aria-live="polite">
       <div className="yale-wealth-endowment-card__value">
@@ -56,10 +63,6 @@ export default function YaleWealthProjectedReturns({ children }) {
             {showLive ? formatGrowth(value) : PLACEHOLDER_VALUE}
           </span>
         </span>
-      </div>
-      <div className="yale-wealth-billboard__counter-meta">{children}</div>
-      <div className="yale-wealth-billboard__counter-meta" suppressHydrationWarning>
-        As of: {showLive ? asOf : PLACEHOLDER_AS_OF}
       </div>
     </div>
   );

@@ -1,0 +1,511 @@
+/**
+ * Yale's Wealth – The Reality section + assumptions popup + yale-wealth-day-pop keyframes
+ */
+
+.yale-wealth-reality {
+  background: transparent;
+  color: #1c1917;
+  padding: 1.25rem clamp(0.75rem, 3vw, 1.5rem) 1.75rem;
+}
+
+.dark .yale-wealth-reality {
+  color: rgb(226 232 240);
+}
+
+.yale-wealth-reality__article {
+  max-width: 50rem;
+  margin: 0 auto;
+  padding: clamp(1rem, 2.5vw, 1.35rem) clamp(1rem, 2.5vw, 1.35rem);
+  background: linear-gradient(180deg, #fefefe 0%, #fafaf9 100%);
+  border-radius: 10px;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.05),
+    0 8px 24px -4px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
+.dark .yale-wealth-reality__article {
+  background: linear-gradient(180deg, rgb(51 65 85) 0%, rgb(30 41 59) 100%);
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.2),
+    0 8px 24px -4px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.yale-wealth-reality__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.dark .yale-wealth-reality__header {
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+
+.yale-wealth-reality__title {
+  font-family: var(--aw-font-heading, inherit);
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--yw-text-dark);
+  margin: 0;
+}
+
+.yale-wealth-reality__source {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+  color: var(--yw-muted);
+  background: rgba(0, 0, 0, 0.04);
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.yale-wealth-reality__source:hover {
+  color: var(--yw-green);
+  background: rgba(34, 197, 94, 0.12);
+}
+
+.yale-wealth-reality__source:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--yw-green);
+  outline-offset: 2px;
+}
+
+.yale-wealth-reality__lead,
+.yale-wealth-reality__body,
+.yale-wealth-reality__bridge,
+.yale-wealth-reality__close {
+  color: var(--yw-text);
+  line-height: 1.65;
+}
+
+.yale-wealth-reality__lead {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  margin: 0 0 0.75rem;
+}
+
+.yale-wealth-reality__lead strong,
+.yale-wealth-reality__body strong {
+  font-weight: 600;
+  color: var(--yw-green-dark);
+}
+
+.yale-wealth-reality__lead-tax {
+  color: var(--yw-red);
+  font-weight: 600;
+}
+
+.yale-wealth-reality__timeline {
+  margin-bottom: 0.9rem;
+  padding: 0.6rem 0.7rem;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0.04) 100%);
+  border-radius: 8px;
+}
+
+.dark .yale-wealth-reality__timeline {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.06) 100%);
+}
+
+.yale-wealth-reality__timeline-caption {
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--yw-muted);
+  margin: 0 0 0.35rem;
+}
+
+.yale-wealth-reality__days {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.yale-wealth-reality__days-row {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0;
+  width: 100%;
+  height: clamp(22px, 4.5vw, 30px);
+  min-height: 22px;
+  border-radius: 8px;
+  /* overflow: hidden; Removed to allow hover pop-out */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.yale-wealth-reality__day:first-child {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+.yale-wealth-reality__day:last-child {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.yale-wealth-reality__day:first-child:hover {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+.yale-wealth-reality__day:last-child:hover {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.yale-wealth-reality__day {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100%;
+  opacity: 0;
+  transform: scale(0.9);
+  transition:
+    transform 0.2s ease,
+    filter 0.2s ease,
+    box-shadow 0.2s ease;
+  cursor: help;
+}
+
+.yale-wealth-reality__day:hover {
+  filter: brightness(1.15) contrast(1.1);
+  transform: scaleY(1.15) scaleX(1.05);
+  z-index: 2;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 2px;
+}
+
+.yale-wealth-reality__day--tax {
+  background: linear-gradient(180deg, #f87171 0%, #dc2626 50%, #b91c1c 100%);
+  box-shadow: 2px 0 0 rgba(0, 0, 0, 0.12);
+}
+
+.yale-wealth-reality__day--gains {
+  background: linear-gradient(180deg, #4ade80 0%, #22c55e 50%, #15803d 100%);
+}
+
+.yale-wealth-reality__days-label {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  font-family: var(--aw-font-mono);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.yale-wealth-reality__days-label--tax {
+  left: 0;
+  width: 8.2%;
+}
+
+.yale-wealth-reality__days-label--gains {
+  left: 8.2%;
+  right: 0;
+  font-size: clamp(0.6rem, 1.5vw, 0.8rem);
+}
+
+.yale-wealth-reality__days-legend {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0.35rem 0 0;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--yw-muted);
+}
+
+.yale-wealth-reality__days-legend-tax {
+  color: var(--yw-red);
+}
+
+.yale-wealth-reality__days-legend-gains {
+  color: var(--yw-green-dark);
+}
+
+.yale-wealth-reality__body {
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.5;
+  margin: 0 0 0.65rem;
+}
+
+/* Assumptions popup */
+
+.yale-wealth-assumptions {
+  position: relative;
+}
+
+.yale-wealth-assumptions__info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--yw-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.15s ease;
+}
+
+.yale-wealth-assumptions__info:hover {
+  color: var(--yw-green-dark);
+}
+
+.yale-wealth-assumptions__info:focus-visible {
+  outline: 2px solid var(--yw-green);
+  outline-offset: 2px;
+}
+
+.yale-wealth-assumptions__popup {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(100% + 0.5rem);
+  z-index: 10;
+  width: min(20rem, calc(100vw - 1.5rem));
+  padding: 0.85rem 1.75rem 0.85rem 1rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--yw-text);
+  background: #fafaf9;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 6px;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  text-align: left;
+  font-family: var(--aw-font-sans, system-ui, sans-serif);
+}
+
+.yale-wealth-assumptions__formula {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem 0.65rem;
+  font-family: var(--aw-font-mono);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--yw-text-dark);
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+}
+
+.yale-wealth-assumptions__formula-line {
+  display: block;
+}
+
+.yale-wealth-assumptions__formula sub {
+  font-size: 0.7em;
+  vertical-align: sub;
+}
+
+.yale-wealth-assumptions__popup-text {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.yale-wealth-assumptions__popup-text strong {
+  color: var(--yw-green-dark);
+  font-weight: 600;
+}
+
+.yale-wealth-assumptions__popup-close {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--yw-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.yale-wealth-assumptions__popup-close:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--yw-text);
+}
+
+.dark .yale-wealth-assumptions__info {
+  color: var(--yw-dark-muted);
+}
+
+.dark .yale-wealth-assumptions__info:hover {
+  color: var(--yw-green-light);
+}
+
+.dark .yale-wealth-assumptions__popup {
+  background: rgb(30 41 59);
+  border-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+}
+
+.dark .yale-wealth-assumptions__formula {
+  background: rgba(0, 0, 0, 0.25);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--yw-dark-text);
+}
+
+.dark .yale-wealth-assumptions__popup-text {
+  color: var(--yw-dark-text);
+}
+
+.dark .yale-wealth-assumptions__popup-text strong {
+  color: var(--yw-green-light);
+}
+
+.dark .yale-wealth-assumptions__popup-close {
+  color: var(--yw-dark-muted);
+}
+
+.dark .yale-wealth-assumptions__popup-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--yw-dark-text);
+}
+
+.yale-wealth-reality__bridge {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  color: var(--yw-text-dark);
+}
+
+.yale-wealth-reality__wages {
+  margin-bottom: 0.6rem;
+  padding: 0.75rem 0.95rem 0.65rem;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+}
+
+.yale-wealth-reality__wages-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.yale-wealth-reality__wages-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+  color: var(--yw-text-dark);
+  margin: 0;
+}
+
+.yale-wealth-reality__wages-source {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--aw-color-text-muted);
+  padding: 0.35rem;
+  border-radius: 8px;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.yale-wealth-reality__wages-source:hover {
+  color: var(--aw-color-primary);
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+.yale-wealth-reality__wages-source:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--aw-color-primary);
+  outline-offset: 2px;
+}
+
+.dark .yale-wealth-reality__wages-source:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.yale-wealth-reality__close {
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5;
+  margin: 0;
+  padding: 0.5rem 0.85rem;
+  background: rgba(34, 197, 94, 0.06);
+  border-radius: 6px;
+  border-left: 3px solid var(--yw-green-dark);
+}
+
+.dark .yale-wealth-reality__close {
+  background: rgba(34, 197, 94, 0.1);
+}
+
+.dark .yale-wealth-reality__title,
+.dark .yale-wealth-reality__lead,
+.dark .yale-wealth-reality__body,
+.dark .yale-wealth-reality__bridge,
+.dark .yale-wealth-reality__close,
+.dark .yale-wealth-reality__wages-title {
+  color: var(--yw-dark-text);
+}
+
+.dark .yale-wealth-reality__title {
+  color: var(--yw-dark-title);
+}
+
+.dark .yale-wealth-reality__lead strong,
+.dark .yale-wealth-reality__body strong {
+  color: var(--yw-green-light);
+}
+
+.dark .yale-wealth-reality__source,
+.dark .yale-wealth-reality__timeline-caption,
+.dark .yale-wealth-reality__days-legend {
+  color: var(--yw-dark-muted);
+}
+
+.dark .yale-wealth-reality__source:hover {
+  color: var(--yw-green-light);
+  background: rgba(74, 222, 128, 0.15);
+}
+
+.dark .yale-wealth-reality__lead-tax,
+.dark .yale-wealth-reality__days-legend-tax {
+  color: rgb(252 165 165);
+}
+
+.dark .yale-wealth-reality__days-legend-gains {
+  color: var(--yw-green-light);
+}
+
+@keyframes yale-wealth-day-pop {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

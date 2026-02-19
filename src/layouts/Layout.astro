@@ -1,5 +1,6 @@
 ---
 import '~/assets/styles/tailwind.css';
+import '~/assets/styles/title-padding.css';
 
 import { I18N } from 'astrowind:config';
 
@@ -10,9 +11,8 @@ import ApplyColorMode from '~/components/common/ApplyColorMode.astro';
 import Metadata from '~/components/common/Metadata.astro';
 import SiteVerification from '~/components/common/SiteVerification.astro';
 import Analytics from '~/components/common/Analytics.astro';
+import AnalyticsEnhanced from '~/components/common/AnalyticsEnhanced.astro';
 import BasicScripts from '~/components/common/BasicScripts.astro';
-import PasswordGate from '~/components/PasswordGate.jsx';
-
 // Comment the line below to disable View Transitions
 import { ClientRouter } from 'astro:transitions';
 
@@ -20,30 +20,37 @@ import type { MetaData as MetaDataType } from '~/types';
 
 export interface Props {
   metadata?: MetaDataType;
+  /** Optional class(es) for html element (e.g. timer-popup-window) */
+  htmlClass?: string;
 }
 
-const { metadata = {} } = Astro.props;
+const { metadata = {}, htmlClass } = Astro.props;
 const { language, textDirection } = I18N;
 ---
 
 <!doctype html>
-<html lang={language} dir={textDirection}>
+<html lang={language} dir={textDirection} class={htmlClass}>
   <head>
+    <slot name="head" />
     <CommonMeta />
+    <!-- Preconnect to third parties for faster loading -->
+    <link rel="preconnect" href="https://use.typekit.net" crossorigin />
+    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin />
     <!-- Typekit: load async to avoid render-blocking (fonts: ibm-plex-sans, archer-pro, etc.) -->
-    <link
-      rel="preload"
-      href="https://use.typekit.net/iqy5xra.css"
-      as="style"
-      onload="this.onload=null;this.rel='stylesheet'"
-    />
+    <script is:inline>
+      (function () {
+        const l = document.createElement('link');
+        l.rel = 'stylesheet';
+        l.href = 'https://use.typekit.net/iqy5xra.css';
+        document.head.appendChild(l);
+      })();
+    </script>
     <noscript><link rel="stylesheet" href="https://use.typekit.net/iqy5xra.css" /></noscript>
     <Favicons />
     <CustomStyles />
     <ApplyColorMode />
     <Metadata {...metadata} />
     <SiteVerification />
-    <Analytics />
 
     <!--
       astro-navbar integration (Header.astro uses Astronav, MenuIcon, MenuItems, StickyHeader):
@@ -61,7 +68,7 @@ const { language, textDirection } = I18N;
         if (window.__navMenuBound) return;
         window.__navMenuBound = true;
 
-        var NAV = {
+        const NAV = {
           headerId: 'header',
           menuBtnId: 'astronav-menu',
           navSelector: '.astronav-items',
@@ -84,7 +91,7 @@ const { language, textDirection } = I18N;
           return document.getElementById(NAV.headerId);
         }
         function isOpen() {
-          var n = getNav();
+          const n = getNav();
           return n && !n.classList.contains('hidden');
         }
         function isMobile() {
@@ -93,14 +100,14 @@ const { language, textDirection } = I18N;
 
         function lockBodyScroll() {
           if (!isMobile()) return;
-          var y = window.scrollY;
+          const y = window.scrollY;
           document.body.setAttribute('data-' + NAV.scrollYDataKey, String(y));
           document.body.style.top = '-' + y + 'px';
           document.body.classList.add(NAV.scrollLockClass);
         }
         function unlockBodyScroll() {
           if (!document.body.classList.contains(NAV.scrollLockClass)) return;
-          var y = parseInt(document.body.getAttribute('data-' + NAV.scrollYDataKey) || '0', 10);
+          const y = parseInt(document.body.getAttribute('data-' + NAV.scrollYDataKey) || '0', 10);
           document.body.classList.remove(NAV.scrollLockClass);
           document.body.style.top = '';
           document.body.removeAttribute('data-' + NAV.scrollYDataKey);
@@ -111,8 +118,8 @@ const { language, textDirection } = I18N;
           else unlockBodyScroll();
         }
         function syncAriaExpanded() {
-          var btn = getMenuBtn();
-          var nav = getNav();
+          const btn = getMenuBtn();
+          const nav = getNav();
           if (nav && !nav.id) nav.id = 'main-nav';
           if (btn) {
             btn.setAttribute('aria-expanded', String(isOpen()));
@@ -129,14 +136,18 @@ const { language, textDirection } = I18N;
         }
         function closeMenu() {
           if (!isOpen()) return;
-          var header = getHeader();
+          const header = getHeader();
           if (header) {
-            header.querySelectorAll(NAV.toggleSelector).forEach(function (el) {
+            /* Hide drawer and close (X) icon; show hamburger icon */
+            header.querySelectorAll('.astronav-items, .astronav-close-icon').forEach(function (el) {
               el.classList.add('hidden');
+            });
+            header.querySelectorAll('.astronav-open-icon').forEach(function (el) {
+              el.classList.remove('hidden');
             });
             header.querySelectorAll('.dropdown.is-open').forEach(function (el) {
               el.classList.remove('is-open');
-              var panel = el.querySelector('.nav-submenu-panel');
+              const panel = el.querySelector('.nav-submenu-panel');
               if (panel) panel.setAttribute('aria-hidden', 'true');
             });
             header.querySelectorAll('[data-nav-submenu-toggle]').forEach(function (el) {
@@ -145,12 +156,12 @@ const { language, textDirection } = I18N;
           }
           syncBodyScrollLock();
           syncAriaExpanded();
-          var btn = getMenuBtn();
+          const btn = getMenuBtn();
           if (btn) btn.focus();
         }
         function findNavLink(target) {
           if (!target || !target.closest) return null;
-          var link = target.closest(NAV.linkSelector);
+          const link = target.closest(NAV.linkSelector);
           if (!link || !link.href || link.getAttribute('href') === '#' || link.target) return null;
           return link;
         }
@@ -158,32 +169,32 @@ const { language, textDirection } = I18N;
         document.addEventListener(
           'click',
           function (e) {
-            var target = e.target;
+            const target = e.target;
             if (!target || !target.closest) return;
-            var toggleBtn = target.closest && target.closest('[data-nav-submenu-toggle]');
+            const toggleBtn = target.closest('[data-nav-submenu-toggle]');
             if (toggleBtn) {
               e.preventDefault();
               e.stopPropagation();
-              var dropdown = toggleBtn.closest('.dropdown');
+              const dropdown = toggleBtn.closest('.dropdown');
               if (dropdown) {
                 dropdown.classList.toggle('is-open');
-                var open = dropdown.classList.contains('is-open');
+                const open = dropdown.classList.contains('is-open');
                 toggleBtn.setAttribute('aria-expanded', open);
-                var panel = dropdown.querySelector('.nav-submenu-panel');
+                const panel = dropdown.querySelector('.nav-submenu-panel');
                 if (panel) panel.setAttribute('aria-hidden', !open);
               }
               return;
             }
-            var backBtn = target.closest && target.closest('[data-nav-submenu-back]');
+            const backBtn = target.closest('[data-nav-submenu-back]');
             if (backBtn) {
               e.preventDefault();
               e.stopPropagation();
-              var dropdown = backBtn.closest('.dropdown');
+              const dropdown = backBtn.closest('.dropdown');
               if (dropdown) {
                 dropdown.classList.remove('is-open');
-                var btn = dropdown.querySelector('[data-nav-submenu-toggle]');
+                const btn = dropdown.querySelector('[data-nav-submenu-toggle]');
                 if (btn) btn.setAttribute('aria-expanded', 'false');
-                var panel = dropdown.querySelector('.nav-submenu-panel');
+                const panel = dropdown.querySelector('.nav-submenu-panel');
                 if (panel) panel.setAttribute('aria-hidden', 'true');
               }
               return;
@@ -205,12 +216,26 @@ const { language, textDirection } = I18N;
               closeMenu();
               return;
             }
-            var link = findNavLink(target);
+            const link = findNavLink(target);
             if (link && !e.ctrlKey && !e.metaKey) {
+              if (typeof window.__trackEvent === 'function') {
+                const rawHref = link.getAttribute('href') || link.href || '';
+                const label = link.textContent?.trim().slice(0, 50) || 'nav';
+                window.__trackEvent('nav_click', { nav_label: label, nav_destination: rawHref });
+                let internalDest = '/';
+                try {
+                  internalDest = new URL(rawHref, location.origin).pathname || '/';
+                } catch {
+                  internalDest = (rawHref.split('?')[0] || '/').trim() || '/';
+                }
+                window.__trackEvent('internal_click', { link_destination: internalDest });
+              }
               e.preventDefault();
-              e.stopImmediatePropagation();
+              e.stopPropagation();
               if (isOpen()) closeMenu();
-              window.location.href = link.href;
+              window.setTimeout(function () {
+                window.location.href = link.href;
+              }, 80);
               return;
             }
           },
@@ -219,12 +244,12 @@ const { language, textDirection } = I18N;
 
         document.addEventListener('keydown', function (e) {
           if (e.key !== 'Escape') return;
-          var header = getHeader();
-          var openDropdown = header && header.querySelector('.dropdown.is-open');
+          const header = getHeader();
+          const openDropdown = header && header.querySelector('.dropdown.is-open');
           if (openDropdown && isMobile()) {
             e.preventDefault();
             openDropdown.classList.remove('is-open');
-            var btn = openDropdown.querySelector('[data-nav-submenu-toggle]');
+            const btn = openDropdown.querySelector('[data-nav-submenu-toggle]');
             if (btn) btn.setAttribute('aria-expanded', 'false');
             return;
           }
@@ -239,9 +264,9 @@ const { language, textDirection } = I18N;
         }
         document.addEventListener('astro:after-swap', onNavPageReady);
         document.addEventListener('astro:page-load', onNavPageReady);
-        var lastMobile = isMobile();
+        let lastMobile = isMobile();
         window.addEventListener('resize', function () {
-          var nowMobile = isMobile();
+          const nowMobile = isMobile();
           if (lastMobile !== nowMobile) {
             lastMobile = nowMobile;
             syncBodyScrollLock();
@@ -265,12 +290,13 @@ const { language, textDirection } = I18N;
 
   <body class="antialiased text-default bg-page text-base leading-normal">
     <a href="#main-content" class="skip-link">Skip to main content</a>
-    <PasswordGate client:idle />
     <div id="layout-root" class="flex flex-col min-h-screen min-h-dvh">
       <slot />
     </div>
 
     <BasicScripts />
+    <Analytics />
+    <AnalyticsEnhanced />
     <div id="popup-portal-root"></div>
   </body>
 </html>

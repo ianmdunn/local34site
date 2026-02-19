@@ -1,0 +1,76 @@
+---
+/**
+ * We Can't Keep Up – Worker Profile Campaign
+ * Shows one campaign poster (from Directus wecantkeepup) at a time, styled like the PDF designs.
+ */
+import PageLayout from '~/layouts/PageLayout.astro';
+import Footer from '~/components/widgets/Footer.astro';
+import { fetchWeCantKeepUpItems } from '~/utils/directus-wecantkeepup';
+import WeCantKeepupPoster from '~/components/islands/WeCantKeepupPoster.jsx';
+import { footerData } from '~/navigation';
+import { getAsset, getCanonicalOrigin } from '~/utils/permalinks';
+import type { MetaData } from '~/types';
+
+import '~/components/islands/wecantkeepup-poster.css';
+import ramoFontUrl from '~/assets/fonts/Ramo-deJazmin.woff2?url';
+
+const logoUrl = getAsset('logos/Local-34-On-Black.svg');
+
+const rawItems = await fetchWeCantKeepUpItems({ sort: 'name' });
+// Shuffle so a random record appears first on each load
+const items = rawItems.length <= 1 ? rawItems : [...rawItems].sort(() => Math.random() - 0.5);
+
+// Preconnect to profile image origin when external (GCS, Directus proxy, etc.)
+const firstImageUrl = items[0]?.profile_image_url;
+let imageOrigin: string | null = null;
+if (firstImageUrl) {
+  try {
+    const origin = new URL(firstImageUrl).origin;
+    const siteOrigin = new URL(getCanonicalOrigin()).origin;
+    if (origin !== siteOrigin) imageOrigin = origin;
+  } catch {
+    // ignore invalid URLs
+  }
+}
+
+const PAGE = {
+  title: "We Can't Keep Up!",
+  description:
+    'Local 34 workers speak out: see who we are and why we’re fighting for a contract that keeps up with the cost of living.',
+} as const;
+
+const metadata: MetaData = {
+  title: PAGE.title,
+  description: PAGE.description,
+  openGraph: {
+    images: [
+      {
+        url: getAsset("zoom-backgrounds/Zoom Background - We Can't Keep Up - Image.jpg"),
+        alt: "We Can't Keep Up campaign graphic",
+      },
+    ],
+  },
+};
+---
+
+<PageLayout metadata={metadata}>
+  {/* Critical resource hints for faster LCP */}
+  {imageOrigin && <link slot="head" rel="preconnect" href={imageOrigin} crossorigin />}
+  <link slot="head" rel="preload" href={ramoFontUrl} as="font" type="font/woff2" crossorigin />
+  {logoUrl && <link slot="head" rel="preload" as="image" href={logoUrl} />}
+  {
+    items.length > 0 && items[0].profile_image_url && (
+      <link slot="head" rel="preload" as="image" href={items[0].profile_image_url} fetchpriority="high" />
+    )
+  }
+  <!-- Title first, then poster content flows below -->
+  <div class="wecantkeepup-page" data-section="wecantkeepup" id="wecantkeepup">
+    <div class="wecantkeepup-banner wecantkeepup-banner--top" aria-hidden="true">WE CAN'T KEEP UP!</div>
+    <WeCantKeepupPoster client:idle items={items} logoUrl={logoUrl} />
+  </div>
+  <!-- Red banner as part of footer on this page -->
+  <div slot="footer" class="wecantkeepup-footer">
+    <div class="wecantkeepup-banner wecantkeepup-banner--bottom" aria-hidden="true">OUR WORK MAKES YALE WORK!</div>
+    <Footer {...footerData} theme="dark" />
+  </div>
+</PageLayout>

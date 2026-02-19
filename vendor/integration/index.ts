@@ -27,21 +27,17 @@ export default ({ config: _themeConfig = 'src/config.yaml' } = {}): AstroIntegra
 
         const rawJsonConfig = (await loadConfig(_themeConfig)) as Config;
         const built = configBuilder(rawJsonConfig);
-        let { SITE, I18N, METADATA, APP_BLOG, UI, ANALYTICS } = built;
+        const { SITE, I18N, APP_BLOG, UI, ANALYTICS } = built;
+        let { METADATA } = built;
         // Allow override from env (e.g. SITE_URL=https://dev.local34.org for staging)
         const envSiteUrl = process.env.SITE_URL?.trim();
-        const baseSiteUrl =
-          envSiteUrl || (typeof SITE.site === 'string' ? SITE.site : undefined);
+        const baseSiteUrl = envSiteUrl || (typeof SITE.site === 'string' ? SITE.site : undefined);
         // Force non-www so sitemap, canonicals, and host never add www
         const siteUrl =
-          typeof baseSiteUrl === 'string'
-            ? baseSiteUrl.replace(/^(https?:\/\/)www\.(.+)$/, '$1$2')
-            : SITE.site;
+          typeof baseSiteUrl === 'string' ? baseSiteUrl.replace(/^(https?:\/\/)www\.(.+)$/, '$1$2') : SITE.site;
         const SITE_NORMALIZED = { ...SITE, site: siteUrl };
         // Noindex staging/dev so search engines don't index (e.g. dev.local34.org)
-        const isDevHost =
-          typeof siteUrl === 'string' &&
-          /^https?:\/\/(dev\.|staging\.|preview\.)/i.test(siteUrl);
+        const isDevHost = typeof siteUrl === 'string' && /^https?:\/\/(dev\.|staging\.|preview\.)/i.test(siteUrl);
         if (isDevHost) {
           METADATA = {
             ...METADATA,
@@ -95,9 +91,7 @@ export default ({ config: _themeConfig = 'src/config.yaml' } = {}): AstroIntegra
 
       'astro:build:done': async ({ logger }) => {
         const buildLogger = logger.fork('astrowind');
-        const isDevHost =
-          typeof cfg.site === 'string' &&
-          /^https?:\/\/(dev\.|staging\.|preview\.)/i.test(cfg.site);
+        const isDevHost = typeof cfg.site === 'string' && /^https?:\/\/(dev\.|staging\.|preview\.)/i.test(cfg.site);
 
         try {
           const outDir = cfg.outDir;
@@ -106,11 +100,10 @@ export default ({ config: _themeConfig = 'src/config.yaml' } = {}): AstroIntegra
 
           if (isDevHost) {
             buildLogger.info('Writing noindex `robots.txt` for dev/staging host.');
-            fs.writeFileSync(
-              robotsTxtFileInOut,
-              `User-agent: *${os.EOL}Disallow: /${os.EOL}`,
-              { encoding: 'utf8', flag: 'w' }
-            );
+            fs.writeFileSync(robotsTxtFileInOut, `User-agent: *${os.EOL}Disallow: /${os.EOL}`, {
+              encoding: 'utf8',
+              flag: 'w',
+            });
           } else {
             buildLogger.info('Updating `robots.txt` with `sitemap-index.xml` ...');
             const sitemapName = 'sitemap-index.xml';
@@ -128,17 +121,15 @@ export default ({ config: _themeConfig = 'src/config.yaml' } = {}): AstroIntegra
               const pattern = /^Sitemap:(.*)$/m;
 
               if (!pattern.test(robotsTxt)) {
-                fs.writeFileSync(
-                  robotsTxtFileInOut,
-                  `${robotsTxt}${os.EOL}${os.EOL}Sitemap: ${sitemapUrl}`,
-                  { encoding: 'utf8', flag: 'w' }
-                );
+                fs.writeFileSync(robotsTxtFileInOut, `${robotsTxt}${os.EOL}${os.EOL}Sitemap: ${sitemapUrl}`, {
+                  encoding: 'utf8',
+                  flag: 'w',
+                });
               } else {
-                fs.writeFileSync(
-                  robotsTxtFileInOut,
-                  robotsTxt.replace(pattern, `Sitemap: ${sitemapUrl}`),
-                  { encoding: 'utf8', flag: 'w' }
-                );
+                fs.writeFileSync(robotsTxtFileInOut, robotsTxt.replace(pattern, `Sitemap: ${sitemapUrl}`), {
+                  encoding: 'utf8',
+                  flag: 'w',
+                });
               }
             }
           }

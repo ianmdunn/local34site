@@ -1,0 +1,91 @@
+/**
+ * Yale's Wealth – page wrapper, header, content section shell
+ * Layout: page-container in each section; no sizing on wrapper.
+ */
+
+/* --- Page wrapper --- */
+
+.yale-wealth-page {
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  max-width: 100%;
+  overflow-x: hidden;
+  background-image: var(--yale-wealth-bg-url);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+
+.yale-wealth-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.yale-wealth-page > section {
+  position: relative;
+  z-index: 1;
+}
+
+/* --- Header --- */
+
+.yale-wealth-header-section {
+  position: relative;
+  overflow: visible;
+  max-width: 100%;
+  /* Clear sticky header (~72px) */
+  padding-top: 2.5rem;
+}
+
+.yale-wealth-header-section .page-container {
+  position: relative;
+  z-index: 1;
+}
+
+.yale-wealth-header {
+  position: relative;
+  padding: 0.5rem 0 1rem;
+}
+
+.yale-wealth-header__title,
+.yale-wealth-header__desc {
+  position: relative;
+  z-index: 1;
+  color: #fff;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.8),
+    0 2px 6px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(0, 0, 0, 0.25);
+}
+
+.yale-wealth-header__title {
+  font-family: var(--aw-font-heading, inherit);
+  font-weight: 700;
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.yale-wealth-header__desc {
+  margin: 0.5rem 0 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.98);
+  max-width: none;
+}
+
+/* --- Content sections --- */
+
+.yale-wealth-endowment-section {
+  background-color: transparent;
+  color: var(--aw-color-text-default);
+  max-width: 100%;
+}

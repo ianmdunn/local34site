@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 
 /**
  * Our Inflation Penalty – starting wages vs. CPI-W since 2021.
@@ -48,6 +48,7 @@ function formatSeconds(seconds) {
 
 export default function YaleWealthCalculator() {
   const [selectedGrade, setSelectedGrade] = useState(LOCAL_34_PAY_GRADES[0]);
+  const hasTrackedCalculator = useRef(false);
   const [showCpiPopup, setShowCpiPopup] = useState(false);
   const cpiPopupRef = useRef(null);
 
@@ -72,8 +73,7 @@ export default function YaleWealthCalculator() {
     const adjustedAnnual = wageIfKeptPaceWithCPI * HOURS_PER_YEAR;
     const penaltyAnnual = (wageIfKeptPaceWithCPI - rateCurrent) * HOURS_PER_YEAR;
     const penalty = Math.max(0, penaltyAnnual);
-    const seconds =
-      penalty <= 0 ? 0 : Math.round(penalty / (YALE_ENDOWMENT_HOURLY_GROWTH / 3600));
+    const seconds = penalty <= 0 ? 0 : Math.round(penalty / (YALE_ENDOWMENT_HOURLY_GROWTH / 3600));
     return { penalty, seconds, adjustedAnnual, adjustedHourly: wageIfKeptPaceWithCPI };
   }, [selectedGrade.grade, selectedGrade.rate]);
 
@@ -91,9 +91,17 @@ export default function YaleWealthCalculator() {
               key={g.grade}
               type="button"
               className={`yale-wealth-calc__grade ${selectedGrade.grade === g.grade ? 'yale-wealth-calc__grade--active' : ''}`}
-              onClick={() => setSelectedGrade(g)}
+              onClick={() => {
+                setSelectedGrade(g);
+                if (!hasTrackedCalculator.current && typeof window.__trackEvent === 'function') {
+                  hasTrackedCalculator.current = true;
+                  window.__trackEvent('yale_calculator_use', { grade: g.grade });
+                }
+              }}
             >
-              <span className="yale-wealth-calc__grade-rate">{formatCurrency(g.rate)}/hr</span>
+              <span className="yale-wealth-calc__grade-rate" suppressHydrationWarning>
+                {formatCurrency(g.rate)}/hr
+              </span>
               <span className="yale-wealth-calc__grade-label">{g.label}</span>
             </button>
           ))}
@@ -103,27 +111,52 @@ export default function YaleWealthCalculator() {
       {/* 2. The comparison — what we make vs what we should make */}
       <div className="yale-wealth-calc__comparison" aria-label="Minimum rate comparison">
         <div className="yale-wealth-calc__comparison-card">
-          <span className="yale-wealth-calc__comparison-value">{formatCurrency(annualSalary)}</span>
-          <span className="yale-wealth-calc__comparison-meta">Grade {selectedGrade.grade} minimum rate, annualized</span>
+          <span className="yale-wealth-calc__comparison-value" suppressHydrationWarning>
+            {formatCurrency(annualSalary)}
+          </span>
+          <span className="yale-wealth-calc__comparison-meta">
+            Grade {selectedGrade.grade} minimum rate, annualized
+          </span>
         </div>
         <div className="yale-wealth-calc__comparison-gap" aria-hidden="true">
           <span className="yale-wealth-calc__comparison-gap-label">Shortfall</span>
-          <span className="yale-wealth-calc__comparison-gap-value">−{formatCurrency(inflationPenalty)}</span>
+          <span className="yale-wealth-calc__comparison-gap-value" suppressHydrationWarning>
+            −{formatCurrency(inflationPenalty)}
+          </span>
         </div>
         <div className="yale-wealth-calc__comparison-card yale-wealth-calc__comparison-card--cpi" ref={cpiPopupRef}>
           <span className="yale-wealth-calc__comparison-value-row">
-            <span className="yale-wealth-calc__comparison-value">
+            <span className="yale-wealth-calc__comparison-value" suppressHydrationWarning>
               {adjustedStartingWageAnnual != null ? formatCurrency(adjustedStartingWageAnnual) : '—'}
             </span>
             <button
               type="button"
               className="yale-wealth-calc__cpi-info"
-              onClick={(e) => { e.stopPropagation(); setShowCpiPopup((v) => !v); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowCpiPopup((v) => {
+                  if (!v && typeof window.__trackEvent === 'function') {
+                    window.__trackEvent('yale_calculator_use', { action: 'cpi_info_open' });
+                  }
+                  return !v;
+                });
+              }}
               aria-expanded={showCpiPopup}
               aria-haspopup="dialog"
               aria-label="Explain CPI-W calculation"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+              >
                 <circle cx="12" cy="12" r="10" />
                 <path d="M12 16v-4M12 8h.01" />
               </svg>
@@ -132,25 +165,38 @@ export default function YaleWealthCalculator() {
           {showCpiPopup && (
             <div className="yale-wealth-calc__cpi-popup" role="dialog" aria-label="CPI-W calculation explanation">
               <p>
-                This number is what we&apos;d be making today if our <strong>2021 minimum rate</strong> had kept up with the cost of living.
+                This number is what we&apos;d be making today if our <strong>2021 minimum rate</strong> had kept up with
+                the cost of living.
               </p>
               <p>
-                CPI-W is the federal measure of how much prices have risen for workers (Bureau of Labor Statistics). It&apos;s gone up about <strong>18% since 2021</strong>. We take the 2021 minimum rate for this grade, add that 18%, then multiply by 1,950 hours to get this annual amount.
+                CPI-W is the federal measure of how much prices have risen for workers (Bureau of Labor Statistics).
+                It&apos;s gone up about <strong>18% since 2021</strong>. We take the 2021 minimum rate for this grade,
+                add that 18%, then multiply by 1,950 hours to get this annual amount.
               </p>
               <p className="yale-wealth-calc__cpi-popup-note">
                 <em>All figures use minimum rates only—the rate when you first start in a grade—not step increases.</em>
               </p>
-              <button type="button" className="yale-wealth-calc__cpi-popup-close" onClick={() => setShowCpiPopup(false)} aria-label="Close">×</button>
+              <button
+                type="button"
+                className="yale-wealth-calc__cpi-popup-close"
+                onClick={() => setShowCpiPopup(false)}
+                aria-label="Close"
+              >
+                ×
+              </button>
             </div>
           )}
-          <span className="yale-wealth-calc__comparison-meta">If 2021 minimum rate had kept pace with inflation (CPI-W)</span>
+          <span className="yale-wealth-calc__comparison-meta">
+            If 2021 minimum rate had kept pace with inflation (CPI-W)
+          </span>
         </div>
       </div>
 
       {/* 3. Takeaway */}
       <div className="yale-wealth-calc__takeaway" aria-label="Impact">
         <p className="yale-wealth-calc__takeaway-line">
-          That&apos;s how much we&apos;re behind on the minimum rate this year. Yale&apos;s endowment earns that in <strong>{formatSeconds(costToYaleSeconds)}</strong>.
+          That&apos;s how much we&apos;re behind on the minimum rate this year. Yale&apos;s endowment earns that in{' '}
+          <strong suppressHydrationWarning>{formatSeconds(costToYaleSeconds)}</strong>.
         </p>
       </div>
     </div>

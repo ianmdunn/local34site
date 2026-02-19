@@ -1,0 +1,145 @@
+---
+import { ANALYTICS } from 'astrowind:config';
+
+const gaId = ANALYTICS?.vendors?.googleAnalytics?.id;
+const hasGA = Boolean(gaId);
+---
+
+{
+  hasGA ? (
+    <script is:inline define:vars={{ hasGA, gaId }}>
+      (function () {
+        if (!hasGA) return;
+        if (window.__analyticsEnhancedBound) return;
+        window.__analyticsEnhancedBound = true;
+
+        const pendingKey = '__analyticsPendingEvents';
+        if (!Array.isArray(window[pendingKey])) {
+          window[pendingKey] = [];
+        }
+
+        function ctx() {
+          return {
+            page_path: location.pathname + location.search,
+            page_title: document.title,
+          };
+        }
+
+        function flushPending() {
+          if (typeof window.gtag !== 'function') return;
+          const pending = window[pendingKey];
+          if (!Array.isArray(pending) || pending.length === 0) return;
+          while (pending.length) {
+            const next = pending.shift();
+            if (!next) continue;
+            window.gtag('event', next.eventName, next.payload);
+          }
+        }
+
+        function sendGA(eventName, params) {
+          if (!hasGA) return;
+          const payload = { ...ctx(), ...params, send_to: gaId };
+          if (typeof window.gtag === 'function') {
+            window.gtag('event', eventName, payload);
+            return;
+          }
+          window[pendingKey].push({ eventName, payload });
+        }
+
+        window.__trackEvent = function (eventName, params) {
+          sendGA(eventName, params);
+        };
+
+        window.addEventListener('ga:ready', flushPending);
+        document.addEventListener('astro:page-load', flushPending);
+        const flushInterval = window.setInterval(function () {
+          flushPending();
+          if (typeof window.gtag === 'function') window.clearInterval(flushInterval);
+        }, 500);
+        window.setTimeout(function () {
+          window.clearInterval(flushInterval);
+        }, 10000);
+
+        function isOutbound(href) {
+          if (!href || !href.startsWith('http')) return false;
+          try {
+            return new URL(href).hostname !== location.hostname;
+          } catch {
+            return false;
+          }
+        }
+
+        function isFileLink(href) {
+          if (!href) return false;
+          const path = href.split('?')[0].toLowerCase();
+          return /\.(pdf|doc|docx|xls|xlsx|zip)$/.test(path);
+        }
+
+        function isInternal(href) {
+          if (!href || href.startsWith('#') || href.startsWith('mailto:')) return false;
+          try {
+            const u = new URL(href, location.origin);
+            return u.origin === location.origin;
+          } catch {
+            return href.startsWith('/');
+          }
+        }
+
+        document.addEventListener(
+          'click',
+          function (e) {
+            const shareBtn = e.target?.closest?.('[data-aw-social-share]');
+            if (shareBtn) {
+              const network = shareBtn.getAttribute('data-aw-social-share');
+              sendGA('share', { method: network || 'unknown' });
+            }
+
+            const navLink = e.target?.closest?.('[data-nav-link]');
+            if (navLink && navLink.getAttribute('href')) {
+              const label = navLink.textContent?.trim().slice(0, 50) || 'nav';
+              const dest = navLink.getAttribute('href') || '';
+              sendGA('nav_click', { nav_label: label, nav_destination: dest });
+            }
+
+            const link = e.target?.closest?.('a[href]');
+            if (link) {
+              const href = link.getAttribute('href') || link.href || '';
+              const cta = link.getAttribute('data-cta');
+
+              if (cta) {
+                sendGA('cta_click', { cta_name: cta, link_url: href });
+              }
+
+              if (isInternal(href) && !link.hasAttribute('data-nav-link')) {
+                const dest = href.split('?')[0] || '/';
+                sendGA('internal_click', { link_destination: dest });
+              }
+
+              if (href.startsWith('mailto:')) {
+                sendGA('email_click', { link_url: href });
+              } else if (isFileLink(href)) {
+                sendGA('file_download', { file_name: href });
+              } else if (isOutbound(href)) {
+                sendGA('outbound_click', {
+                  url: href,
+                  link_domain: new URL(href).hostname,
+                  link_text: link.textContent?.trim().slice(0, 50),
+                });
+              }
+            }
+
+            const ctaBtn = e.target?.closest?.('[data-cta]');
+            if (ctaBtn && !link) {
+              const cta = ctaBtn.getAttribute('data-cta');
+              sendGA('cta_click', { cta_name: cta });
+            }
+          },
+          true
+        );
+
+        flushPending();
+
+      })();
+    </script>
+  ) : null
+}

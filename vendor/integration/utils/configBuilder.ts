@@ -190,7 +190,13 @@ const getAnalytics = (config: Config) => {
     },
   };
 
-  return merge({}, _default, config?.analytics ?? {}) as AnalyticsConfig;
+  const analytics = merge({}, _default, config?.analytics ?? {}) as AnalyticsConfig;
+  // Allow override from env (e.g. PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX)
+  const envGaId = process.env.PUBLIC_GA_MEASUREMENT_ID?.trim();
+  if (envGaId && analytics.vendors?.googleAnalytics) {
+    analytics.vendors.googleAnalytics.id = envGaId;
+  }
+  return analytics;
 };
 
 export default (config: Config) => ({

@@ -13,6 +13,14 @@ const metadata = {
   title: 'How We Win',
   description:
     'Our union wins through member engagement, strong allies, and dues that fund organizing, training, negotiations, and member services. Local 34-UNITE HERE.',
+  openGraph: {
+    images: [
+      {
+        url: getAsset('how-we-win/organizational-structure.png'),
+        alt: 'How We Win organizational structure graphic',
+      },
+    ],
+  },
 };
 
 const sectionIds = {
@@ -40,7 +48,7 @@ const duesActivities = [
 ---
 
 <PageLayout metadata={metadata}>
-  <section class={PAGE_SECTION_CLASS}>
+  <section class={PAGE_SECTION_CLASS} data-section="how-we-win-hero" id="how-we-win-hero">
     <div class="page-title-section mx-auto max-w-7xl w-full">
       <h1 class="font-bold font-heading text-3xl md:text-4xl leading-tighter tracking-tighter">How We Win</h1>
     </div>
@@ -86,6 +94,7 @@ const duesActivities = [
                   rel={ally.href.startsWith('mailto:') ? undefined : 'noopener'}
                   class="how-we-win-ally flex flex-col items-center justify-center gap-2 py-3 text-default dark:text-slate-200 no-underline font-medium text-sm hover:text-primary transition-colors"
                   title={ally.name}
+                  data-cta={`ally_${ally.name.toLowerCase().replace(/\s+/g, '-')}`}
                 >
                   <img
                     src={ally.logo}

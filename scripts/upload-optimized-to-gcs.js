@@ -3,18 +3,18 @@
 /**
  * Upload optimized assets from dist/_astro/ to Google Cloud Storage
  * and rewrite URLs in HTML and JS files to point to GCS.
- * 
+ *
  * This script:
  * 1. Uploads optimized images from dist/_astro/ to GCS
  * 2. Rewrites URLs in HTML and JS files from /_astro/ to GCS URLs
  *    (HTML: src, srcset, inline styles; JS: image imports used by CatchTheCash, etc.)
- * 
+ *
  * Usage:
  *   node scripts/upload-optimized-to-gcs.js
  */
 
-import { Storage } from '@google-cloud/storage';
 import { readdir, stat, readFile, writeFile } from 'fs/promises';
+import { getBucket } from './gcs-client.js';
 import { readFileSync } from 'fs';
 import { join, relative, resolve, extname } from 'path';
 import { fileURLToPath } from 'url';
@@ -31,7 +31,7 @@ const envPath = join(projectRoot, '.env');
 try {
   const envFile = readFileSync(envPath, 'utf-8');
   const envVars = {};
-  envFile.split('\n').forEach(line => {
+  envFile.split('\n').forEach((line) => {
     const trimmed = line.trim();
     if (trimmed && !trimmed.startsWith('#')) {
       const [key, ...valueParts] = trimmed.split('=');
@@ -41,7 +41,7 @@ try {
     }
   });
   Object.assign(process.env, envVars);
-} catch (error) {
+} catch {
   // .env file doesn't exist
 }
 
@@ -53,13 +53,11 @@ if (!bucketName || !bucketUrl) {
   process.exit(1);
 }
 
-const storage = new Storage({
-  keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS,
-});
-const bucket = storage.bucket(bucketName);
-
 // Track uploaded files for URL rewriting
 const uploadedFiles = new Map(); // local path -> GCS path
+
+/** Set by main() after getBucket(). */
+let bucket;
 
 async function getAllFiles(dir, baseDir = dir) {
   const files = [];
@@ -82,7 +80,7 @@ async function getAllFiles(dir, baseDir = dir) {
         }
       }
     }
-  } catch (error) {
+  } catch {
     // Directory doesn't exist
   }
   return files;
@@ -106,7 +104,7 @@ async function uploadFile(localPath, remotePath) {
 
 async function rewriteHtmlUrls() {
   const htmlFiles = [];
-  
+
   async function findHtmlFiles(dir) {
     try {
       const entries = await readdir(dir, { withFileTypes: true });
@@ -118,21 +116,21 @@ async function rewriteHtmlUrls() {
           htmlFiles.push(fullPath);
         }
       }
-    } catch (error) {
+    } catch {
       // Directory doesn't exist
     }
   }
-  
+
   await findHtmlFiles(distDir);
-  
+
   const baseUrl = bucketUrl.replace(/\/$/, '');
   let rewrittenCount = 0;
-  
+
   for (const htmlFile of htmlFiles) {
     try {
       let content = await readFile(htmlFile, 'utf-8');
       let modified = false;
-      
+
       // Rewrite /_astro/ URLs to GCS URLs
       // 1. Match quoted URLs: src="/_astro/image.hash.jpg" or srcset="/_astro/image.hash.jpg 1920w"
       const astroUrlPattern = /(["'])\/_astro\/([^"']+)\1/g;
@@ -155,7 +153,21 @@ async function rewriteHtmlUrls() {
         }
         return match;
       });
-      
+
+      // 3. Catch remaining /_astro/... references (e.g. srcset entries with descriptors)
+      //    Example: srcset="/_astro/img.webp 1280w, /_astro/img2.webp 1920w"
+      //    Use lookbehind (?<=["' ,]) to only match relative paths – skip when /_astro/ is
+      //    inside an already-full URL (e.g. https://.../bucket/_astro/...) to avoid double-rewriting.
+      const remainingAstroPathPattern = /(?<=["' ,])\/_astro\/([^\s"',)]+)/g;
+      content = content.replace(remainingAstroPathPattern, (match, path) => {
+        const gcsPath = `_astro/${path}`;
+        if (uploadedFiles.has(gcsPath)) {
+          modified = true;
+          return `${baseUrl}/${gcsPath}`;
+        }
+        return match;
+      });
+
       if (modified) {
         await writeFile(htmlFile, content, 'utf-8');
         rewrittenCount++;
@@ -165,7 +177,7 @@ async function rewriteHtmlUrls() {
       console.error(`✗ Error rewriting ${htmlFile}:`, error.message);
     }
   }
-  
+
   return rewrittenCount;
 }
 
@@ -215,16 +227,19 @@ async function rewriteJsUrls() {
 }
 
 async function main() {
+  const result = await getBucket(bucketName);
+  bucket = result.bucket;
+
   console.log('\nUploading optimized assets from dist/_astro/ to GCS...\n');
-  
+
   // Check if dist/_astro exists
   try {
     await stat(astroDir);
-  } catch (error) {
+  } catch {
     console.error('Error: dist/_astro/ directory not found. Run "npm run build" first.');
     process.exit(1);
   }
-  
+
   const files = await getAllFiles(astroDir, astroDir);
   console.log(`Found ${files.length} optimized asset file(s)\n`);
 
@@ -235,9 +250,9 @@ async function main() {
       uploadedFiles.set(gcsPath, true);
     }
   }
-  
+
   console.log(`\n✓ Uploaded ${uploadedFiles.size} file(s) to GCS`);
-  
+
   // Rewrite HTML URLs
   console.log('\nRewriting URLs in HTML files...\n');
   const htmlRewritten = await rewriteHtmlUrls();
@@ -245,7 +260,7 @@ async function main() {
   // Rewrite JS URLs (image imports in CatchTheCash, etc.)
   console.log('\nRewriting URLs in JS files...\n');
   const jsRewritten = await rewriteJsUrls();
-  
+
   console.log(`\n✓ Summary:`);
   console.log(`  Uploaded: ${uploadedFiles.size} file(s)`);
   console.log(`  HTML files updated: ${htmlRewritten}`);
@@ -253,7 +268,7 @@ async function main() {
   console.log('');
 }
 
-main().catch(error => {
+main().catch((error) => {
   console.error('Fatal error:', error);
   process.exit(1);
 });

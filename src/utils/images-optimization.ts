@@ -199,14 +199,11 @@ const getBreakpoints = ({
       return customBreakpoints || config.deviceSizes;
     case 'fixed':
       return width ? [width, width * 2] : [];
-    case 'constrained':
+    case 'constrained': {
       if (!width) return [];
       const doubleWidth = width * 2;
-      return [
-        width,
-        doubleWidth,
-        ...(customBreakpoints || config.deviceSizes).filter((w) => w < doubleWidth),
-      ];
+      return [width, doubleWidth, ...(customBreakpoints || config.deviceSizes).filter((w) => w < doubleWidth)];
+    }
     default:
       return [];
   }
@@ -240,11 +237,17 @@ export const astroAssetsOptimizer: ImagesOptimizer = async (
   const rawSrc = typeof image === 'string' ? image : (image as { src?: string })?.src;
   const isUrlString = typeof rawSrc === 'string' && (rawSrc.startsWith('http://') || rawSrc.startsWith('https://'));
 
-  // Internal/unreachable URLs at build time (e.g. localhost services); skip getImage and use URL as-is to avoid fetch errors.
-  const isUnreachableUrl = typeof rawSrc === 'string' && (rawSrc.includes('localhost') || rawSrc.includes('127.0.0.1'));
+  // Internal/unreachable URLs at build time; skip getImage and use URL as-is to avoid fetch errors.
+  // - localhost: dev services
+  // - Directus image proxy: returns images server-side, getImage can't fetch dimensions
+  const isUnreachableUrl =
+    typeof rawSrc === 'string' &&
+    (rawSrc.includes('localhost') ||
+      rawSrc.includes('127.0.0.1') ||
+      rawSrc.includes('proxydirectusimage') ||
+      (rawSrc.includes('run.app') && rawSrc.includes('?id=')));
 
   if (isUnreachableUrl && typeof rawSrc === 'string') {
-    const w = breakpoints[0] ?? 900;
     return breakpoints.map((width) => ({
       src: rawSrc,
       width,

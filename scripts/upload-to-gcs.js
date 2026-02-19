@@ -2,23 +2,23 @@
 
 /**
  * Upload public assets to Google Cloud Storage
- * 
+ *
  * Usage:
  *   node scripts/upload-to-gcs.js [options]
- * 
+ *
  * Options:
  *   --dry-run    Show what would be uploaded without actually uploading
  *   --bucket     Override bucket name from env var
  *   --path       Upload only a specific path (e.g., "how-we-win")
  *   --delete     Delete files in GCS that don't exist locally
- * 
+ *
  * Environment variables:
  *   GCS_BUCKET_NAME    - GCS bucket name (required)
  *   GOOGLE_APPLICATION_CREDENTIALS - Path to service account JSON (optional, uses default credentials if not set)
  */
 
-import { Storage } from '@google-cloud/storage';
 import { readdir, stat } from 'fs/promises';
+import { getBucket } from './gcs-client.js';
 import { readFileSync } from 'fs';
 import { join, relative, resolve } from 'path';
 import { fileURLToPath } from 'url';
@@ -34,7 +34,7 @@ const envPath = join(projectRoot, '.env');
 try {
   const envFile = readFileSync(envPath, 'utf-8');
   const envVars = {};
-  envFile.split('\n').forEach(line => {
+  envFile.split('\n').forEach((line) => {
     const trimmed = line.trim();
     if (trimmed && !trimmed.startsWith('#')) {
       const [key, ...valueParts] = trimmed.split('=');
@@ -43,17 +43,19 @@ try {
       }
     }
   });
-  // Set environment variables
-  Object.assign(process.env, envVars);
-} catch (error) {
+  // Set environment variables (don't overwrite if already set, e.g. from command line)
+  for (const [key, value] of Object.entries(envVars)) {
+    if (!(key in process.env)) process.env[key] = value;
+  }
+} catch {
   // .env file doesn't exist or can't be read, that's okay
 }
 
 const args = process.argv.slice(2);
 const isDryRun = args.includes('--dry-run');
 const deleteFlag = args.includes('--delete');
-const bucketArg = args.find(arg => arg.startsWith('--bucket='))?.split('=')[1];
-const pathArg = args.find(arg => arg.startsWith('--path='))?.split('=')[1];
+const bucketArg = args.find((arg) => arg.startsWith('--bucket='))?.split('=')[1];
+const pathArg = args.find((arg) => arg.startsWith('--path='))?.split('=')[1];
 
 const bucketName = bucketArg || process.env.GCS_BUCKET_NAME;
 
@@ -65,21 +67,8 @@ if (!bucketName) {
   process.exit(1);
 }
 
-// Initialize GCS client
-let storage;
-try {
-  storage = new Storage({
-    keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS,
-  });
-} catch (error) {
-  console.error('Error initializing Google Cloud Storage:', error.message);
-  console.error('\nMake sure you have:');
-  console.error('  1. Installed @google-cloud/storage: npm install --save-dev @google-cloud/storage');
-  console.error('  2. Set up authentication (see GCS_SETUP.md)');
-  process.exit(1);
-}
-
-const bucket = storage.bucket(bucketName);
+/** Set by main() after getBucket(). */
+let bucket;
 
 /**
  * Recursively get all files in a directory
@@ -111,7 +100,7 @@ async function getAllFiles(dir, baseDir = dir) {
  */
 async function getRemoteFiles() {
   const [files] = await bucket.getFiles();
-  return files.map(file => file.name);
+  return files.map((file) => file.name);
 }
 
 /**
@@ -149,6 +138,9 @@ async function deleteFile(remotePath) {
  * Main upload function
  */
 async function main() {
+  const result = await getBucket(bucketName);
+  bucket = result.bucket;
+
   console.log(`\n${isDryRun ? '[DRY RUN] ' : ''}Uploading assets to GCS bucket: ${bucketName}\n`);
 
   // Check if bucket exists
@@ -169,8 +161,8 @@ async function main() {
       await stat(targetDir);
       localFiles = await getAllFiles(targetDir, publicDir);
       // Filter to only files in the specified path
-      localFiles = localFiles.filter(f => f.remotePath.startsWith(pathArg));
-    } catch (error) {
+      localFiles = localFiles.filter((f) => f.remotePath.startsWith(pathArg));
+    } catch {
       console.error(`Error: Path "${pathArg}" does not exist in public directory`);
       process.exit(1);
     }
@@ -188,12 +180,12 @@ async function main() {
     try {
       // Check if file exists in bucket
       const [exists] = await bucket.file(file.remotePath).exists();
-      
+
       if (exists) {
         // Compare file sizes to determine if upload is needed
-        const [localStats] = await stat(file.localPath);
+        const localStats = await stat(file.localPath);
         const [remoteFile] = await bucket.file(file.remotePath).getMetadata();
-        
+
         if (localStats.size === parseInt(remoteFile.size)) {
           skipped++;
           if (!isDryRun) {
@@ -213,8 +205,8 @@ async function main() {
   // Delete remote files that don't exist locally (if --delete flag is set)
   if (deleteFlag) {
     const remoteFiles = await getRemoteFiles();
-    const localPaths = new Set(localFiles.map(f => f.remotePath));
-    const toDelete = remoteFiles.filter(remote => !localPaths.has(remote));
+    const localPaths = new Set(localFiles.map((f) => f.remotePath));
+    const toDelete = remoteFiles.filter((remote) => !localPaths.has(remote));
 
     if (toDelete.length > 0) {
       console.log(`\nFound ${toDelete.length} remote file(s) to delete\n`);
@@ -229,14 +221,14 @@ async function main() {
   console.log(`  Skipped: ${skipped}`);
   if (deleteFlag) {
     const remoteFiles = await getRemoteFiles();
-    const localPaths = new Set(localFiles.map(f => f.remotePath));
-    const deleted = remoteFiles.filter(remote => !localPaths.has(remote)).length;
+    const localPaths = new Set(localFiles.map((f) => f.remotePath));
+    const deleted = remoteFiles.filter((remote) => !localPaths.has(remote)).length;
     console.log(`  Deleted: ${deleted}`);
   }
   console.log('');
 }
 
-main().catch(error => {
+main().catch((error) => {
   console.error('Fatal error:', error);
   process.exit(1);
 });

@@ -1,0 +1,573 @@
+/**
+ * We Can't Keep Up – poster page + footer banner
+ * Black poster (image, name, quote, nav); red banner in footer.
+ */
+@font-face {
+  font-family: 'Ramo de Jazmin';
+  src:
+    url('../../assets/fonts/Ramo-deJazmin.woff2') format('woff2'),
+    url('../../assets/fonts/Ramo-deJazmin.woff') format('woff'),
+    url('../../assets/fonts/Ramo-deJazmin.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ========== Variables & layout ========== */
+.wecantkeepup-page {
+  --wcu-header: 0;
+  position: relative;
+  margin: 0 auto;
+  padding-top: 0;
+  padding-bottom: 0;
+  background: #000;
+  width: 100%;
+  max-width: 80rem;
+  box-sizing: border-box;
+  min-height: 0;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+main:has(.wecantkeepup-page) {
+  margin-bottom: 0;
+  overflow-x: hidden;
+  overflow-y: visible;
+  flex: 1 1 auto;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  width: 100% !important;
+  max-width: none !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+main:has(.wecantkeepup-page) > .wecantkeepup-page {
+  flex: 1 1 auto;
+}
+main:has(.wecantkeepup-page) + .wecantkeepup-footer {
+  margin-top: 0;
+}
+
+/* ========== Banners ========== */
+.wecantkeepup-banner {
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  z-index: 20;
+  font-family: 'Ramo de Jazmin', var(--aw-font-heading), serif;
+  font-weight: normal;
+  color: #fff;
+  text-align: center;
+  letter-spacing: 0.02em;
+  background: #000;
+  padding: 0.75rem 1rem;
+}
+
+.wecantkeepup-banner--top {
+  position: relative;
+  flex-shrink: 0;
+  z-index: 20;
+  background: transparent;
+  font-size: clamp(2.5rem, 10vw, 4.5rem);
+  padding: 0.2rem 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wecantkeepup-banner--bottom {
+  margin-bottom: 0;
+  background: #b10c2f;
+  flex-shrink: 0;
+  font-size: clamp(1.25rem, 4vw, 2rem);
+  white-space: normal;
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.wecantkeepup-footer {
+  margin-top: 0;
+  padding-top: 0;
+  background: #000;
+  flex-shrink: 0;
+}
+.wecantkeepup-footer #site-footer {
+  margin-top: 0;
+  padding-top: 0.75rem;
+  padding-bottom: 1rem;
+  background: transparent;
+  border-top-color: rgba(255, 255, 255, 0.15);
+}
+
+/* ========== Poster ========== */
+.wecantkeepup-poster {
+  --wcu-accent: var(--aw-color-primary, #c53030);
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: none;
+}
+
+.wecantkeepup-poster--cover {
+  position: relative;
+  z-index: 1;
+  flex: 0 1 auto;
+  min-height: 0;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+}
+
+.wecantkeepup-poster--empty {
+  min-height: 50vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  background: #000;
+}
+
+.wecantkeepup-poster__empty-text {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 1.125rem;
+  max-width: 28rem;
+  text-align: center;
+  margin: 0;
+}
+
+/* Cover structure: layout fully defined in mobile/desktop blocks */
+.wecantkeepup-poster__cover {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  background: #000;
+  overflow: visible;
+}
+
+.wecantkeepup-poster__cover-frame {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  background: #000;
+}
+
+.wecantkeepup-poster__cover-img-wrap {
+  overflow: visible;
+}
+
+/* Testimonial area: logo anchored bottom-right, text wraps around circular shape */
+.wecantkeepup-poster__testimonial-wrap {
+  position: relative;
+  display: flow-root;
+  margin: 0.5em 0 0;
+}
+
+/* Shape for text wrap – float creates circular exclusion at bottom-right */
+.wecantkeepup-poster__logo-shape {
+  float: right;
+  width: 5.2rem;
+  height: 20rem;
+  shape-outside: circle(2.6rem at 100% 100%);
+  shape-margin: 0.25rem;
+}
+
+/* Bottom bar: nav + logo, floats over text */
+.wecantkeepup-poster__bottom-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.5rem 1rem;
+  flex-shrink: 0;
+  background: transparent;
+  border-radius: 0 0 0.5rem 0.5rem;
+}
+
+/* Local 34 logo – aligned to same bottom as nav buttons */
+.wecantkeepup-poster__logo-overlay {
+  width: 5.2rem;
+  height: 5.2rem;
+  margin-left: auto;
+  object-fit: contain;
+  object-position: bottom right;
+  flex-shrink: 0;
+  pointer-events: none;
+  opacity: 0.95;
+}
+
+.wecantkeepup-poster__testimonial {
+  padding-right: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .wecantkeepup-poster__logo-shape {
+    width: 8rem;
+    height: 30rem;
+    shape-outside: circle(4rem at 100% 100%);
+    shape-margin: 0.5rem;
+  }
+  .wecantkeepup-poster__logo-overlay {
+    width: 8rem;
+    height: 8rem;
+  }
+  .wecantkeepup-poster__testimonial {
+    padding-right: 0.5rem;
+  }
+}
+
+.wecantkeepup-poster__cover-img-flow {
+  width: 100%;
+  height: 100%;
+}
+
+.wecantkeepup-poster__cover-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 0; /* top center – keep head visible, never cut off top */
+}
+
+.wecantkeepup-poster__frame-overlay {
+  display: flex;
+  flex-direction: column;
+}
+
+.wecantkeepup-poster__overlay-content {
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+}
+
+.wecantkeepup-poster__name {
+  font-family: var(--aw-font-heading);
+  font-size: clamp(1.25rem, 4vw, 2.5rem);
+  font-weight: 900;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: #fff;
+  margin: 0;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
+}
+
+.wecantkeepup-poster__department {
+  font-family: var(--aw-font-sans);
+  font-size: clamp(0.6875rem, 1.5vw, 0.875rem);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--wcu-accent);
+  margin: 0;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.wecantkeepup-poster__testimonial {
+  font-family: var(--aw-font-sans);
+  font-weight: 600;
+  font-size: clamp(0.8125rem, 1.8vw, 1.0625rem);
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.92);
+  margin: 0;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  text-wrap: balance;
+}
+
+.wecantkeepup-poster__nav {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.75rem;
+  padding: 0;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.wecantkeepup-poster__btn {
+  font-family: var(--aw-font-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.45em 1em;
+  border-radius: 9999px;
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
+  color: #000;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s,
+    border-color 0.2s;
+  min-height: 2.5rem;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.wecantkeepup-poster__btn:hover {
+  background: #fff;
+  color: #000;
+  border-color: #fff;
+}
+.wecantkeepup-poster__btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4);
+}
+
+/* ========== Mobile (max-width: 767px) ========== */
+@media (max-width: 767px) {
+  .wecantkeepup-page {
+    /* Match site header height (~72px on mobile) so "WE CAN'T KEEP UP!" isn't clipped */
+    --wcu-header: 0;
+    padding-bottom: 0;
+  }
+  main:has(.wecantkeepup-page) > *:first-child {
+    padding-top: var(--wcu-header) !important;
+  }
+
+  .wecantkeepup-banner--top {
+    font-size: clamp(1.875rem, 8vw, 2.875rem);
+    padding: 0.2rem 0.5rem;
+    white-space: normal;
+  }
+
+  .wecantkeepup-poster--cover {
+    margin-top: -1.5rem;
+  }
+  .wecantkeepup-poster--empty {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .wecantkeepup-poster__cover {
+    position: relative;
+    padding: 0;
+    flex-direction: column;
+    align-items: stretch;
+    flex: 1 1 auto;
+    min-height: auto;
+  }
+  .wecantkeepup-poster__cover-frame {
+    width: 100%;
+    max-width: 100%;
+    aspect-ratio: none;
+    max-height: none;
+    display: flex;
+    flex-direction: column;
+    box-shadow: none;
+    gap: 0;
+    flex: 1 1 auto;
+    min-height: auto;
+  }
+
+  .wecantkeepup-poster__cover-img-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 5 / 3;
+    max-height: 48dvh;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .wecantkeepup-poster__frame-overlay {
+    position: relative;
+    flex-direction: column;
+    margin-top: 0;
+    padding: 0.5rem max(0.75rem, env(safe-area-inset-right)) 0.75rem max(0.75rem, env(safe-area-inset-left));
+    background: #000;
+    flex: 1 1 auto;
+    min-height: auto;
+  }
+  .wecantkeepup-poster__overlay-content {
+    max-width: none;
+    padding: 0.125rem 0 0;
+    justify-content: flex-start;
+    gap: 0;
+    flex: 1 1 auto;
+    min-height: auto;
+  }
+
+  .wecantkeepup-poster__name {
+    font-size: 1.375rem;
+    margin-bottom: 0.1em;
+    flex-shrink: 0;
+  }
+  .wecantkeepup-poster__department {
+    font-size: 0.6875rem;
+    letter-spacing: 0.06em;
+    flex-shrink: 0;
+  }
+  .wecantkeepup-poster__testimonial {
+    font-size: 0.9375rem;
+    line-height: 1.55;
+  }
+
+  .wecantkeepup-poster__bottom-bar {
+    position: static;
+    margin-top: auto;
+    padding: 0.75rem 0 0.5rem;
+    background: transparent;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 0;
+  }
+  .wecantkeepup-poster__nav {
+    gap: 0.75rem;
+  }
+  .wecantkeepup-poster__btn {
+    min-height: 2.5rem;
+    padding: 0.5em 1rem;
+    font-size: 0.8125rem;
+  }
+}
+
+/* ========== Desktop (min-width: 768px) ========== */
+@media (min-width: 768px) {
+  main:has(.wecantkeepup-page) > *:first-child {
+    padding-top: var(--wcu-header) !important;
+  }
+  .wecantkeepup-page {
+    padding-top: 0;
+    padding-bottom: 0;
+    overflow-x: hidden;
+    overflow-y: visible;
+    align-items: flex-start;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+  .wecantkeepup-page > .wecantkeepup-banner--top {
+    width: 100%;
+    max-width: 100%;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .wecantkeepup-poster.wecantkeepup-poster--cover {
+    flex: 1 1 auto;
+    min-height: 0;
+    min-width: 0;
+    margin-top: -2rem;
+    width: 100%;
+    max-width: 100%;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .wecantkeepup-poster__cover {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .wecantkeepup-poster__cover-frame {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    flex: 1 1 auto;
+    min-height: 16rem;
+    max-height: 70dvh;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.06);
+  }
+  .wecantkeepup-poster__cover-img-wrap {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 16rem;
+    max-height: 70dvh;
+    overflow: hidden;
+    position: relative;
+  }
+  .wecantkeepup-poster__cover-img-flow {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .wecantkeepup-poster__cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 0; /* top center – keep head visible */
+  }
+  .wecantkeepup-poster__frame-overlay {
+    flex: 0 0 auto;
+    width: min(28rem, 48%);
+    display: flex;
+    flex-direction: column;
+    pointer-events: auto;
+  }
+  .wecantkeepup-poster__frame-overlay > * {
+    pointer-events: auto;
+  }
+  /* Text column at right – content drives height, image scales alongside */
+  .wecantkeepup-poster__overlay-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 1rem 1.25rem 0.875rem;
+    gap: 0.5rem;
+    background: transparent;
+    border-radius: 0.5rem;
+    justify-content: flex-start;
+    overflow: visible;
+  }
+  .wecantkeepup-poster__testimonial-wrap {
+    flex: 1 1 auto;
+    min-height: 4rem;
+    overflow: visible;
+  }
+}
+
+@media (min-width: 1024px) {
+  .wecantkeepup-page {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* ========== Midsize (768px–1024px): tighter layout ========== */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .wecantkeepup-poster__frame-overlay {
+    width: min(26rem, 52%);
+  }
+  .wecantkeepup-poster__overlay-content {
+    padding: 0.75rem 1rem 0.75rem;
+  }
+  .wecantkeepup-poster__bottom-bar {
+    padding: 0.75rem 1rem 0.75rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .wecantkeepup-poster__frame-overlay {
+    padding-left: 0.625rem;
+    padding-right: 0.625rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .wecantkeepup-poster__nav {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .wecantkeepup-poster__btn {
+    width: 100%;
+  }
+}

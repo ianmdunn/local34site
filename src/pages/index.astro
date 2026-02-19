@@ -12,26 +12,21 @@ import PageLayout from '~/layouts/PageLayout.astro';
 import Hero from '~/components/widgets/Hero.astro';
 import Button from '~/components/ui/Button.astro';
 import { SITE } from 'astrowind:config';
-import { getPermalink, getAsset } from '~/utils/permalinks';
+import { getPermalink } from '~/utils/permalinks';
 import { getCollection } from 'astro:content';
 import Features3 from '~/components/widgets/Features3.astro';
+import type { ImageMetadata } from 'astro';
 
-// Hero background images from public/hero-backgrounds/ – served from GCS when GCS_ENABLED
-const HERO_BG_PATHS = [
-  'hero-backgrounds/L34pick_-01.jpg',
-  'hero-backgrounds/L34pick_-02.jpg',
-  'hero-backgrounds/L34pick_-04.jpg',
-  'hero-backgrounds/L34pick_-05.jpg',
-  'hero-backgrounds/L34pick_-06.jpg',
-  'hero-backgrounds/L34pick_-07.jpg',
-  'hero-backgrounds/L34pick_-08.jpg',
-  'hero-backgrounds/L34pick_-09.jpg',
-  'hero-backgrounds/L34pick_-10.jpg',
-  'hero-backgrounds/L34pick_-11.jpg',
-  'hero-backgrounds/L34pick_-12.jpg',
-];
-const heroBgData = HERO_BG_PATHS.map((path) => ({ src: getAsset(path), srcset: '' }));
-const heroBgInitialIndex = heroBgData.length > 0 ? Math.floor(Math.random() * heroBgData.length) : 0;
+// Hero background images from src/assets/images/backgrounds/ – optimized at build (webp, responsive srcset)
+const heroBgModules = import.meta.glob<{ default: ImageMetadata }>(
+  '~/assets/images/backgrounds/L34pick_*.{jpg,jpeg,png,webp}',
+  { eager: true }
+);
+const heroBgImages = Object.values(heroBgModules)
+  .map((m) => m?.default)
+  .filter(Boolean) as ImageMetadata[];
+const heroBgImageUrls = heroBgImages.map((image) => image.src);
+const heroBgFallbackImage = heroBgImages[0];
 
 // Resolve home page content from local markdown (sitePages)
 const sitePages = await getCollection('sitePages');
@@ -41,6 +36,18 @@ const homeData = homeEntry?.data ?? { title: SITE.title, description: SITE.descr
 const pageMetadata = {
   title: homeEntry ? homeEntry.data.title : SITE.title,
   description: homeEntry && 'description' in homeEntry.data ? homeEntry.data.description : SITE.description,
+  openGraph: heroBgFallbackImage
+    ? {
+        images: [
+          {
+            url: heroBgFallbackImage.src,
+            width: heroBgFallbackImage.width,
+            height: heroBgFallbackImage.height,
+            alt: 'Local 34 members rallying together',
+          },
+        ],
+      }
+    : undefined,
 };
 
 // Section 1: Hero (headline + background from backgrounds folder)
@@ -78,41 +85,94 @@ const HOME_SECTION_IDS = {
     actions={homeHero.primaryActions}
   >
     {
-      heroBgData[heroBgInitialIndex] && (
-        <img
-          id="home-hero-bg"
-          slot="bg"
-          src={heroBgData[heroBgInitialIndex].src}
-          alt=""
-          loading="eager"
-          fetchpriority="high"
-          decoding="async"
-          class="absolute inset-0 w-full h-full min-w-full min-h-full object-cover object-[center_35%]"
-        />
+      heroBgFallbackImage && (
+        <div slot="bg" class="absolute inset-0 hero-bg-rotating">
+          <img
+            id="hero-bg-1"
+            src={heroBgImageUrls[0]}
+            alt=""
+            width={1920}
+            height={1080}
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
+            class="absolute inset-0 w-full h-full min-w-full min-h-full object-cover object-[center_35%] opacity-100 transition-opacity duration-500 hero-bg-slide"
+          />
+          <img
+            id="hero-bg-2"
+            src=""
+            alt=""
+            width={1920}
+            height={1080}
+            loading="lazy"
+            decoding="async"
+            class="absolute inset-0 w-full h-full min-w-full min-h-full object-cover object-[center_35%] opacity-0 transition-opacity duration-500 hero-bg-slide"
+          />
+        </div>
       )
     }
     <div slot="content" class="mt-14 md:mt-16 pt-10 md:pt-12 border-t border-white/20 border-solid">
       <p class="text-xl font-semibold text-white mb-3">{heroCta.title}</p>
       <p class="text-base text-slate-200 mb-8 max-w-2xl mx-auto">{heroCta.subtitle}</p>
       <div class="flex justify-center">
-        <Button variant="primary" text={heroCta.buttonText} href={heroCta.buttonHref} class="min-w-[11rem]" />
+        <Button
+          variant="primary"
+          text={heroCta.buttonText}
+          href={heroCta.buttonHref}
+          class="min-w-[11rem]"
+          data-cta="hero_actions"
+        />
       </div>
     </div>
   </Hero>
+  <script is:inline define:vars={{ heroBgImageUrls }}>
+    (() => {
+      if (!Array.isArray(heroBgImageUrls) || heroBgImageUrls.length === 0) return;
+
+      const img1 = document.getElementById('hero-bg-1');
+      const img2 = document.getElementById('hero-bg-2');
+      if (!(img1 instanceof HTMLImageElement) || !(img2 instanceof HTMLImageElement)) return;
+
+      const initialIndex = Math.floor(Math.random() * heroBgImageUrls.length);
+      img1.src = heroBgImageUrls[initialIndex];
+      let currentIndex = initialIndex;
+      let activeImg = img1;
+      let nextImg = img2;
+
+      if (heroBgImageUrls.length <= 1) return;
+
+      const ROTATE_INTERVAL_MS = 8000;
+      const cycle = () => {
+        let nextIndex = currentIndex;
+        if (heroBgImageUrls.length > 1) {
+          while (nextIndex === currentIndex) {
+            nextIndex = Math.floor(Math.random() * heroBgImageUrls.length);
+          }
+        }
+        const nextSrc = heroBgImageUrls[nextIndex];
+        if (typeof nextSrc !== 'string' || nextSrc.length === 0) return;
+
+        nextImg.src = nextSrc;
+        const onLoaded = () => {
+          activeImg.classList.remove('opacity-100');
+          activeImg.classList.add('opacity-0');
+          nextImg.classList.remove('opacity-0');
+          nextImg.classList.add('opacity-100');
+          const tmp = activeImg;
+          activeImg = nextImg;
+          nextImg = tmp;
+          currentIndex = nextIndex;
+        };
+        if (nextImg.complete) onLoaded();
+        else nextImg.addEventListener('load', onLoaded, { once: true });
+      };
+
+      setInterval(cycle, ROTATE_INTERVAL_MS);
+    })();
+  </script>
   <Features3
     id={HOME_SECTION_IDS.whoWeAre}
     title="The Union of Clerical & Technical Workers at Yale"
     subtitle="Local 34-UNITE HERE represents over four thousand workers who make Yale University run. We fight for dignity and respect on the job and in our community."
   />
-  <script define:vars={{ heroBgData }}>
-    (function () {
-      if (!heroBgData || heroBgData.length <= 1) return;
-      var el = document.getElementById('home-hero-bg');
-      if (!el) return;
-      var i = Math.floor(Math.random() * heroBgData.length);
-      var item = heroBgData[i];
-      el.src = item.src;
-      el.srcset = item.srcset || '';
-    })();
-  </script>
 </PageLayout>

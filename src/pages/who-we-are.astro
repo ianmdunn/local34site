@@ -3,7 +3,7 @@
  * About page (/who-we-are)
  *
  * Content source: sitePages/about.md.
- * Leaders list: xlsx (src/data/2026-l34-eboard.xlsx or 2026 L34 E-Board List.xlsx).
+ * Leaders list: src/data/officers-and-staff.csv and executive-board.csv (or xlsx fallback).
  */
 import PageLayout from '~/layouts/PageLayout.astro';
 import Card from '~/components/ui/Card.astro';
@@ -11,6 +11,7 @@ import { PAGE_SECTION_CLASS } from '~/lib/layout';
 import { getEboardFromXlsx } from '~/lib/eboard';
 import { footerData } from '~/navigation';
 import { getCollection, type RenderResult } from 'astro:content';
+import whoWeAreOg from '~/assets/images/backgrounds/L34pick_-06.jpg';
 
 const sitePages = await getCollection('sitePages');
 const aboutEntry = sitePages.find((p) => p.slug === 'about');
@@ -20,6 +21,16 @@ const { officersAndStaff, executiveBoard } = await getEboardFromXlsx();
 const pageMetadata = {
   title: aboutData.title,
   description: 'description' in aboutData ? aboutData.description : undefined,
+  openGraph: {
+    images: [
+      {
+        url: whoWeAreOg.src,
+        width: whoWeAreOg.width,
+        height: whoWeAreOg.height,
+        alt: 'Local 34 members standing together',
+      },
+    ],
+  },
 };
 
 let Content: RenderResult['Content'] | null = null;
@@ -33,25 +44,37 @@ const proseClass =
 ---
 
 <PageLayout metadata={pageMetadata}>
-  <section class={PAGE_SECTION_CLASS}>
+  <section class={PAGE_SECTION_CLASS} data-section="who-we-are" id="who-we-are">
     <div class="page-title-section mx-auto max-w-7xl w-full">
-    <h1 class="font-bold font-heading text-3xl md:text-4xl leading-tighter tracking-tighter">
+      <h1 class="font-bold font-heading text-3xl md:text-4xl leading-tighter tracking-tighter">
         {aboutData.title}
       </h1>
 
       <div class="mt-8 md:mt-10">
-        <h2 class="font-bold font-heading text-xl md:text-2xl leading-tight tracking-tight text-gray-900 dark:text-white mt-0 mb-6 md:mb-8">
+        <h2
+          class="font-bold font-heading text-xl md:text-2xl leading-tight tracking-tight text-gray-900 dark:text-white mt-0 mb-6 md:mb-8"
+        >
           As a union, we work for:
         </h2>
         <div class="grid gap-6 sm:gap-8 md:grid-cols-3">
           <Card variant="primary" class="flex flex-col">
             <div class="mb-4 text-primary" aria-hidden="true">
-              <svg class="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="m3 11 18-5v12L3 14v-3z" />
-                <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" />
+              <svg
+                class="w-10 h-10"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m3 11 18-5v12L3 14v-3z"></path>
+                <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path>
               </svg>
             </div>
-            <h3 class="font-bold font-heading text-lg leading-tight tracking-tight text-gray-900 dark:text-white mt-0 mb-2">
+            <h3
+              class="font-bold font-heading text-lg leading-tight tracking-tight text-gray-900 dark:text-white mt-0 mb-2"
+            >
               A voice in the workplace
             </h3>
             <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mt-0 flex-grow">
@@ -60,12 +83,24 @@ const proseClass =
           </Card>
           <Card variant="primary" class="flex flex-col">
             <div class="mb-4 text-primary" aria-hidden="true">
-              <svg class="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M6 9a6 6 0 1 0 12 0A6 6 0 1 0 6 9" />
-                <path d="m12 15l3.4 5.89l1.598-3.233l3.598.232l-3.4-5.889M6.802 12l-3.4 5.89L7 17.657l1.598 3.232l3.4-5.889" />
+              <svg
+                class="w-10 h-10"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M6 9a6 6 0 1 0 12 0A6 6 0 1 0 6 9"></path>
+                <path
+                  d="m12 15l3.4 5.89l1.598-3.233l3.598.232l-3.4-5.889M6.802 12l-3.4 5.89L7 17.657l1.598 3.232l3.4-5.889"
+                ></path>
               </svg>
             </div>
-            <h3 class="font-bold font-heading text-lg leading-tight tracking-tight text-gray-900 dark:text-white mt-0 mb-2">
+            <h3
+              class="font-bold font-heading text-lg leading-tight tracking-tight text-gray-900 dark:text-white mt-0 mb-2"
+            >
               Respect and opportunities
             </h3>
             <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mt-0 flex-grow">
@@ -74,19 +109,30 @@ const proseClass =
           </Card>
           <Card variant="primary" class="flex flex-col">
             <div class="mb-4 text-primary" aria-hidden="true">
-              <svg class="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
-                <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z" />
-                <path d="M7 21h10" />
-                <path d="M12 3v18" />
-                <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2" />
+              <svg
+                class="w-10 h-10"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="m16 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path>
+                <path d="m2 16 3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1Z"></path>
+                <path d="M7 21h10"></path>
+                <path d="M12 3v18"></path>
+                <path d="M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"></path>
               </svg>
             </div>
-            <h3 class="font-bold font-heading text-lg leading-tight tracking-tight text-gray-900 dark:text-white mt-0 mb-2">
+            <h3
+              class="font-bold font-heading text-lg leading-tight tracking-tight text-gray-900 dark:text-white mt-0 mb-2"
+            >
               Fairness
             </h3>
             <p class="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mt-0 flex-grow">
-              We represent members on issues that matter to them and advocate to improve conditions for all working people in New Haven and beyond.
+              We represent members on issues that matter to them and advocate to improve conditions for all working
+              people in New Haven and beyond.
             </p>
           </Card>
         </div>
@@ -149,30 +195,35 @@ const proseClass =
           }
         </ul>
 
-        {footerData.address && (
-          <div class="mt-10 pt-8 border-t border-gray-200 dark:border-gray-600">
-            <h2
-              class="font-bold font-heading text-lg md:text-xl leading-tight tracking-tight text-gray-900 dark:text-white mt-0 mb-3"
-            >
-              Union office
-            </h2>
-            <address class="not-italic text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
-              <span class="font-semibold text-gray-900 dark:text-white">{footerData.address.name}</span><br />
-              {footerData.address.line1}<br />
-              {footerData.address.cityStateZip}
-            </address>
-            <p class="mt-3 text-sm">
-              <a
-                href={footerData.links.find((l) => l.text === 'Contact Us')?.href ?? '/contact'}
-                class="text-primary hover:underline font-medium"
-              >
-                Contact us
-              </a>
-              {' '}for general inquiries.
-            </p>
-          </div>
-        )}
+        {
+          footerData.address && (
+            <div class="mt-10 pt-8 border-t border-gray-200 dark:border-gray-600">
+              <h2 class="font-bold font-heading text-lg md:text-xl leading-tight tracking-tight text-gray-900 dark:text-white mt-0 mb-3">
+                Union office
+              </h2>
+              <address class="not-italic text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
+                <>
+                  <span class="font-semibold text-gray-900 dark:text-white">{footerData.address.name}</span>
+                  <br />
+                </>
+                {footerData.address.line1}
+                <br />
+                {footerData.address.cityStateZip}
+              </address>
+              <p class="mt-3 text-sm">
+                <a
+                  href={footerData.links.find((l) => l.text === 'Contact Us')?.href ?? '/contact'}
+                  class="text-primary hover:underline font-medium"
+                  data-cta="who_we_are_contact"
+                >
+                  Contact us
+                </a>{' '}
+                for general inquiries.
+              </p>
+            </div>
+          )
+        }
       </div>
-        </div>
+    </div>
   </section>
 </PageLayout>

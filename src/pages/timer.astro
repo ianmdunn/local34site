@@ -1,0 +1,204 @@
+---
+/**
+ * Timer tool – time anything and see how much Yale's endowment grew.
+ * Full page with nav. Popup version at /timer-popup.
+ */
+import PageLayout from '~/layouts/PageLayout.astro';
+import Footer from '~/components/widgets/Footer.astro';
+import MeetingTimer from '~/components/islands/MeetingTimer.jsx';
+import BackgroundCycler from '~/components/islands/BackgroundCycler';
+import { getAsset } from '~/utils/permalinks';
+import { footerData } from '~/navigation';
+import type { MetaData } from '~/types';
+
+import '~/components/islands/meeting-timer.css';
+import '~/components/islands/wecantkeepup-poster.css';
+
+const metadata: MetaData = {
+  title: 'Timer',
+  description:
+    "Time your shift, your commute, your meeting—anything. See how much Yale's endowment grew while you were busy.",
+};
+
+const HERO_BG_PATHS = [
+  'hero-backgrounds/L34pick_-01.jpg',
+  'hero-backgrounds/L34pick_-02.jpg',
+  'hero-backgrounds/L34pick_-04.jpg',
+  'hero-backgrounds/L34pick_-05.jpg',
+  'hero-backgrounds/L34pick_-06.jpg',
+  'hero-backgrounds/L34pick_-07.jpg',
+  'hero-backgrounds/L34pick_-08.jpg',
+  'hero-backgrounds/L34pick_-09.jpg',
+  'hero-backgrounds/L34pick_-10.jpg',
+  'hero-backgrounds/L34pick_-11.jpg',
+  'hero-backgrounds/L34pick_-12.jpg',
+];
+const heroBgUrls: string[] = HERO_BG_PATHS.map((p) => getAsset(p));
+---
+
+<PageLayout metadata={metadata}>
+  <div class="timer-page" data-section="timer" id="timer-page">
+    <BackgroundCycler client:load imageUrls={heroBgUrls} />
+    <div
+      class="timer-page__banner timer-page__banner--top wecantkeepup-banner wecantkeepup-banner--top"
+      aria-hidden="true"
+    >
+      WE CAN&apos;T KEEP UP!
+    </div>
+    <div class="timer-page__content">
+      <MeetingTimer client:load />
+    </div>
+  </div>
+  <div slot="footer" class="timer-footer">
+    <div class="wecantkeepup-banner wecantkeepup-banner--bottom" aria-hidden="true">OUR WORK MAKES YALE WORK!</div>
+    <Footer {...footerData} theme="dark" />
+  </div>
+</PageLayout>
+
+<style>
+  /* Transparent html/body/layout so background image shows through */
+  :global(html:has(.timer-page)),
+  :global(body:has(.timer-page)),
+  :global(#layout-root:has(.timer-page)) {
+    background: transparent !important;
+  }
+
+  /* Scale whole page to viewport height; z-index above portaled overlay/vignette */
+  #layout-root:has(.timer-page) {
+    position: relative;
+    z-index: 1;
+    max-height: 100vh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
+  main:has(.timer-page) {
+    min-height: 0;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+
+  main:has(.timer-page) > .timer-page {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  main:has(.timer-page) + .timer-footer {
+    margin-top: 0;
+    flex-shrink: 0;
+  }
+
+  .timer-page {
+    position: relative;
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  /* Portaled to body – must be :global so styles apply outside component tree */
+  :global(.timer-page__bg-wrap) {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    z-index: -1 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+  }
+
+  :global(.timer-page__bg-cycle) {
+    position: absolute !important;
+    inset: 0 !important;
+    overflow: hidden !important;
+  }
+
+  :global(.timer-page__bg-layer) {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: center !important;
+    opacity: 0;
+    transition: opacity 0.6s ease-in-out;
+  }
+
+  :global(.timer-page__bg-layer.is-visible) {
+    opacity: 1;
+  }
+
+  :global(.timer-page__overlay) {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 1 !important;
+    background: rgba(177, 12, 47, 0.25) !important;
+    pointer-events: none !important;
+  }
+
+  :global(.timer-page__vignette) {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 1 !important;
+    background: radial-gradient(ellipse 75% 75% at 50% 50%, transparent 35%, rgba(0, 0, 0, 0.25) 100%) !important;
+    pointer-events: none !important;
+  }
+
+  /* Header/footer on top (solid red/black); main gets bg beneath it */
+  #layout-root:has(.timer-page) > * {
+    position: relative;
+  }
+
+  #layout-root:has(.timer-page) > main {
+    z-index: 1;
+  }
+
+  #layout-root:has(.timer-page) > *:not(main) {
+    z-index: 2;
+  }
+
+  .timer-page__banner--top {
+    position: relative;
+    z-index: 2;
+    flex-shrink: 0;
+    background: transparent;
+    padding-top: 1.25rem;
+    padding-bottom: 1rem;
+    font-size: clamp(2.5rem, 10vw, 4.5rem);
+  }
+
+  .timer-page__content {
+    position: relative;
+    z-index: 2;
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem 2rem;
+    min-height: 0;
+  }
+
+  .timer-footer {
+    margin-top: 0;
+    padding-top: 0;
+    background: #000;
+    flex-shrink: 0;
+  }
+
+  .timer-footer #site-footer {
+    margin-top: 0;
+    padding-top: 0.75rem;
+    padding-bottom: 1rem;
+    background: transparent;
+    border-top-color: rgba(255, 255, 255, 0.15);
+  }
+</style>
