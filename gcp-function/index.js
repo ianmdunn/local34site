@@ -1,11 +1,8 @@
 const { Storage } = require('@google-cloud/storage');
-const { ImageAnnotatorClient } = require('@google-cloud/vision');
-const sharp = require('sharp');
 
 const storage = new Storage();
 const bucketName = process.env.BUCKET_NAME || 'local34-game-leaderboard';
 const bucket = storage.bucket(bucketName);
-const visionClient = new ImageAnnotatorClient();
 
 // Rate limit: max POSTs per IP per minute (in-memory, per instance)
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
@@ -43,7 +40,7 @@ setInterval(() => {
 
 function getAllowedOrigins() {
   const raw = process.env.LEADERBOARD_ALLOWED_ORIGINS || '';
-  if (!raw.trim()) return ['https://local34.org', 'https://dev.local34.org', 'http://localhost:4321'];
+  if (!raw.trim()) return ['https://www.local34.org', 'https://local34.org', 'https://dev.local34.org', 'http://localhost:4321'];
   return raw
     .split(',')
     .map((o) => o.trim())
@@ -55,46 +52,6 @@ function getCorsOrigin(req) {
   const allowed = getAllowedOrigins();
   if (origin && allowed.includes(origin)) return origin;
   return allowed[0] || '*';
-}
-
-/** Detect face center in image buffer using Cloud Vision API. Returns { x, y } or null. */
-async function detectFaceCenter(buffer) {
-  try {
-    const [result] = await visionClient.faceDetection({ image: { content: buffer } });
-    const faces = result?.faceAnnotations;
-    if (!faces?.length) return null;
-    const face = faces[0];
-    const poly = face.fdBoundingPoly?.vertices || face.boundingPoly?.vertices;
-    if (!poly?.length) return null;
-    const x = poly.reduce((s, v) => s + (v.x ?? 0), 0) / poly.length;
-    const y = poly.reduce((s, v) => s + (v.y ?? 0), 0) / poly.length;
-    return { x, y };
-  } catch (err) {
-    console.warn('Vision face detection skipped:', err.message);
-    return null;
-  }
-}
-
-/** Crop image to aspect ratio centered on focal point. */
-async function cropToFocalPoint(buffer, focalX, focalY, aspectRatio = 16 / 9) {
-  const img = sharp(buffer);
-  const meta = await img.metadata();
-  const imgW = meta.width || 0;
-  const imgH = meta.height || 0;
-  if (!imgW || !imgH) return buffer;
-
-  let cropW = Math.min(imgW, Math.round(imgH * aspectRatio));
-  let cropH = Math.round(cropW / aspectRatio);
-  if (cropH > imgH) {
-    cropH = imgH;
-    cropW = Math.round(imgH * aspectRatio);
-  }
-  if (cropW > imgW) cropW = imgW;
-
-  const left = Math.max(0, Math.min(Math.round(focalX - cropW / 2), imgW - cropW));
-  const top = Math.max(0, Math.min(Math.round(focalY - cropH / 2), imgH - cropH));
-
-  return img.extract({ left, top, width: cropW, height: cropH }).toBuffer();
 }
 
 /** Proxy Directus assets so the token stays server-side. No token in HTML. */
@@ -118,11 +75,18 @@ exports.proxyDirectusImage = async (req, res) => {
   const token = process.env.DIRECTUS_TOKEN;
 
   if (!id || !directusUrl || !token) {
-    res.status(400).send('Missing id, DIRECTUS_URL, or DIRECTUS_TOKEN');
+    res.status(400).send('Bad request');
     return;
   }
 
-  const assetUrl = `${directusUrl.replace(/\/$/, '')}/assets/${id}`;
+  // Validate id format (Directus asset IDs are UUIDs; reject path traversal / injection)
+  const validId = /^[a-f0-9-]{8,64}$/i.test(String(id).trim());
+  if (!validId) {
+    res.status(400).send('Bad request');
+    return;
+  }
+
+  const assetUrl = `${directusUrl.replace(/\/$/, '')}/assets/${id.trim()}`;
   try {
     const upstream = await fetch(assetUrl, {
       method: req.method,
@@ -144,20 +108,7 @@ exports.proxyDirectusImage = async (req, res) => {
       return;
     }
 
-    let buffer = Buffer.from(await upstream.arrayBuffer());
-
-    const skipFace = req.query.face === '0';
-    const isRaster = /^image\/(jpeg|jpg|png|webp|gif|bmp)/i.test(contentType);
-    if (!skipFace && isRaster) {
-      const focal = await detectFaceCenter(buffer);
-      if (focal) {
-        try {
-          buffer = await cropToFocalPoint(buffer, focal.x, focal.y);
-        } catch (e) {
-          console.warn('Smart crop failed, using original:', e.message);
-        }
-      }
-    }
+    const buffer = Buffer.from(await upstream.arrayBuffer());
 
     res.status(200).send(buffer);
   } catch (err) {

@@ -1,0 +1,40 @@
+---
+/**
+ * Contract extract – used only at build time for section extraction.
+ * Renders full contract content so split-contract-sections.js can extract
+ * intro + articles into /contract-sections/.
+ *
+ * Not linked from site; add noindex if needed.
+ */
+import PageLayout from '~/layouts/PageLayout.astro';
+import { PAGE_SECTION_CLASS } from '~/lib/layout';
+import { getCollection, type RenderResult } from 'astro:content';
+
+export const prerender = import.meta.env.DEV || import.meta.env.CONTRACT_READER_BUILD === 'true';
+
+const sitePages = await getCollection('sitePages');
+const contractEntry = sitePages.find((page) => page.slug === '2021-2026-contract');
+const contractData = contractEntry?.data ?? {
+  title: '2021 - 2026 Contract',
+  description: 'Full text of the 2021–2026 collective bargaining agreement between Local 34 and Yale University.',
+};
+
+let Content: RenderResult['Content'] | null = null;
+if (contractEntry) {
+  const rendered = await contractEntry.render();
+  Content = rendered.Content;
+}
+
+const proseClass =
+  'prose max-w-none dark:prose-invert prose-headings:font-heading prose-headings:leading-tight prose-headings:tracking-tight prose-headings:font-bold prose-a:text-primary dark:prose-a:text-primary prose-li:my-1 prose-ul:my-3 prose-ol:my-3 prose-p:my-2 prose-table:text-sm';
+---
+
+<PageLayout metadata={{ title: contractData.title, description: 'description' in contractData ? contractData.description : undefined, robots: { index: false, follow: false } }}>
+  <section class={PAGE_SECTION_CLASS} data-section="contract-extract" id="contract-extract">
+    <div class="mx-auto max-w-7xl w-full">
+      <div class={`contract-body ${proseClass}`} data-contract-extract-body>
+        {Content ? <Content /> : <p>Contract text is unavailable.</p>}
+      </div>
+    </div>
+  </section>
+</PageLayout>

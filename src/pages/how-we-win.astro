@@ -8,19 +8,20 @@
 import PageLayout from '~/layouts/PageLayout.astro';
 import { PAGE_SECTION_CLASS } from '~/lib/layout';
 import { getAsset } from '~/utils/permalinks';
+import { generateOpenGraphMeta } from '~/utils/seo';
 
 const metadata = {
   title: 'How We Win',
   description:
     'Our union wins through member engagement, strong allies, and dues that fund organizing, training, negotiations, and member services. Local 34-UNITE HERE.',
-  openGraph: {
+  openGraph: generateOpenGraphMeta({
     images: [
       {
         url: getAsset('how-we-win/organizational-structure.png'),
         alt: 'How We Win organizational structure graphic',
       },
     ],
-  },
+  }),
 };
 
 const sectionIds = {

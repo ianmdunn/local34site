@@ -1,0 +1,223 @@
+---
+/**
+ * Dev-only: MDX editor for the 2021-2026 contract.
+ * Fetches its own content and saves edits automatically.
+ */
+import PageLayout from '~/layouts/PageLayout.astro';
+import ContractMdxEditor from '~/components/islands/ContractMdxEditor.tsx';
+
+const isDev = import.meta.env.DEV;
+const pageMetadata = {
+  title: 'Contract MDX Editor (Dev)',
+  description: 'Edit contract MDX in realtime — development only.',
+  robots: { index: false, follow: false },
+};
+---
+
+<PageLayout metadata={pageMetadata}>
+  <div class="mx-auto max-w-[1800px] w-full px-4 py-6">
+    {isDev ? (
+      <>
+        <div class="mb-4 flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <h1 class="text-xl font-bold font-heading">Contract MDX Editor</h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              Edit the 2021-2026 contract. Use the Save button to persist changes.
+            </p>
+          </div>
+          <a
+            href="/2021-2026-contract"
+            class="text-sm text-primary hover:underline"
+          >
+            View contract reader →
+          </a>
+        </div>
+        <ContractMdxEditor client:only="react" />
+      </>
+    ) : (
+      <div class="py-16 text-center">
+        <p class="text-gray-500 dark:text-gray-400">
+          This page is only available in development. Run <code class="bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">npm run dev</code> to use the MDX editor.
+        </p>
+        <a href="/" class="mt-4 inline-block text-primary hover:underline">← Go home</a>
+      </div>
+    )}
+  </div>
+</PageLayout>
+
+<style>
+  /* Layout */
+  .contract-mdx-editor-layout {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 1rem;
+    min-height: calc(100vh - 12rem);
+  }
+  @media (max-width: 1024px) {
+    .contract-mdx-editor-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Main panel: editor + status bar */
+  .contract-mdx-editor-main {
+    min-height: 600px;
+    background: var(--aw-color-bg-page);
+    border: 1px solid color-mix(in srgb, var(--aw-color-text-page) 18%, var(--aw-color-bg-page));
+    border-radius: 0.5rem;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .contract-mdx-editor-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .contract-mdx-editor-body > :global(*) {
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* Status bar */
+  .contract-mdx-editor-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.8125rem;
+    color: var(--aw-color-text-muted);
+    background: color-mix(in srgb, var(--aw-color-text-page) 6%, var(--aw-color-bg-page));
+    border-bottom: 1px solid color-mix(in srgb, var(--aw-color-text-page) 12%, var(--aw-color-bg-page));
+  }
+  .contract-mdx-editor-status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--aw-color-text-muted);
+    flex-shrink: 0;
+  }
+  .contract-mdx-editor-status-dot.status-saving {
+    background: var(--aw-color-accent);
+    animation: contract-editor-pulse 1s ease-in-out infinite;
+  }
+  .contract-mdx-editor-status-dot.status-saved {
+    background: #22c55e;
+  }
+  @keyframes contract-editor-pulse {
+    50% { opacity: 0.5; }
+  }
+  .contract-mdx-editor-section-badge {
+    font-size: 0.6875rem;
+    padding: 0.2rem 0.5rem;
+    background: color-mix(in srgb, var(--aw-color-text-page) 12%, var(--aw-color-bg-page));
+    color: var(--aw-color-text-muted);
+    border-radius: 0.25rem;
+    max-width: 14ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--aw-font-mono);
+  }
+  .contract-mdx-editor-save-btn {
+    margin-left: auto;
+    padding: 0.35rem 0.875rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    background: var(--aw-color-accent);
+    color: #fff;
+    border: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .contract-mdx-editor-save-btn:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+  .contract-mdx-editor-save-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Sidebar: raw MDX preview */
+  .contract-mdx-editor-sidebar {
+    background: var(--aw-color-bg-page);
+    border: 1px solid color-mix(in srgb, var(--aw-color-text-page) 18%, var(--aw-color-bg-page));
+    border-radius: 0.5rem;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .contract-mdx-editor-sidebar-header {
+    padding: 0.625rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--aw-color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: color-mix(in srgb, var(--aw-color-text-page) 6%, var(--aw-color-bg-page));
+    border-bottom: 1px solid color-mix(in srgb, var(--aw-color-text-page) 12%, var(--aw-color-bg-page));
+  }
+  .contract-mdx-editor-sidebar-header h3 {
+    margin: 0;
+    font-size: inherit;
+    font-weight: inherit;
+  }
+  .contract-mdx-editor-raw {
+    flex: 1;
+    margin: 0;
+    padding: 1rem;
+    overflow: auto;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--aw-color-text-page);
+  }
+  .contract-mdx-editor-raw code {
+    font-family: var(--aw-font-mono);
+  }
+
+  /* Loading & error states */
+  .contract-mdx-editor-loading,
+  .contract-mdx-editor-error {
+    padding: 3rem;
+    text-align: center;
+    color: var(--aw-color-text-page);
+  }
+  .contract-mdx-editor-retry {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    background: var(--aw-color-accent);
+    color: #fff;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .contract-mdx-editor-retry:hover {
+    opacity: 0.9;
+  }
+
+  /* Dark mode: MDX editor inherits Radix dark palette from .dark-theme.
+     Override hardcoded --basePageBg: white so content area matches page. */
+  .dark .contract-mdx-editor-body :global(.mdxeditor),
+  .dark .contract-mdx-editor-body :global([class*="_editorRoot"]) {
+    --basePageBg: var(--aw-color-bg-page);
+  }
+
+  /* Ensure content editable area has readable text in dark mode.
+     MDXEditor sets color: var(--baseTextContrast) which should be light in dark-theme,
+     but prose + lexical can conflict; force sufficient contrast. */
+  .dark .contract-mdx-editor-content {
+    color: var(--aw-color-text-page) !important;
+  }
+  .dark .contract-mdx-editor-content p,
+  .dark .contract-mdx-editor-content li,
+  .dark .contract-mdx-editor-content td,
+  .dark .contract-mdx-editor-content th {
+    color: inherit;
+  }
+</style>

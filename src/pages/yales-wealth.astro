@@ -15,6 +15,7 @@ import GameLaunchButton from '~/components/islands/GameLaunchButton.jsx';
 import type { MetaData } from '~/types';
 import { PAGE_SECTION_CLASS } from '~/lib/layout';
 import weCantKeepUp from '~/assets/images/backgrounds/WeCantKeepUp.jpg';
+import { generateOpenGraphMeta } from '~/utils/seo';
 import '~/components/islands/yale-wealth.tokens.css';
 import '~/components/islands/yale-wealth.layout.css';
 import '~/components/islands/yale-wealth.reality.css';
@@ -31,7 +32,7 @@ const PAGE = {
 const metadata: MetaData = {
   title: PAGE.title,
   description: PAGE.description,
-  openGraph: {
+  openGraph: generateOpenGraphMeta({
     images: [
       {
         url: weCantKeepUp.src,
@@ -40,7 +41,7 @@ const metadata: MetaData = {
         alt: "Yale's Wealth campaign visual",
       },
     ],
-  },
+  }),
 };
 
 const SECTION_IDS = {

@@ -28,6 +28,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const projectRoot = resolve(__dirname, '..');
 const publicDir = join(projectRoot, 'public');
+const EXCLUDED_UPLOAD_PREFIXES = [
+  '2021-2026-contract/',
+  'contract-sections/', // Draft contract reader fragments – never upload
+];
+const BLOCK_ON_EXCLUDED_UPLOADS = process.env.ALLOW_PRIVATE_UPLOADS !== 'true';
 
 // Load .env file
 const envPath = join(projectRoot, '.env');
@@ -170,13 +175,36 @@ async function main() {
     localFiles = await getAllFiles(publicDir);
   }
 
-  console.log(`Found ${localFiles.length} local file(s) to upload\n`);
+  const excludedCandidates = localFiles.filter((file) =>
+    EXCLUDED_UPLOAD_PREFIXES.some((prefix) => file.remotePath.startsWith(prefix))
+  );
+
+  if (excludedCandidates.length && BLOCK_ON_EXCLUDED_UPLOADS) {
+    console.error('Error: blocked private path(s) detected in upload candidate list.');
+    console.error('These paths are marked private and must never be uploaded:');
+    for (const file of excludedCandidates.slice(0, 20)) {
+      console.error(`  - ${file.remotePath}`);
+    }
+    if (excludedCandidates.length > 20) {
+      console.error(`  ...and ${excludedCandidates.length - 20} more`);
+    }
+    console.error('\nIf this is intentional, run with ALLOW_PRIVATE_UPLOADS=true.');
+    process.exit(1);
+  }
+
+  // Keep private contract-reader fragments local/dev-only.
+  localFiles = localFiles.filter((file) => !EXCLUDED_UPLOAD_PREFIXES.some((prefix) => file.remotePath.startsWith(prefix)));
+
+  const total = localFiles.length;
+  console.log(`Found ${total} local file(s) to upload\n`);
 
   // Upload files
   let uploaded = 0;
   let skipped = 0;
+  let processed = 0;
 
   for (const file of localFiles) {
+    processed++;
     try {
       // Check if file exists in bucket
       const [exists] = await bucket.file(file.remotePath).exists();
@@ -188,13 +216,12 @@ async function main() {
 
         if (localStats.size === parseInt(remoteFile.size)) {
           skipped++;
-          if (!isDryRun) {
-            console.log(`⊘ Skipped (unchanged): ${file.remotePath}`);
-          }
+          if (!isDryRun) console.log(`[${processed}/${total}] ⊘ Skipped (unchanged): ${file.remotePath}`);
           continue;
         }
       }
 
+      process.stdout.write(`[${processed}/${total}] `);
       await uploadFile(file.localPath, file.remotePath);
       uploaded++;
     } catch (error) {

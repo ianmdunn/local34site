@@ -78,6 +78,11 @@ if ! DB_CLIENT=pg \
 fi
 
 echo ""
-echo "Bootstrap complete. Log in at https://directus-mgdoanjcka-uw.a.run.app"
+LOGIN_URL="${PUBLIC_URL:-$PUBLIC_DIRECTUS_URL}"
+if [ -n "$LOGIN_URL" ]; then
+  echo "Bootstrap complete. Log in at $LOGIN_URL"
+else
+  echo "Bootstrap complete. Log in at your Directus URL (from deploy output or Cloud Run console)"
+fi
 echo "  Email: $ADMIN_EMAIL"
 echo "  Password: (from ADMIN_PASSWORD in .env)"

@@ -51,6 +51,12 @@ export default function GameLaunchButton() {
   }
 
   function handleTimerClick(e) {
+    const isMobile = window.innerWidth < 768 || 'ontouchstart' in window;
+    if (isMobile) {
+      // On mobile, window.open with features is often blocked. Let the link's target="_blank" work.
+      if (typeof window.__trackEvent === 'function') window.__trackEvent('endowment_timer_open', {});
+      return;
+    }
     e.preventDefault();
     window.open('/timer-popup', 'meeting-timer', 'width=400,height=320,scrollbars=no,resizable=yes');
     if (typeof window.__trackEvent === 'function') window.__trackEvent('endowment_timer_open', {});

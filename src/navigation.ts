@@ -25,12 +25,15 @@ const mainNavLinks: NavLink[] = [
     href: navHref('/how-we-win'),
     children: [
       { text: 'Actions', href: navHref('/actions') },
-      { text: 'Upcoming Events', href: navHref('/actions') + '#events' },
+      { text: 'Meeting Backgrounds', href: navHref('/meeting-backgrounds') },
     ],
   },
   { text: "Yale's Wealth", href: navHref('/yales-wealth') },
   { text: "We Can't Keep Up", href: navHref('/wecantkeepup') },
-  { text: 'Our Contract', href: navHref('/our-contract') },
+  {
+    text: 'Our Contract',
+    href: navHref('/our-contract'),
+  },
   { text: 'Contact Us', href: navHref('/contact') },
 ];
 

@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 /**
- * Pre-process existing update images through the proxy (face detection + smart crop).
- * Fetches each image URL so the Cloud Function runs face detection and crops.
- * Use after deploying the proxy to "warm" images or verify the pipeline.
+ * Pre-process existing update images through the proxy.
+ * Fetches each image URL to warm the proxy cache and verify the pipeline.
  *
  * Run: node scripts/warm-directus-image-proxy.js
  * Requires: PUBLIC_DIRECTUS_IMAGE_PROXY_URL, DIRECTUS_TOKEN, PUBLIC_DIRECTUS_URL in .env
@@ -96,7 +95,7 @@ async function main() {
     capped.forEach(({ title, fileId }) =>
       console.log(`  [dry-run] Would process: ${title} -> ${PROXY_URL}?id=${fileId}`)
     );
-    console.log('Run without --dry-run to fetch (triggers face detection + crop).');
+    console.log('Run without --dry-run to fetch and warm the proxy cache.');
     return;
   }
 

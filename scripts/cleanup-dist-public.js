@@ -19,6 +19,7 @@ import { readdir, stat, rm } from 'fs/promises';
 import { join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { spawn } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -31,6 +32,7 @@ const GCS_ASSET_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.svg', '.gif', 
 
 // Folders to remove entirely (no index.html inside – assets served from GCS)
 const FOLDERS_TO_REMOVE = ['zoom-backgrounds', 'hero-backgrounds', 'fonts'];
+const PRIVATE_ROUTE_FOLDERS = ['2021-2026-contract', 'contract-extract', 'contract-sections', 'dev'];
 
 // Folders that contain BOTH index.html (page) and assets – remove only assets, keep index.html
 const FOLDERS_WITH_PAGES = ['how-we-win', 'our-contract'];
@@ -42,15 +44,17 @@ const ASSET_EXTENSIONS = ['.svg', '.png', '.jpg', '.jpeg', '.webp', '.gif', '.ic
 
 async function removePublicCopies() {
   let removed = 0;
+  let removedPrivate = false;
 
   // Remove entire folders (no pages inside)
-  for (const item of FOLDERS_TO_REMOVE) {
+  for (const item of [...FOLDERS_TO_REMOVE, ...PRIVATE_ROUTE_FOLDERS]) {
     const distPath = join(distDir, item);
     try {
       await stat(distPath);
       await rm(distPath, { recursive: true, force: true });
       console.log(`  ✓ Removed: dist/${item}`);
       removed++;
+      if (PRIVATE_ROUTE_FOLDERS.includes(item)) removedPrivate = true;
     } catch {
       // Doesn't exist
     }
@@ -89,7 +93,7 @@ async function removePublicCopies() {
     }
   }
 
-  return removed;
+  return { removed, removedPrivate };
 }
 
 async function removeAstroAssets() {
@@ -112,11 +116,39 @@ async function removeAstroAssets() {
   return removed;
 }
 
+async function runPagefind() {
+  return new Promise((resolvePromise, rejectPromise) => {
+    const child = spawn('npx', ['pagefind', '--site', distDir], {
+      cwd: projectRoot,
+      stdio: 'inherit',
+    });
+    child.on('error', rejectPromise);
+    child.on('exit', (code) => {
+      if (code === 0) resolvePromise();
+      else rejectPromise(new Error(`pagefind exited with code ${code}`));
+    });
+  });
+}
+
 async function main() {
   console.log('\nCleaning dist/ for server upload (removing GCS assets)...\n');
 
-  const publicRemoved = await removePublicCopies();
+  const { removed: publicRemoved, removedPrivate } = await removePublicCopies();
   const astroRemoved = await removeAstroAssets();
+
+  // Regenerate pagefind index when we removed private contract routes, so the index
+  // doesn't contain relics (2021-2026-contract, contract-extract, contract-sections)
+  if (removedPrivate) {
+    const pagefindDir = join(distDir, 'pagefind');
+    try {
+      await stat(pagefindDir);
+      console.log('\nRegenerating pagefind index (cleared contract relics)...\n');
+      await runPagefind();
+      console.log('  ✓ Pagefind index regenerated\n');
+    } catch {
+      // pagefind dir doesn't exist, skip
+    }
+  }
 
   console.log(`\n✓ Cleanup complete:`);
   console.log(`  Public copies removed: ${publicRemoved}`);

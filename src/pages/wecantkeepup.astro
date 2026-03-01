@@ -10,6 +10,7 @@ import WeCantKeepupPoster from '~/components/islands/WeCantKeepupPoster.jsx';
 import { footerData } from '~/navigation';
 import { getAsset, getCanonicalOrigin } from '~/utils/permalinks';
 import type { MetaData } from '~/types';
+import { generateOpenGraphMeta } from '~/utils/seo';
 
 import '~/components/islands/wecantkeepup-poster.css';
 import ramoFontUrl from '~/assets/fonts/Ramo-deJazmin.woff2?url';
@@ -42,14 +43,14 @@ const PAGE = {
 const metadata: MetaData = {
   title: PAGE.title,
   description: PAGE.description,
-  openGraph: {
+  openGraph: generateOpenGraphMeta({
     images: [
       {
         url: getAsset("zoom-backgrounds/Zoom Background - We Can't Keep Up - Image.jpg"),
         alt: "We Can't Keep Up campaign graphic",
       },
     ],
-  },
+  }),
 };
 ---
 

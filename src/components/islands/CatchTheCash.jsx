@@ -354,8 +354,13 @@ export default function CatchTheCash() {
   // Load high scores on mount
   useEffect(() => {
     const fetchScores = async () => {
-      // Use GCP Function URL directly
-      const API_URL = import.meta.env.PUBLIC_LEADERBOARD_API || 'https://leaderboard-fbzec7gezq-uc.a.run.app';
+      const API_URL = import.meta.env.PUBLIC_LEADERBOARD_API;
+
+      if (!API_URL) {
+        const saved = localStorage.getItem('catch_the_cash_high_scores');
+        if (saved) setHighScores(JSON.parse(saved));
+        return;
+      }
 
       try {
         const res = await fetch(API_URL);
@@ -389,22 +394,23 @@ export default function CatchTheCash() {
       const checkScore = async () => {
         try {
           let scores = [];
-          // Try fetching from GCP Function
-          // Use GCP Function URL directly
-          const API_URL = import.meta.env.PUBLIC_LEADERBOARD_API || 'https://leaderboard-fbzec7gezq-uc.a.run.app';
+          const API_URL = import.meta.env.PUBLIC_LEADERBOARD_API;
 
-          try {
-            const res = await fetch(API_URL);
-            if (res.ok) {
-              scores = await res.json();
-            } else {
-              // Fallback to local storage (offline)
-              console.warn('Leaderboard API unreachable, using local cache');
+          if (API_URL) {
+            try {
+              const res = await fetch(API_URL);
+              if (res.ok) {
+                scores = await res.json();
+              } else {
+                const saved = localStorage.getItem('catch_the_cash_high_scores');
+                if (saved) scores = JSON.parse(saved);
+              }
+            } catch (e) {
+              console.warn('Leaderboard fetch error', e);
               const saved = localStorage.getItem('catch_the_cash_high_scores');
               if (saved) scores = JSON.parse(saved);
             }
-          } catch (e) {
-            console.warn('Leaderboard fetch error', e);
+          } else {
             const saved = localStorage.getItem('catch_the_cash_high_scores');
             if (saved) scores = JSON.parse(saved);
           }
@@ -462,11 +468,13 @@ export default function CatchTheCash() {
     setHighScores(optimisticScores.slice(0, 10));
     setNewHighScoreRank(null);
 
-    try {
-      // Save to Cloud
-      // Use GCP Function URL directly
-      const API_URL = import.meta.env.PUBLIC_LEADERBOARD_API || 'https://leaderboard-fbzec7gezq-uc.a.run.app';
+    const API_URL = import.meta.env.PUBLIC_LEADERBOARD_API;
+    if (!API_URL) {
+      localStorage.setItem('catch_the_cash_high_scores', JSON.stringify(optimisticScores.slice(0, 10)));
+      return;
+    }
 
+    try {
       const res = await fetch(API_URL, {
         method: 'POST',
         body: JSON.stringify(newEntry),

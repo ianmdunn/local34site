@@ -36,15 +36,13 @@ const { language, textDirection } = I18N;
     <!-- Preconnect to third parties for faster loading -->
     <link rel="preconnect" href="https://use.typekit.net" crossorigin />
     <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin />
-    <!-- Typekit: load async to avoid render-blocking (fonts: ibm-plex-sans, archer-pro, etc.) -->
-    <script is:inline>
-      (function () {
-        const l = document.createElement('link');
-        l.rel = 'stylesheet';
-        l.href = 'https://use.typekit.net/iqy5xra.css';
-        document.head.appendChild(l);
-      })();
-    </script>
+    <!-- Typekit: static link (media/onload = async load). Script injection fails on View Transitions swap. -->
+    <link
+      rel="stylesheet"
+      href="https://use.typekit.net/iqy5xra.css"
+      media="print"
+      onload="this.media='all'"
+    />
     <noscript><link rel="stylesheet" href="https://use.typekit.net/iqy5xra.css" /></noscript>
     <Favicons />
     <CustomStyles />
@@ -65,23 +63,24 @@ const { language, textDirection } = I18N;
     -->
     <script is:inline>
       (function () {
-        if (window.__navMenuBound) return;
-        window.__navMenuBound = true;
+        function initNav() {
+          if (window.__navMenuBound) return;
+          window.__navMenuBound = true;
 
-        const NAV = {
-          headerId: 'header',
-          menuBtnId: 'astronav-menu',
-          navSelector: '.astronav-items',
-          toggleSelector: '.astronav-toggle',
-          scrollLockClass: 'nav-drawer-open',
-          scrollYDataKey: 'nav-scroll-y',
-          linkSelector: 'a[data-nav-link]',
-          closeSelector: '[data-nav-close]',
-          backdropSelector: '[data-nav-backdrop]',
-          mobileMaxWidth: 767,
-        };
+          const NAV = {
+            headerId: 'header',
+            menuBtnId: 'astronav-menu',
+            navSelector: '.astronav-items',
+            toggleSelector: '.astronav-toggle',
+            scrollLockClass: 'nav-drawer-open',
+            scrollYDataKey: 'nav-scroll-y',
+            linkSelector: 'a[data-nav-link]',
+            closeSelector: '[data-nav-close]',
+            backdropSelector: '[data-nav-backdrop]',
+            mobileMaxWidth: 767,
+          };
 
-        function getNav() {
+          function getNav() {
           return document.querySelector(NAV.navSelector);
         }
         function getMenuBtn() {
@@ -281,6 +280,12 @@ const { language, textDirection } = I18N;
           syncAriaExpanded();
         }
         window.__closeMobileMenu = closeMenu;
+        }
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', initNav);
+        } else {
+          initNav();
+        }
       })();
     </script>
 

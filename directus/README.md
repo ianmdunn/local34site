@@ -194,7 +194,7 @@ The Astro site’s `/updates` page pulls content from a Directus collection name
 In the project root `.env`:
 
 ```
-PUBLIC_DIRECTUS_URL=https://directus-mgdoanjcka-uw.a.run.app
+PUBLIC_DIRECTUS_URL=https://your-directus-instance.run.app
 ```
 
 When using Cloud Run, replace with your deployed Directus URL.
@@ -265,13 +265,11 @@ If images return 403, Directus storage is private. Two options:
 
    Rebuild the site. Images will load via the proxy; the token stays in the Cloud Function.
 
-   **Face detection:** The proxy uses Google Cloud Vision to detect faces and auto-crop images so the subject is centered (free tier: 1,000 images/month). Add `?face=0` to skip for a specific image.
-
-3. **Pre-process existing images** (optional): Run face detection on all update images to verify the pipeline:
+3. **Pre-process existing images** (optional): Warm the proxy cache or verify the pipeline:
    ```bash
    npm run warm:image-proxy:dry   # Preview what would be processed
-   npm run warm:image-proxy       # Fetch each image (triggers face detection + crop)
-   npm run warm:image-proxy -- --save=./processed-images  # Save processed images to a folder
+   npm run warm:image-proxy       # Fetch each image to warm the cache
+   npm run warm:image-proxy -- --save=./processed-images  # Save images to a folder
    ```
 
 ---

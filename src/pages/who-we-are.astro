@@ -12,6 +12,7 @@ import { getEboardFromXlsx } from '~/lib/eboard';
 import { footerData } from '~/navigation';
 import { getCollection, type RenderResult } from 'astro:content';
 import whoWeAreOg from '~/assets/images/backgrounds/L34pick_-06.jpg';
+import { generateOpenGraphMeta } from '~/utils/seo';
 
 const sitePages = await getCollection('sitePages');
 const aboutEntry = sitePages.find((p) => p.slug === 'about');
@@ -21,7 +22,7 @@ const { officersAndStaff, executiveBoard } = await getEboardFromXlsx();
 const pageMetadata = {
   title: aboutData.title,
   description: 'description' in aboutData ? aboutData.description : undefined,
-  openGraph: {
+  openGraph: generateOpenGraphMeta({
     images: [
       {
         url: whoWeAreOg.src,
@@ -30,7 +31,7 @@ const pageMetadata = {
         alt: 'Local 34 members standing together',
       },
     ],
-  },
+  }),
 };
 
 let Content: RenderResult['Content'] | null = null;

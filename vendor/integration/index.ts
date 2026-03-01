@@ -32,9 +32,8 @@ export default ({ config: _themeConfig = 'src/config.yaml' } = {}): AstroIntegra
         // Allow override from env (e.g. SITE_URL=https://dev.local34.org for staging)
         const envSiteUrl = process.env.SITE_URL?.trim();
         const baseSiteUrl = envSiteUrl || (typeof SITE.site === 'string' ? SITE.site : undefined);
-        // Force non-www so sitemap, canonicals, and host never add www
-        const siteUrl =
-          typeof baseSiteUrl === 'string' ? baseSiteUrl.replace(/^(https?:\/\/)www\.(.+)$/, '$1$2') : SITE.site;
+        // Use site URL as configured (www.local34.org is canonical)
+        const siteUrl = typeof baseSiteUrl === 'string' ? baseSiteUrl : SITE.site;
         const SITE_NORMALIZED = { ...SITE, site: siteUrl };
         // Noindex staging/dev so search engines don't index (e.g. dev.local34.org)
         const isDevHost = typeof siteUrl === 'string' && /^https?:\/\/(dev\.|staging\.|preview\.)/i.test(siteUrl);

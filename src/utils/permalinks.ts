@@ -35,17 +35,11 @@ export const TAG_BASE = cleanSlug(APP_BLOG?.tag?.pathname) || 'tag';
 
 export const POST_PERMALINK_PATTERN = trimSlash(APP_BLOG?.post?.permalink || `${BLOG_BASE}/%slug%`);
 
-/** Strip www from host so canonicals and nav links always use the non-www origin. */
-function withoutWww(url: URL): string {
-  const s = url.toString();
-  return s.replace(/^(https?:\/\/)www\./, '$1');
-}
-
-/** Canonical origin (e.g. https://test.local34.org) with www stripped. Use for Astro.site, OG images, etc. */
+/** Canonical origin (e.g. https://www.local34.org). Use for Astro.site, OG images, etc. */
 export const getCanonicalOrigin = (): string => {
   const base = SITE.site ?? '';
   const url = new URL('/', base);
-  return withoutWww(url).replace(/\/$/, '');
+  return url.origin;
 };
 
 /** Canonical base URL (origin + base path) with trailing slash, for <base href>, RSS site, OG base URL. */
@@ -91,7 +85,7 @@ export const getCanonical = (path = ''): string | URL => {
   const base = SITE.site ?? '';
   const pathOnly = getPathWithBase(path);
   const url = new URL(pathOnly, base);
-  return withoutWww(url);
+  return url.toString();
 };
 
 /** */

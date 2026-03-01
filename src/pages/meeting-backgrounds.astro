@@ -1,0 +1,44 @@
+---
+/**
+ * Meeting backgrounds page (/meeting-backgrounds)
+ *
+ * Zoom backgrounds, profile images, instructions, and email-assets form.
+ * Separated from actions page so events remain the primary focus there.
+ */
+import PageLayout from '~/layouts/PageLayout.astro';
+import { PAGE_SECTION_CLASS } from '~/lib/layout';
+import MeetingBackgroundsComponent from '~/components/MeetingBackgrounds.jsx';
+import { getAsset } from '~/utils/permalinks';
+import { generateOpenGraphMeta } from '~/utils/seo';
+
+const metadata = {
+  title: 'Meeting backgrounds | Local 34',
+  description: 'Meeting backgrounds for Zoom and Teams.',
+  openGraph: generateOpenGraphMeta({
+    images: [
+      {
+        url: getAsset('zoom-backgrounds/Zoom Background - United for a Great Contract - Image.jpg'),
+        alt: 'United for a Great Contract campaign graphic',
+      },
+    ],
+  }),
+};
+---
+
+<PageLayout metadata={metadata}>
+  <section class={PAGE_SECTION_CLASS} data-section="meeting-backgrounds-hero" id="meeting-backgrounds-hero">
+    <div class="page-title-section relative max-w-7xl px-4 sm:px-6 lg:px-8 text-left">
+      <h1
+        class="text-3xl md:text-4xl lg:text-5xl font-bold leading-tighter tracking-tighter mb-4 font-heading text-gray-900 dark:text-white"
+      >
+        Meeting backgrounds
+      </h1>
+    </div>
+  </section>
+
+  <section class={PAGE_SECTION_CLASS} data-section="meeting-backgrounds-content" id="meeting-backgrounds-content">
+    <div class="mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8">
+      <MeetingBackgroundsComponent client:visible zoomBase={getAsset('zoom-backgrounds')} eventsHref="/actions" />
+    </div>
+  </section>
+</PageLayout>

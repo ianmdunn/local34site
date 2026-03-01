@@ -16,6 +16,7 @@ fi
 
 PROJECT_ID="${GCP_PROJECT_ID:-local34org-assets}"
 REGION="${GCP_REGION:-us-west1}"
+SERVICE_NAME="${CLOUD_RUN_SERVICE:-directus}"
 CLOUD_SQL_INSTANCE="${CLOUD_SQL_INSTANCE:-${PROJECT_ID}:${REGION}:local34org-directus-b}"
 REPO="${REGION}-docker.pkg.dev/${PROJECT_ID}/directus-repo/directus"
 JOB_NAME="directus-reset-password"
@@ -81,6 +82,11 @@ echo "Executing job to reset password..."
 gcloud run jobs execute "$JOB_NAME" --region "$REGION" --project "$PROJECT_ID" --wait
 
 echo ""
-echo "Done. Log in at https://directus-mgdoanjcka-uw.a.run.app"
+SERVICE_URL=$(gcloud run services describe "$SERVICE_NAME" --region "$REGION" --format="value(status.url)" --project "$PROJECT_ID" 2>/dev/null || echo "")
+if [ -n "$SERVICE_URL" ]; then
+  echo "Done. Log in at $SERVICE_URL"
+else
+  echo "Done. Log in at your Directus URL (from Cloud Run console)"
+fi
 echo "  Email: $ADMIN_EMAIL"
 echo "  Password: (from ADMIN_PASSWORD in .env)"

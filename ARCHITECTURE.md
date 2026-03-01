@@ -37,7 +37,7 @@ The server serves HTML from `dist/`; images and heavy assets are loaded from GCS
 ## Content
 
 - **Directus:** Headless CMS. Updates/news live in the "updates" collection. Images stored in GCS.
-- **Image proxy:** Cloud Function `proxyDirectusImage` fetches Directus assets with a server-side token (never in HTML), applies face-detection crop via Cloud Vision, returns the image.
+- **Image proxy:** Cloud Function `proxyDirectusImage` fetches Directus assets with a server-side token (never in HTML), returns the image.
 - **Blog:** Disabled in config; legacy blog structure exists in vendor for possible future use.
 
 ## Client-Side
@@ -54,7 +54,7 @@ The server serves HTML from `dist/`; images and heavy assets are loaded from GCS
 | `local34org-directus-files`         | Directus uploads (CMS media)                 |
 | `local34-game-leaderboard`          | CatchTheCash high scores JSON                |
 | Cloud Function `leaderboard`        | Read/write leaderboard, CORS                 |
-| Cloud Function `proxyDirectusImage` | Proxy Directus assets, face crop             |
+| Cloud Function `proxyDirectusImage` | Proxy Directus assets                        |
 
 ## Key Directories
 

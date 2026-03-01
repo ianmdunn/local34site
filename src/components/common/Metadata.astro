@@ -67,17 +67,6 @@ const optimizedOpenGraph = await adaptOpenGraphImages(seoProps?.openGraph, new U
 const primaryOpenGraphImage = optimizedOpenGraph?.images?.find((image) => typeof image?.url === 'string' && image.url.trim());
 const twitterCardType = seoProps.twitter?.cardType || (primaryOpenGraphImage ? 'summary_large_image' : 'summary');
 
-const twitterFallbackMetaTags: Array<{ name: string; content: string }> = [];
-if (seoProps.title) {
-  twitterFallbackMetaTags.push({ name: 'twitter:title', content: seoProps.title });
-}
-if (seoProps.description) {
-  twitterFallbackMetaTags.push({ name: 'twitter:description', content: seoProps.description });
-}
-if (primaryOpenGraphImage?.url) {
-  twitterFallbackMetaTags.push({ name: 'twitter:image', content: primaryOpenGraphImage.url });
-}
-
 const seoOutput: AstroSeoProps = {
   ...seoProps,
   openGraph: optimizedOpenGraph,
@@ -85,7 +74,6 @@ const seoOutput: AstroSeoProps = {
     ...seoProps.twitter,
     cardType: twitterCardType,
   },
-  additionalMetaTags: [...(seoProps.additionalMetaTags || []), ...twitterFallbackMetaTags],
 };
 
 // JSON-LD Organization schema for SEO

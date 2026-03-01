@@ -123,13 +123,13 @@ WECANTKEEPUP_FIELDS = [
     {
         "field": "profile_image_focus_x",
         "type": "decimal",
-        "meta": {"interface": "input", "width": "half", "note": "Face center X (0-1) for background-position"},
+        "meta": {"interface": "input", "width": "half", "note": "Focal point X (0-1) for background-position"},
         "schema": {"is_nullable": True, "numeric_precision": 5, "numeric_scale": 4},
     },
     {
         "field": "profile_image_focus_y",
         "type": "decimal",
-        "meta": {"interface": "input", "width": "half", "note": "Face center Y (0-1) for background-position"},
+        "meta": {"interface": "input", "width": "half", "note": "Focal point Y (0-1) for background-position"},
         "schema": {"is_nullable": True, "numeric_precision": 5, "numeric_scale": 4},
     },
 ]
@@ -224,30 +224,6 @@ def _strip_quotes(s: str) -> str:
     s = s.strip()
     s = s.lstrip(_QUOTE_CHARS).rstrip(_QUOTE_CHARS)
     return s.strip()
-
-
-def _detect_face_focus(image_bytes: bytes) -> tuple[float, float] | None:
-    """Run face detection on image bytes. Returns (center_x, center_y) as 0-1 fractions, or None."""
-    try:
-        import numpy as np
-        import cv2
-        nparr = np.frombuffer(image_bytes, np.uint8)
-        img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-        if img is None:
-            return None
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        cascade_path = cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-        face_cascade = cv2.CascadeClassifier(cascade_path)
-        faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
-        if len(faces) == 0:
-            return None
-        # Use largest face (first by area)
-        x, y, w, h = max(faces, key=lambda r: r[2] * r[3])
-        center_x = (x + w / 2) / img.shape[1]
-        center_y = (y + h / 2) / img.shape[0]
-        return (round(center_x, 4), round(center_y, 4))
-    except Exception:
-        return None
 
 
 _gcs_warned = False
@@ -386,7 +362,7 @@ def extract_fields_with_gemini(pdf_path: str, client: genai.Client) -> dict | No
 _403_hint_shown = False
 
 
-def create_poster_item(data: dict, profile_image_url: str | None, focus: tuple[float, float] | None = None) -> bool:
+def create_poster_item(data: dict, profile_image_url: str | None) -> bool:
     """Create one wecantkeepup item in Directus. profile_image_url is the uploaded GCS asset URL."""
     global _403_hint_shown
     # Build payload so profile_image_url is always the GCS URL we uploaded (never from Gemini)
@@ -397,9 +373,6 @@ def create_poster_item(data: dict, profile_image_url: str | None, focus: tuple[f
     }
     if profile_image_url:
         payload["profile_image_url"] = profile_image_url
-    if focus is not None:
-        payload["profile_image_focus_x"] = focus[0]
-        payload["profile_image_focus_y"] = focus[1]
     r = _api("POST", f"/items/{COLLECTION}", json=payload)
     if not r.ok:
         print(f"  Create item failed: {r.status_code} {r.text[:200]}", file=sys.stderr)
@@ -437,7 +410,6 @@ def process_poster(pdf_path: str, client: genai.Client, dry_run: bool) -> bool:
 
     # 3. Upload image to GCS (wecantkeepup/ folder), use name from data for filename
     profile_image_url = None
-    focus = None
     if image_bytes:
         base_name = (data.get("name") or pdf_stem).strip() or "image"
         if dry_run:
@@ -445,15 +417,12 @@ def process_poster(pdf_path: str, client: genai.Client, dry_run: bool) -> bool:
             profile_image_url = f"{GCS_BUCKET_URL or 'https://bucket'}/{GCS_FOLDER}/{_slug(base_name)}.{ext}"
         else:
             profile_image_url = upload_image_to_gcs(image_bytes, base_name, ext)
-        # 3b. Face detection for background-position (place face correctly)
-        if not dry_run:
-            focus = _detect_face_focus(image_bytes)
 
     # 4. Create Directus item (profile_image_url = GCS asset URL when upload succeeded)
     if dry_run:
         print(f"  [dry-run] Would create item: {data.get('name')} | {data.get('department')}")
         return True
-    ok = create_poster_item(data, profile_image_url, focus)
+    ok = create_poster_item(data, profile_image_url)
     if ok:
         if profile_image_url:
             print(f"  Done: {data.get('name')} (profile_image_url: {profile_image_url})")

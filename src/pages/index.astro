@@ -16,6 +16,7 @@ import { getPermalink } from '~/utils/permalinks';
 import { getCollection } from 'astro:content';
 import Features3 from '~/components/widgets/Features3.astro';
 import type { ImageMetadata } from 'astro';
+import { generateOpenGraphMeta } from '~/utils/seo';
 
 // Hero background images from src/assets/images/backgrounds/ – optimized at build (webp, responsive srcset)
 const heroBgModules = import.meta.glob<{ default: ImageMetadata }>(
@@ -37,7 +38,7 @@ const pageMetadata = {
   title: homeEntry ? homeEntry.data.title : SITE.title,
   description: homeEntry && 'description' in homeEntry.data ? homeEntry.data.description : SITE.description,
   openGraph: heroBgFallbackImage
-    ? {
+    ? generateOpenGraphMeta({
         images: [
           {
             url: heroBgFallbackImage.src,
@@ -46,7 +47,7 @@ const pageMetadata = {
             alt: 'Local 34 members rallying together',
           },
         ],
-      }
+      })
     : undefined,
 };
 
@@ -76,6 +77,10 @@ const HOME_SECTION_IDS = {
 ---
 
 <PageLayout metadata={pageMetadata}>
+  {/* Preload LCP hero image so it's discoverable from HTML immediately */}
+  {heroBgImageUrls[0] && (
+    <link slot="head" rel="preload" as="image" href={heroBgImageUrls[0]} fetchpriority="high" />
+  )}
   <Fragment slot="announcement"></Fragment>
   <Hero
     id={HOME_SECTION_IDS.hero}
@@ -100,7 +105,7 @@ const HOME_SECTION_IDS = {
           />
           <img
             id="hero-bg-2"
-            src=""
+            src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
             alt=""
             width={1920}
             height={1080}
@@ -133,9 +138,9 @@ const HOME_SECTION_IDS = {
       const img2 = document.getElementById('hero-bg-2');
       if (!(img1 instanceof HTMLImageElement) || !(img2 instanceof HTMLImageElement)) return;
 
-      const initialIndex = Math.floor(Math.random() * heroBgImageUrls.length);
-      img1.src = heroBgImageUrls[initialIndex];
-      let currentIndex = initialIndex;
+      // Keep img1's server-rendered src (heroBgImageUrls[0]) for LCP—don't overwrite on load.
+      // Rotation uses img2; we swap roles each cycle.
+      let currentIndex = 0;
       let activeImg = img1;
       let nextImg = img2;
 

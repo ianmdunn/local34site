@@ -11,8 +11,10 @@ The Union of Clerical & Technical Workers at Yale. Astro-based static site with 
 
 ## Quick Start
 
+On a clean machine, run the init script first:
+
 ```bash
-npm install
+npm run init         # Checks Node, installs deps, creates .env from example
 npm run dev          # http://localhost:4321
 npm run build        # Static build to dist/
 npm test             # Run unit tests
@@ -53,8 +55,12 @@ All scripts used to build, deploy, and maintain the site.
 | `upload:assets:dry` | `scripts/upload-to-gcs.js --dry-run`                                          | Preview uploads only                              |
 | `upload:optimized`  | `scripts/upload-optimized-to-gcs.js`                                          | Upload `dist/_astro/` images to GCS, rewrite URLs |
 | `cleanup:dist`      | `scripts/cleanup-dist-public.js`                                              | Remove GCS-served assets from `dist/`             |
-| `build:gcs`         | `check:gcs` → `upload:assets` → `build` → `upload:optimized` → `cleanup:dist` | Full deploy pipeline                              |
-| `deploy`            | Same as `build:gcs`                                                           | Deploy site                                       |
+| `push:ssh`          | `scripts/deploy-ssh-push.sh`                                                 | Push `dist/` to live site via rsync over SSH       |
+| `push:ssh:dry`      | Same + `--dry-run`                                                           | Preview SSH push only                             |
+| `push:ftp`          | `scripts/deploy-ftp-push.sh`                                                 | Push `dist/` to live site via FTP (lftp)          |
+| `push:ftp:dry`      | Same + `--dry-run`                                                           | Preview FTP push only                             |
+| `build:gcs`         | `check:gcs` → `upload:assets` → `build` → `upload:optimized` → `cleanup:dist` → `push:ftp` | Full deploy pipeline                              |
+| `deploy`            | Same as `build:gcs`                                                          | Deploy site                                       |
 
 **GCS scripts:**
 
@@ -73,6 +79,8 @@ All scripts used to build, deploy, and maintain the site.
 | `scripts/full-check.sh`                      | Run `check` → `build` → `check-gcs-setup` → `upload:assets:dry`  |
 | `scripts/reconnect-gcs-buckets.sh`           | Grant service account access to all GCS buckets (post-migration) |
 | `scripts/reconnect-gcs-buckets.sh --dry-run` | Preview IAM changes                                              |
+| `scripts/deploy-ssh-push.sh`                 | Rsync `dist/` to live site via SSH (after cleanup:dist)           |
+| `scripts/deploy-ftp-push.sh`                 | Mirror `dist/` to live site via FTP/lftp (after cleanup:dist)     |
 
 **Cloud Functions:**
 
@@ -88,7 +96,7 @@ All scripts used to build, deploy, and maintain the site.
 | `directus:schema:dry`  | `scripts/directus-schema-updates.js --dry-run`                    | Preview schema changes                                          |
 | `fix:content-column`   | `scripts/fix-directus-content-column.js`                          | Alter `updates.content` to TEXT (needs Cloud SQL Proxy on 5433) |
 | `debug:content-field`  | `scripts/debug-directus-content-field.js`                         | Inspect content field validation source                         |
-| `warm:image-proxy`     | `scripts/warm-directus-image-proxy.js`                            | Pre-process images through proxy (face detection)               |
+| `warm:image-proxy`     | `scripts/warm-directus-image-proxy.js`                            | Pre-process images through proxy (warm cache)                   |
 | `warm:image-proxy:dry` | Same + `--dry-run`                                                | List images that would be processed                             |
 | `reconnect:cloudsql`   | `directus/reconnect-cloudsql.sh`                                  | Reconnect Directus to Cloud SQL                                 |
 | `campaign-posters`     | `.venv/bin/python scripts/upload-campaign-posters-to-directus.py` | Upload campaign PDFs to Directus (wecantkeepup)                 |
@@ -113,7 +121,7 @@ All scripts used to build, deploy, and maintain the site.
 | `scripts/directus-schema-updates.js`      | Ensure updates collection exists, add fields     |
 | `scripts/fix-directus-content-column.js`  | Fix VALUE_TOO_LONG by changing DB column to TEXT |
 | `scripts/debug-directus-content-field.js` | Debug content field max_length validation        |
-| `scripts/warm-directus-image-proxy.js`    | Warm image proxy cache (face detection)          |
+| `scripts/warm-directus-image-proxy.js`    | Warm image proxy cache                            |
 
 ### Migration & Content
 
@@ -146,9 +154,11 @@ All scripts used to build, deploy, and maintain the site.
 Key variables (see `.env`):
 
 - `GCS_BUCKET_NAME`, `GCS_BUCKET_URL` – Site assets bucket
+- `DEPLOY_FTP_HOST`, `DEPLOY_FTP_USER`, `DEPLOY_FTP_PASSWORD`, `DEPLOY_PATH` – For FTP push (optional; deploy skips if unset)
 - `GOOGLE_APPLICATION_CREDENTIALS` – Path to GCP service account JSON
 - `LEADERBOARD_BUCKET_NAME`, `PUBLIC_LEADERBOARD_API` – Game leaderboard
 - `PUBLIC_DIRECTUS_URL`, `DIRECTUS_TOKEN` – Directus CMS
 - `PUBLIC_DIRECTUS_IMAGE_PROXY_URL` – Image proxy Cloud Function URL
+- `PUBLIC_RSVP_ERROR_WEBHOOK_URL` – Optional: POST when RSVP submit fails (e.g. Zapier, Make)
 
 Directus runs in `directus/` with its own `.env`; see `directus/README.md` for setup.

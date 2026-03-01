@@ -1,107 +1,58 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { sanitizeHtml } from '~/utils/sanitize';
 import './ActionCenter.css';
 
 const DEFAULT_ZOOM_BASE = '/zoom-backgrounds';
 
 function tabFromHash() {
-  const hash = typeof window !== 'undefined' ? window.location.hash.slice(1).toLowerCase() : '';
-  return hash === 'events' || hash.startsWith('event-') ? 'events' : 'tools';
+  const hash = typeof window !== 'undefined' ? window.location.hash.slice(1) : '';
+  const lower = hash.toLowerCase();
+  return lower === 'events' || lower.startsWith('event-') ? 'events' : 'tools';
 }
 
 function eventSlugFromHash() {
-  const hash = typeof window !== 'undefined' ? window.location.hash.slice(1).toLowerCase() : '';
-  return hash.startsWith('event-') ? hash.slice(6) : null;
+  const hash = typeof window !== 'undefined' ? window.location.hash.slice(1) : '';
+  if (!hash.toLowerCase().startsWith('event-')) return null;
+  try {
+    return decodeURIComponent(hash.slice(6)).trim() || null;
+  } catch {
+    return hash.slice(6).trim() || null;
+  }
 }
 
 const url = (base, filename) => `${base || DEFAULT_ZOOM_BASE}/${encodeURIComponent(filename)}`;
 
-const UPCOMING_EVENTS = [
-  {
-    slug: 'solidarity-summit',
-    title: 'Solidarity Summit',
-    month: 'Feb',
-    day: '24',
-    meta: ['5:30 PM (doors 5:00 PM)', 'Trinity Temple C.O.G.I.C.'],
-    address: '285 Dixwell Ave, New Haven, CT 06511, United States',
-    desc: "Join New Haven Rising, Local 34, Local 33, Local 35, and community allies as we stand together for affordability, dignity, and a fair contract.",
-    details: [
-      'The good contracts we have fought for are not just about paychecks and healthcare. They are about dignity, worker voice, and the legacy of thousands of workers who fought for respect in the workplace.',
-      'Inflation and Yale austerity threats are putting that progress at risk. We are coming together to demand transformational change for our city and our future.',
-      "Now is the time to fight for affordability. The reality is simple: we can't keep up.",
-    ],
-    parkingTitle: 'Parking Details',
-    parkingLocations: [
-      {
-        label: 'Trinity Temple (285 Dixwell Ave, New Haven, CT 06511, United States)',
-        href: 'https://www.google.com/maps/place/285+Dixwell+Ave,+New+Haven,+CT+06511/',
-      },
-      {
-        label: 'Varick Memorial AME Zion Church parking lot (242 Dixwell Ave, New Haven, CT 06511)',
-        href: 'https://www.google.com/maps/place/242+Dixwell+Ave,+New+Haven,+CT+06511/',
-      },
-      {
-        label: 'Wexler-Grant School parking lots on Admiral Street (55 Foote St, New Haven, CT 06511)',
-        href: 'https://www.google.com/maps/place/55+Foote+St,+New+Haven,+CT+06511/',
-      },
-      {
-        label: 'Q House parking (197 Dixwell Ave, New Haven, CT 06511)',
-        href: 'https://www.google.com/maps/place/197+Dixwell+Ave,+New+Haven,+CT+06511/',
-      },
-    ],
-    parkingMaps: [
-      {
-        src: '/events/solidarity-summit/shuttle-parking-overview-1.png',
-        alt: 'Map showing Bowen Field parking area at Munson Street and Crescent Street.',
-        caption: 'Parking & Shuttle Pickup: Bowen Field Parking Area (Munson St & Crescent St, New Haven, CT)',
-        href: 'https://www.google.com/maps/place/Parking+lot,+Munson+St,+New+Haven,+CT+06511/',
-      },
-    ],
-    shuttleTitle: 'Shuttle Pickup Locations',
-    shuttleIntro:
-      'For those who work downtown or near the hospital, shuttle service is available beginning at 4:45 PM. Event doors open at 5:00 PM.',
-    shuttleLocations: [
-      {
-        label: 'Yale Medical School (333 Cedar St, New Haven, CT 06510)',
-        href: 'https://www.google.com/maps/place/333+Cedar+St,+New+Haven,+CT+06510/',
-      },
-      {
-        label: 'Union Office / First and Summerfield Church (425 College St, New Haven, CT 06511)',
-        href: 'https://www.google.com/maps/place/425+College+St,+New+Haven,+CT+06511/',
-      },
-      {
-        label: '2 Science Park parking lot (422 Winchester Ave, New Haven, CT 06511)',
-        href: 'https://www.google.com/maps/place/422+Winchester+Ave,+New+Haven,+CT+06511/',
-      },
-      {
-        label: 'Bowen Field Parking Area (Munson St & Crescent St, New Haven, CT 06511)',
-        href: 'https://www.google.com/maps/place/Parking+lot,+Munson+St,+New+Haven,+CT+06511/',
-      },
-    ],
-    shuttleMaps: [
-      {
-        src: '/events/solidarity-summit/333-cedar-st-pickup.png',
-        alt: 'Map showing shuttle pickup location at 333 Cedar Street.',
-        caption: 'Shuttle Pickup: Yale Medical School (333 Cedar St, New Haven, CT 06510)',
-        href: 'https://www.google.com/maps/place/333+Cedar+St,+New+Haven,+CT+06510/',
-      },
-      {
-        src: '/events/solidarity-summit/425-college-st-pickup.png',
-        alt: 'Map showing shuttle pickup location at 425 College Street.',
-        caption: 'Shuttle Pickup: Union Office / First & Summerfield (425 College St, New Haven, CT 06511)',
-        href: 'https://www.google.com/maps/place/425+College+St,+New+Haven,+CT+06511/',
-      },
-      {
-        src: '/events/solidarity-summit/2-science-park-pickup-highlighted.png',
-        alt: 'Map showing highlighted pickup location at 2 Science Park.',
-        caption: 'Parking & Shuttle Pickup: 2 Science Park (422 Winchester Ave, New Haven, CT 06511)',
-        href: 'https://www.google.com/maps/place/422+Winchester+Ave,+New+Haven,+CT+06511/',
-      },
-    ],
-    transportTitle: 'Parking & Shuttle Pickup',
-    jotformId: '260136005054039',
-    rsvpLabel: 'RSVP for our Solidarity Summit',
-  },
-];
+const hasHtmlTag = (text) => /<\/?[a-z][\s\S]*>/i.test(String(text || ''));
+
+const escapeHtml = (text) =>
+  String(text || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+/** Sanitize event body HTML from Directus. Uses DOMPurify for XSS safety. */
+const toEventHtml = (value) => {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+
+  // WYSIWYG HTML from Directus: sanitize then render.
+  if (hasHtmlTag(raw)) {
+    return sanitizeHtml(raw);
+  }
+
+  // Fallback for plain text values.
+  return `<p>${escapeHtml(raw).replace(/\r\n/g, '\n').replace(/\n/g, '<br />')}</p>`;
+};
+
+const plainTextLength = (value) =>
+  String(value || '')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim().length;
+
+const isExternalUrl = (value) => /^https?:\/\/\S+$/i.test(String(value || '').trim());
 
 const ZOOM_SECTIONS = [
   {
@@ -157,17 +108,97 @@ const PROFILE_IMAGES = [
   { file: "We Can't Keep Up Profile Image.jpg", label: "We Can't Keep Up" },
 ];
 
-const ActionCenter = ({ zoomBase = DEFAULT_ZOOM_BASE }) => {
-  const [activeTab, setActiveTab] = useState('tools');
+const ActionCenter = ({ zoomBase = DEFAULT_ZOOM_BASE, upcomingEvents, layout = 'tabs' }) => {
+  const isUnified = layout === 'unified';
+  const [activeTab, setActiveTab] = useState(() =>
+    typeof window !== 'undefined' ? tabFromHash() : 'tools'
+  );
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [rsvpEventSlug, setRsvpEventSlug] = useState(null);
+  const [submittedEventSlugs, setSubmittedEventSlugs] = useState([]);
+  const [submittingSlug, setSubmittingSlug] = useState(null);
+  const [formValuesBySlug, setFormValuesBySlug] = useState({});
+  const [expandedTextBySlug, setExpandedTextBySlug] = useState({});
+  const [isBannerImageBySlug, setIsBannerImageBySlug] = useState({});
   const base = zoomBase ?? DEFAULT_ZOOM_BASE;
+  const directusEvents = Array.isArray(upcomingEvents) ? upcomingEvents : [];
+  const events = useMemo(
+    () =>
+      [...directusEvents].sort((a, b) => {
+        const aTime = a.sortDate ? Date.parse(a.sortDate) : Number.NaN;
+        const bTime = b.sortDate ? Date.parse(b.sortDate) : Number.NaN;
+        if (!Number.isNaN(aTime) && !Number.isNaN(bTime)) return aTime - bTime;
+        if (!Number.isNaN(aTime)) return -1;
+        if (!Number.isNaN(bTime)) return 1;
+        return 0;
+      }),
+    [directusEvents]
+  );
+
+  const eventShareUrl = (event) => {
+    const raw = typeof event.eventUrl === 'string' ? event.eventUrl.trim() : '';
+    if (raw && /^https?:\/\//i.test(raw)) return raw;
+    if (raw && typeof window !== 'undefined') {
+      if (raw.startsWith('/')) return `${window.location.origin}${raw}`;
+      return `${window.location.origin}/${raw.replace(/^\/+/, '')}`;
+    }
+    if (typeof window !== 'undefined') return `${window.location.origin}${window.location.pathname}#event-${event.slug}`;
+    return `/actions#event-${event.slug}`;
+  };
+
+  const shareEvent = async (event) => {
+    const shareUrl = eventShareUrl(event);
+    const shareTitle = event.title || 'Event';
+    try {
+      if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+        await navigator.share({
+          title: shareTitle,
+          text: shareTitle,
+          url: shareUrl,
+        });
+        return;
+      }
+    } catch {
+      // If user cancels share sheet or sharing fails, fall back below.
+    }
+
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+        return;
+      }
+    } catch {
+      // Final fallback is opening the URL.
+    }
+
+    if (typeof window !== 'undefined') window.open(shareUrl, '_blank', 'noopener,noreferrer');
+  };
+
+  const markImageKind = (eventSlug, imageElement) => {
+    const width = Number(imageElement?.naturalWidth || 0);
+    const height = Number(imageElement?.naturalHeight || 0);
+    if (!width || !height) return;
+    const isBanner = width / height >= 1.6;
+    setIsBannerImageBySlug((prev) => (prev[eventSlug] === isBanner ? prev : { ...prev, [eventSlug]: isBanner }));
+  };
 
   function scrollToEvent() {
     const slug = eventSlugFromHash();
     if (!slug) return;
-    const el = document.getElementById(`event-${slug}`);
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const attemptScroll = () => {
+      const el = document.getElementById(`event-${slug}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return true;
+      }
+      return false;
+    };
+    if (attemptScroll()) return;
+    requestAnimationFrame(() => {
+      if (!attemptScroll()) {
+        requestAnimationFrame(attemptScroll);
+      }
+    });
   }
 
   useEffect(() => {
@@ -175,16 +206,71 @@ const ActionCenter = ({ zoomBase = DEFAULT_ZOOM_BASE }) => {
     const handleHashChange = () => {
       syncFromHash();
       setTimeout(scrollToEvent, 0);
+      const slug = eventSlugFromHash();
+      if (slug && events.some((e) => e.slug === slug)) {
+        setExpandedTextBySlug((prev) => ({ ...prev, [slug]: true }));
+      }
     };
     syncFromHash();
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
+  }, [events]);
 
   useEffect(() => {
     if (activeTab !== 'events') return;
     setTimeout(scrollToEvent, 0);
-  }, [activeTab]);
+    const slug = eventSlugFromHash();
+    if (slug && events.some((e) => e.slug === slug)) {
+      setExpandedTextBySlug((prev) => ({ ...prev, [slug]: true }));
+    }
+  }, [activeTab, events]);
+
+  const handleJotformSubmit = async (e, eventSlug, eventTitle = '') => {
+    e.preventDefault();
+    const form = e.target;
+    if (!form || !form.action) return;
+    setSubmittingSlug(eventSlug);
+    try {
+      const formData = new FormData(form);
+      const body = new URLSearchParams(formData).toString();
+      const res = await fetch(form.action, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body,
+      });
+      if (res.ok) {
+        setSubmittedEventSlugs((prev) => (prev.includes(eventSlug) ? prev : [...prev, eventSlug]));
+        setRsvpEventSlug(null);
+      } else {
+        throw new Error('Submit failed');
+      }
+    } catch (err) {
+      if (typeof window.__trackEvent === 'function') {
+        window.__trackEvent('rsvp_submit_failed', {
+          event_slug: eventSlug,
+          event_name: eventTitle,
+          error: err?.message || 'unknown',
+        });
+      }
+      const webhookUrl = import.meta.env.PUBLIC_RSVP_ERROR_WEBHOOK_URL;
+      if (typeof webhookUrl === 'string' && webhookUrl.trim()) {
+        fetch(webhookUrl.trim(), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event: 'rsvp_submit_failed',
+            event_slug: eventSlug,
+            event_name: eventTitle,
+            url: typeof window !== 'undefined' ? window.location.href : '',
+            timestamp: new Date().toISOString(),
+          }),
+        }).catch(() => {});
+      }
+      alert('Your RSVP could not be submitted. Please check your connection and try again.');
+    } finally {
+      setSubmittingSlug(null);
+    }
+  };
 
   const switchTab = (tab) => {
     setActiveTab(tab);
@@ -212,42 +298,369 @@ const ActionCenter = ({ zoomBase = DEFAULT_ZOOM_BASE }) => {
     }
   };
 
-  return (
-    <div className="l34-action-center">
-      <div className="l34-tab-nav" role="tablist" aria-label="Actions">
-        <button
-          type="button"
-          role="tab"
-          id="l34-tab-tools"
-          aria-selected={activeTab === 'tools'}
-          aria-controls="l34-panel-tools"
-          tabIndex={activeTab === 'tools' ? 0 : -1}
-          className={`l34-tab-btn ${activeTab === 'tools' ? 'active' : ''}`}
-          onClick={() => switchTab('tools')}
-        >
-          <span className="l34-tab-short">Tools</span>
-          <span className="l34-tab-long">Zoom backgrounds &amp; profile images</span>
-        </button>
-        <button
-          type="button"
-          role="tab"
-          id="l34-tab-events"
-          aria-selected={activeTab === 'events'}
-          aria-controls="l34-panel-events"
-          tabIndex={activeTab === 'events' ? 0 : -1}
-          className={`l34-tab-btn ${activeTab === 'events' ? 'active' : ''}`}
-          onClick={() => switchTab('events')}
-        >
-          <span className="l34-tab-short">Events</span>
-          <span className="l34-tab-long">Upcoming events</span>
-        </button>
-      </div>
+  const toIdToken = (value = '') =>
+    String(value)
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
 
-      {activeTab === 'tools' && (
-        <div id="l34-panel-tools" className="l34-tab-content fade-in" role="tabpanel" aria-labelledby="l34-tab-tools">
-          <p className="l34-intro">
-            Click any image to download. Use them as meeting backgrounds or profile pictures to show your support.
-          </p>
+  const fieldInputType = (fieldType) => {
+    if (fieldType === 'email') return 'email';
+    if (fieldType === 'tel') return 'tel';
+    return 'text';
+  };
+
+  const buildFieldId = (eventSlug, fieldName, suffix = '') => {
+    const base = `l34-rsvp-${toIdToken(eventSlug)}-${toIdToken(fieldName)}`;
+    return suffix ? `${base}-${toIdToken(suffix)}` : base;
+  };
+
+  const getAutocompleteForField = (field) => {
+    if (field.type === 'email') return 'email';
+    if (field.type === 'tel') return 'tel';
+    const name = String(field.name || '').toLowerCase();
+    const label = String(field.label || '').toLowerCase();
+    const combined = `${name} ${label}`;
+    if (/\b(organization|org|company)\b/.test(combined)) return 'organization';
+    if (/\b(department|dept)\b/.test(combined)) return 'organization';
+    if (field.type === 'text' || field.type === 'textarea') return 'on';
+    return 'on';
+  };
+
+  const defaultFieldValue = (field) => {
+    if (field.type === 'checkbox') return Array.isArray(field.defaultValues) ? field.defaultValues : [];
+    if (field.type === 'radio') return Array.isArray(field.defaultValues) ? field.defaultValues[0] || '' : '';
+    return field.defaultValue || '';
+  };
+
+  const getFieldByQid = (event, qid) => {
+    const schemaFields = event.jotformSchema?.fields || [];
+    const qidStr = String(qid || '').trim();
+    let field = schemaFields.find((f) => String(f.qid) === qidStr || f.name === qidStr);
+    if (!field && /^q\d+/.test(qidStr)) {
+      const num = qidStr.replace(/^q(\d+).*$/, '$1');
+      field = schemaFields.find((f) => String(f.qid) === num);
+    }
+    return field || null;
+  };
+
+  const valueForQid = (event, qid) => {
+    const schemaFields = event.jotformSchema?.fields || [];
+    const qidStr = String(qid || '').trim();
+    let targetField = schemaFields.find((field) => String(field.qid) === qidStr || field.name === qidStr);
+    if (!targetField && /^q\d+/.test(qidStr)) {
+      const num = qidStr.replace(/^q(\d+).*$/, '$1');
+      targetField = schemaFields.find((field) => String(field.qid) === num);
+    }
+    if (!targetField) return '';
+    // Fullname and address fields store values under subField.name (e.g. q5_fullname[first], q7_address[addr_line1])
+    if (
+      (targetField.type === 'fullname' || targetField.type === 'address') &&
+      Array.isArray(targetField.subFields) &&
+      targetField.subFields.length
+    ) {
+      const parts = targetField.subFields.map((sub) => {
+        const v = formValuesBySlug[event.slug]?.[sub.name];
+        return v !== undefined ? String(v || '').trim() : String(sub.defaultValue || '').trim();
+      });
+      return parts.join(' ').trim();
+    }
+    const stateValue = formValuesBySlug[event.slug]?.[targetField.name];
+    return stateValue === undefined ? defaultFieldValue(targetField) : stateValue;
+  };
+
+  const matchesConditionTerm = (value, operator, compareValue = '', field = null) => {
+    const normalizedOperator = String(operator || '').toLowerCase();
+    const asArray = Array.isArray(value) ? value : [value];
+    const joined = asArray.map((item) => String(item || '').trim()).join(' ').trim();
+    const compare = String(compareValue || '').trim();
+    // JotForm conditions often use option LABEL (e.g. "In Person") while our input value may be different (e.g. "0")
+    const effectiveValues = [...new Set([joined, ...asArray.map(String)])];
+    if (field && (field.type === 'radio' || field.type === 'select') && Array.isArray(field.options)) {
+      const selectedVal = Array.isArray(value) ? value[0] : value;
+      const selectedOption = field.options.find(
+        (o) => String(o.value || '').trim() === String(selectedVal || '').trim()
+      );
+      if (selectedOption?.label) effectiveValues.push(String(selectedOption.label).trim());
+    }
+    if (field && field.type === 'checkbox' && Array.isArray(field.options) && Array.isArray(value)) {
+      for (const v of value) {
+        const opt = field.options.find((o) => String(o.value || '').trim() === String(v || '').trim());
+        if (opt?.label) effectiveValues.push(String(opt.label).trim());
+      }
+    }
+    const compareLower = compare.toLowerCase();
+    const anyMatches = (pred) => effectiveValues.some((v) => pred(String(v || '').trim()));
+    const allMatch = (pred) => effectiveValues.every((v) => pred(String(v || '').trim()));
+    if (normalizedOperator === 'isfilled') return joined.length > 0;
+    if (normalizedOperator === 'isnotfilled' || normalizedOperator === 'isempty') return joined.length === 0;
+    if (normalizedOperator === 'equals' || normalizedOperator === 'is')
+      return anyMatches((v) => v === compare || v.toLowerCase() === compareLower);
+    if (normalizedOperator === 'notequals' || normalizedOperator === 'isnot')
+      return allMatch((v) => v !== compare && v.toLowerCase() !== compareLower);
+    if (normalizedOperator === 'contains')
+      return anyMatches((v) => v.toLowerCase().includes(compareLower));
+    if (normalizedOperator === 'doesnotcontain')
+      return allMatch((v) => !v.toLowerCase().includes(compareLower));
+    return false;
+  };
+
+  const fieldIdsMatch = (a, b) => {
+    const x = String(a || '').trim();
+    const y = String(b || '').trim();
+    if (x === y) return true;
+    const numX = x.replace(/^q(\d+).*$/, '$1');
+    const numY = y.replace(/^q(\d+).*$/, '$1');
+    return numX && numY && numX === numY;
+  };
+
+  const isJotformFieldVisible = (event, field) => {
+    const conditions = event.jotformSchema?.conditions || [];
+    let visible = !field.hiddenByDefault;
+    const relevant = conditions.filter((condition) =>
+      (condition.actions || []).some((action) => fieldIdsMatch(action.field, field.qid))
+    );
+    for (const condition of relevant) {
+      const terms = Array.isArray(condition.terms) ? condition.terms : [];
+      const matches =
+        (condition.link || 'All') === 'Any'
+          ? terms.some((term) =>
+              matchesConditionTerm(
+                valueForQid(event, term.field),
+                term.operator,
+                term.value,
+                getFieldByQid(event, term.field)
+              )
+            )
+          : terms.every((term) =>
+              matchesConditionTerm(
+                valueForQid(event, term.field),
+                term.operator,
+                term.value,
+                getFieldByQid(event, term.field)
+              )
+            );
+      if (!matches) continue;
+      const actions = (condition.actions || []).filter((action) => fieldIdsMatch(action.field, field.qid));
+      for (const action of actions) {
+        if (action.visibility === 'Hide') visible = false;
+        if (action.visibility === 'Show') visible = true;
+      }
+    }
+    return visible;
+  };
+
+  const onDynamicFormChange = (eventSlug, target) => {
+    const fieldName = String(target?.name || '').trim();
+    if (!fieldName) return;
+    setFormValuesBySlug((prev) => {
+      const current = { ...(prev[eventSlug] || {}) };
+      if (target.type === 'checkbox') {
+        const existing = Array.isArray(current[fieldName]) ? current[fieldName] : [];
+        if (target.checked) {
+          current[fieldName] = Array.from(new Set([...existing, target.value]));
+        } else {
+          current[fieldName] = existing.filter((value) => value !== target.value);
+        }
+      } else {
+        current[fieldName] = target.value;
+      }
+      return { ...prev, [eventSlug]: current };
+    });
+  };
+
+  const renderJotformField = (event, field, index) => {
+    // JotForm labels often include " *" for required fields; strip to avoid double asterisks
+    const labelText = (String(field.label || 'Field').replace(/\s*\*+\s*$/, '').trim()) || 'Field';
+    const helperText = field.helperText || '';
+
+    if (
+      (field.type === 'fullname' || field.type === 'address') &&
+      Array.isArray(field.subFields) &&
+      field.subFields.length
+    ) {
+      const autoCompleteMap =
+        field.type === 'address'
+          ? { 0: 'street-address', 1: 'address-line2', 2: 'address-level2', 3: 'address-level1', 4: 'postal-code', 5: 'country-name' }
+          : { 0: 'given-name', 1: 'family-name' };
+      return (
+        <div key={`${event.slug}-${field.name}-${index}`} className="l34-dynamic-field">
+          <label className="l34-label">{labelText}{field.required ? ' *' : ''}</label>
+          {helperText ? <small className="l34-field-helper">{helperText}</small> : null}
+          <div className="l34-form-row">
+            {field.subFields.map((subField, subIndex) => {
+              const inputId = buildFieldId(event.slug, subField.name, `${index}-${subIndex}`);
+              const subLabel = subField.label || `Part ${subIndex + 1}`;
+              const autoComplete = autoCompleteMap[subIndex] || 'on';
+              return (
+                <div key={`${subField.name}-${subIndex}`} className={field.type === 'address' ? 'l34-address-part' : 'l34-name-part'}>
+                  <label htmlFor={inputId} className="sr-only">
+                    {subLabel}
+                  </label>
+                  <input
+                    id={inputId}
+                    type="text"
+                    name={subField.name}
+                    placeholder={subField.placeholder || subLabel}
+                    required={Boolean(subField.required)}
+                    className="l34-input"
+                    autoComplete={autoComplete}
+                    aria-label={subLabel}
+                    defaultValue={subField.defaultValue || ''}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+
+    if ((field.type === 'radio' || field.type === 'checkbox') && Array.isArray(field.options) && field.options.length) {
+      return (
+        <fieldset key={`${event.slug}-${field.name}-${index}`} className="l34-choice-group">
+          <legend className="l34-label">
+            {labelText}
+            {field.required ? ' *' : ''}
+          </legend>
+          {helperText ? <small className="l34-field-helper">{helperText}</small> : null}
+          <div className="l34-choice-options">
+            {field.options.map((option, optionIndex) => {
+              const optionId = buildFieldId(event.slug, field.name, `${index}-${optionIndex}`);
+              return (
+                <label key={`${option.value}-${optionIndex}`} htmlFor={optionId} className="l34-choice-label">
+                  <input
+                    id={optionId}
+                    type={field.type}
+                    name={field.name}
+                    value={option.value}
+                    required={Boolean(field.required && (field.type === 'radio' || optionIndex === 0))}
+                  defaultChecked={Boolean(option.selected || (field.defaultValues || []).includes(option.value))}
+                  />
+                  <span>{option.label}</span>
+                </label>
+              );
+            })}
+          </div>
+        </fieldset>
+      );
+    }
+
+    if (field.type === 'select') {
+      const selectId = buildFieldId(event.slug, field.name, index);
+      return (
+        <div key={`${event.slug}-${field.name}-${index}`}>
+          <label htmlFor={selectId} className="l34-label">
+            {labelText}
+            {field.required ? ' *' : ''}
+          </label>
+          {helperText ? <small className="l34-field-helper">{helperText}</small> : null}
+            <select
+            id={selectId}
+            name={field.name}
+            className="l34-input"
+            required={Boolean(field.required)}
+            autoComplete={/\b(organization|org|company)\b/.test(`${(field.name || '')} ${(field.label || '')}`.toLowerCase()) ? 'organization' : 'on'}
+            defaultValue={field.defaultValue || ''}
+          >
+            {(field.options || []).map((option, optionIndex) => (
+              <option key={`${option.value}-${optionIndex}`} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      );
+    }
+
+    if (field.type === 'textarea') {
+      const textareaId = buildFieldId(event.slug, field.name, index);
+      return (
+        <div key={`${event.slug}-${field.name}-${index}`}>
+          <label htmlFor={textareaId} className="l34-label">
+            {labelText}
+            {field.required ? ' *' : ''}
+          </label>
+          {helperText ? <small className="l34-field-helper">{helperText}</small> : null}
+          <textarea
+            id={textareaId}
+            name={field.name}
+            required={Boolean(field.required)}
+            className="l34-input l34-textarea"
+            placeholder={field.placeholder || ''}
+            rows={4}
+            autoComplete={getAutocompleteForField(field)}
+            defaultValue={field.defaultValue || ''}
+          />
+        </div>
+      );
+    }
+
+    const inputId = buildFieldId(event.slug, field.name, index);
+    return (
+      <div key={`${event.slug}-${field.name}-${index}`}>
+        <label htmlFor={inputId} className="l34-label">
+          {labelText}
+          {field.required ? ' *' : ''}
+        </label>
+        {helperText ? <small className="l34-field-helper">{helperText}</small> : null}
+        <input
+          id={inputId}
+          type={fieldInputType(field.type)}
+          name={field.name}
+          required={Boolean(field.required)}
+          className="l34-input"
+          placeholder={field.placeholder || ''}
+          autoComplete={getAutocompleteForField(field)}
+          defaultValue={field.defaultValue || ''}
+        />
+      </div>
+    );
+  };
+
+  return (
+    <div className={`l34-action-center ${isUnified ? 'l34-action-center--unified' : ''}`}>
+      {!isUnified && (
+        <div className="l34-tab-nav" role="tablist" aria-label="Actions">
+          <button
+            type="button"
+            role="tab"
+            id="l34-tab-tools"
+            aria-selected={activeTab === 'tools'}
+            aria-controls="l34-panel-tools"
+            tabIndex={activeTab === 'tools' ? 0 : -1}
+            className={`l34-tab-btn ${activeTab === 'tools' ? 'active' : ''}`}
+            onClick={() => switchTab('tools')}
+          >
+            <span className="l34-tab-short">Tools</span>
+            <span className="l34-tab-long">Zoom backgrounds &amp; profile images</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            id="l34-tab-events"
+            aria-selected={activeTab === 'events'}
+            aria-controls="l34-panel-events"
+            tabIndex={activeTab === 'events' ? 0 : -1}
+            className={`l34-tab-btn ${activeTab === 'events' ? 'active' : ''}`}
+            onClick={() => switchTab('events')}
+          >
+            <span className="l34-tab-short">Events</span>
+            <span className="l34-tab-long">Upcoming events</span>
+          </button>
+        </div>
+      )}
+
+      {(activeTab === 'tools' || isUnified) && (
+        <div id="l34-panel-tools" className={`l34-tab-content fade-in ${isUnified ? 'l34-tools-panel--unified' : ''}`} role="tabpanel" aria-labelledby={isUnified ? undefined : 'l34-tab-tools'}>
+          {!isUnified && (
+            <p className="l34-intro">
+              Click any image to download. Use them as meeting backgrounds or profile pictures to show your support.
+            </p>
+          )}
+          {isUnified && (
+            <h2 className="l34-unified-section-title">Meeting backgrounds</h2>
+          )}
 
           {ZOOM_SECTIONS.map((section) => (
             <section key={section.title} className="l34-section">
@@ -413,11 +826,24 @@ const ActionCenter = ({ zoomBase = DEFAULT_ZOOM_BASE }) => {
         </div>
       )}
 
-      {activeTab === 'events' && (
-        <div id="l34-panel-events" className="l34-tab-content fade-in" role="tabpanel" aria-labelledby="l34-tab-events">
-          <p className="l34-intro">Join us at these upcoming actions and meetings.</p>
+      {(activeTab === 'events' || isUnified) && (
+        <div id="l34-panel-events" className={`l34-tab-content fade-in ${isUnified ? 'l34-events-panel--unified' : ''}`} role="tabpanel" aria-labelledby={isUnified ? undefined : 'l34-tab-events'}>
+          {!isUnified && (
+            <p className="l34-intro">Join us at these upcoming actions and meetings.</p>
+          )}
+          {isUnified && (
+            <h2 className="l34-unified-section-title">Upcoming events</h2>
+          )}
 
-          {UPCOMING_EVENTS.map((event) => (
+          {!events.length ? (
+            <p className="l34-event-empty">No upcoming events are published yet. Please check back soon.</p>
+          ) : null}
+
+          {events.map((event) => {
+            const isBanner = isBannerImageBySlug[event.slug] ?? true;
+            const imageLinkClass = `l34-event-image-link ${isBanner ? 'l34-event-image-link-banner' : 'l34-event-image-link-float'}`;
+            const imageClass = `l34-event-image ${isBanner ? 'l34-event-image-banner' : 'l34-event-image-float'}`;
+            return (
             <article key={event.slug} id={`event-${event.slug}`} className="l34-event-card">
               <div className="l34-event-date">
                 <span className="l34-month">{event.month}</span>
@@ -425,207 +851,224 @@ const ActionCenter = ({ zoomBase = DEFAULT_ZOOM_BASE }) => {
               </div>
               <div className="l34-event-details">
                 <h3 className="l34-event-title">{event.title}</h3>
-                <div className="l34-event-meta">
-                  {event.meta.map((m, i) => (
-                    <span key={i}>{m}</span>
-                  ))}
-                </div>
-                <p className="l34-event-address">{event.address}</p>
-                <p className="l34-event-desc">{event.desc}</p>
-                {event.details?.map((detail, idx) => (
-                  <p key={`${event.slug}-detail-${idx}`} className="l34-event-detail">
-                    {detail}
-                  </p>
-                ))}
-                {event.parkingLocations?.length || event.shuttleLocations?.length ? (
-                  <details className="l34-event-expand">
-                    <summary className="l34-event-expand-summary">{event.transportTitle || 'Parking & Shuttle Pickup'}</summary>
-                    <section className="l34-event-subsection" aria-label="Parking and shuttle information">
-                      {event.parkingLocations?.length ? (
-                        <>
-                          <h4 className="l34-event-subtitle">{event.parkingTitle || 'Parking Details'}</h4>
-                          <ul className="l34-event-list">
-                            {event.parkingLocations.map((location) => (
-                              <li key={`${event.slug}-parking-${location.label}`}>
-                                {location.href ? (
-                                  <a
-                                    href={location.href}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="l34-event-location-link"
-                                  >
-                                    {location.label}
-                                  </a>
-                                ) : (
-                                  location.label
-                                )}
-                              </li>
-                            ))}
-                          </ul>
-                        </>
-                      ) : null}
-                      {event.shuttleLocations?.length ? (
-                        <>
-                          <h4 className="l34-event-subtitle">{event.shuttleTitle || 'Shuttle Pickup Locations'}</h4>
-                          {event.shuttleIntro ? <p className="l34-event-detail l34-event-subintro">{event.shuttleIntro}</p> : null}
-                          <ul className="l34-event-list">
-                            {event.shuttleLocations.map((location) => (
-                              <li key={`${event.slug}-shuttle-${location.label}`}>
-                                {location.href ? (
-                                  <a
-                                    href={location.href}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="l34-event-location-link"
-                                  >
-                                    {location.label}
-                                  </a>
-                                ) : (
-                                  location.label
-                                )}
-                              </li>
-                            ))}
-                          </ul>
-                        </>
-                      ) : null}
-                      {event.parkingMaps?.length || event.shuttleMaps?.length ? (
-                        <>
-                          <h4 className="l34-event-subtitle">Maps</h4>
-                          <div className="l34-event-map-grid">
-                            {[...(event.shuttleMaps || []), ...(event.parkingMaps || [])].map((mapImage) => (
-                              <figure key={`${event.slug}-${mapImage.src}`} className="l34-event-map-card">
-                                {mapImage.href ? (
-                                  <a
-                                    href={mapImage.href}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="l34-event-map-link"
-                                    aria-label={`Open map for ${mapImage.caption}`}
-                                  >
-                                    <img src={mapImage.src} alt={mapImage.alt} loading="lazy" className="l34-event-map-image" />
-                                  </a>
-                                ) : (
-                                  <img src={mapImage.src} alt={mapImage.alt} loading="lazy" className="l34-event-map-image" />
-                                )}
-                                <figcaption>{mapImage.caption}</figcaption>
-                              </figure>
-                            ))}
-                          </div>
-                        </>
-                      ) : null}
-                    </section>
-                  </details>
+                {event.imageUrl ? (
+                  event.eventUrl ? (
+                    <a href={event.eventUrl} target="_blank" rel="noopener noreferrer" className={imageLinkClass}>
+                      <img
+                        src={event.imageUrl}
+                        alt={event.imageAlt || `${event.title} image`}
+                        loading="lazy"
+                        className={imageClass}
+                        onLoad={(eventObj) => markImageKind(event.slug, eventObj.currentTarget)}
+                      />
+                    </a>
+                  ) : (
+                    <img
+                      src={event.imageUrl}
+                      alt={event.imageAlt || `${event.title} image`}
+                      loading="lazy"
+                      className={imageClass}
+                      onLoad={(eventObj) => markImageKind(event.slug, eventObj.currentTarget)}
+                    />
+                  )
                 ) : null}
-                <button
-                  type="button"
-                  className="l34-btn"
-                  onClick={() => {
-                    const open = rsvpEventSlug !== event.slug;
-                    setRsvpEventSlug(open ? event.slug : null);
-                    if (open && typeof window.__trackEvent === 'function') {
-                      window.__trackEvent('actions_rsvp_open', { event_name: event.title });
-                    }
-                  }}
-                >
-                  {rsvpEventSlug === event.slug ? 'Close RSVP' : event.rsvpLabel || 'RSVP'}
-                </button>
-                {rsvpEventSlug === event.slug && (
-                  <div className="l34-form-container fade-in">
-                    <form
-                      action={`https://unitehere.jotform.com/submit/${event.jotformId}`}
-                      method="post"
-                      target="_self"
-                      encType="application/x-www-form-urlencoded"
-                      aria-label="RSVP form"
-                      onSubmit={() => {
-                        if (typeof window.__trackEvent === 'function') {
-                          window.__trackEvent('actions_rsvp_submit', { event_name: event.title });
-                        }
-                      }}
-                    >
-                      <input type="hidden" name="formID" value={event.jotformId} />
-                      <label htmlFor="l34-rsvp-first" className="l34-label">
-                        Name *
-                      </label>
-                      <div className="l34-form-row">
-                        <input
-                          id="l34-rsvp-first"
-                          type="text"
-                          name="q3_name[first]"
-                          placeholder="First name"
-                          required
-                          className="l34-input"
-                          autoComplete="given-name"
-                        />
-                        <input
-                          id="l34-rsvp-last"
-                          type="text"
-                          name="q3_name[last]"
-                          placeholder="Last name"
-                          required
-                          className="l34-input"
-                          autoComplete="family-name"
-                          aria-label="Last name"
-                        />
-                      </div>
-                      <label htmlFor="l34-rsvp-email" className="l34-label">
-                        Email *
-                      </label>
-                      <input
-                        id="l34-rsvp-email"
-                        type="email"
-                        name="q4_email"
-                        required
-                        className="l34-input"
-                        autoComplete="email"
-                      />
-                      <label htmlFor="l34-rsvp-phone" className="l34-label">
-                        Phone
-                      </label>
-                      <input
-                        id="l34-rsvp-phone"
-                        type="tel"
-                        name="q5_phoneNumber[full]"
-                        placeholder="(000) 000-0000"
-                        className="l34-input"
-                        autoComplete="tel"
-                      />
-                      <small className="l34-disclaimer" id="l34-rsvp-disclaimer">
-                        By submitting your cell # and email, you are opting into mobile and email outreach from UNITE
-                        HERE! and its allies. Standard rates apply. Cancel anytime by replying STOP.
-                      </small>
-                      <label htmlFor="l34-rsvp-org" className="l34-label">
-                        Organization *
-                      </label>
-                      <select id="l34-rsvp-org" name="q6_organization" className="l34-input" required>
-                        <option value="">Select…</option>
-                        <option value="New Haven Rising">New Haven Rising</option>
-                        <option value="Local 34-UNITE HERE!">Local 34-UNITE HERE!</option>
-                        <option value="Local 33 – UNITE HERE!">Local 33 – UNITE HERE!</option>
-                        <option value="Local 35 – UNITE HERE!">Local 35 – UNITE HERE!</option>
-                        <option value="Local 217 – UNITE HERE!">Local 217 – UNITE HERE!</option>
-                        <option value="SUNY URA">SUNY URA</option>
-                        <option value="Other">Other</option>
-                      </select>
-                      <label htmlFor="l34-rsvp-org-other" className="l34-label">
-                        Other organization (if not listed)
-                      </label>
-                      <input
-                        id="l34-rsvp-org-other"
-                        type="text"
-                        name="q7_whatOrganization"
-                        placeholder="Optional"
-                        className="l34-input"
-                      />
-                      <button type="submit" className="l34-btn l34-submit-btn">
-                        Submit RSVP
-                      </button>
-                    </form>
+                {event.cancelled ? (
+                  <div className="l34-event-cancelled-banner" role="status" aria-live="polite">
+                    <strong className="l34-event-cancelled-label">Cancelled</strong>
+                    <p className="l34-event-cancelled-message">{event.cancellationMessage}</p>
                   </div>
-                )}
+                ) : null}
+                {event.meta?.length ? (
+                  <div className="l34-event-meta">
+                    {event.meta.map((m, i) =>
+                      isExternalUrl(m) ? (
+                        <a
+                          key={i}
+                          href={m}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="l34-event-location-link"
+                        >
+                          {m}
+                        </a>
+                      ) : (
+                        <span key={i}>{m}</span>
+                      )
+                    )}
+                  </div>
+                ) : null}
+                {event.address ? (
+                  <p className="l34-event-address">
+                    {isExternalUrl(event.address) ? (
+                      <a href={event.address} target="_blank" rel="noopener noreferrer" className="l34-event-location-link">
+                        {event.address}
+                      </a>
+                    ) : (
+                      event.address
+                    )}
+                  </p>
+                ) : null}
+                {(() => {
+                  const bodyTextLength =
+                    plainTextLength(event.desc) + (event.details || []).reduce((sum, detail) => sum + plainTextLength(detail), 0);
+                  const hasExpandableText = bodyTextLength > 100;
+                  const expanded = Boolean(expandedTextBySlug[event.slug]);
+                  const bodyId = `event-body-${event.slug}`;
+                  return (
+                    <>
+                      <div
+                        id={bodyId}
+                        className={`l34-event-body-preview ${expanded ? 'is-expanded' : ''}`}
+                      >
+                        {event.desc ? (
+                          <div
+                            className="l34-event-desc l34-event-richtext"
+                            dangerouslySetInnerHTML={{ __html: toEventHtml(event.desc) }}
+                          />
+                        ) : null}
+                        {event.details?.map((detail, idx) => (
+                          <div
+                            key={`${event.slug}-detail-${idx}`}
+                            className="l34-event-detail l34-event-richtext"
+                            dangerouslySetInnerHTML={{ __html: toEventHtml(detail) }}
+                          />
+                        ))}
+                      </div>
+                      {hasExpandableText ? (
+                        <button
+                          type="button"
+                          className="l34-event-expand-toggle"
+                          aria-expanded={expanded}
+                          aria-controls={bodyId}
+                          onClick={() => {
+                            setExpandedTextBySlug((prev) => ({ ...prev, [event.slug]: !expanded }));
+                          }}
+                        >
+                          <span className="l34-event-expand-icon" aria-hidden />
+                          {expanded ? 'Show less' : 'Read more'}
+                        </button>
+                      ) : null}
+                    </>
+                  );
+                })()}
+                {!event.cancelled ? (
+                  <>
+                    {Boolean(
+                      event.jotformSchema?.action &&
+                        Array.isArray(event.jotformSchema.fields) &&
+                        event.jotformSchema.fields.length
+                    ) ||
+                    event.mobilizeUrl ? (
+                      <div className="l34-event-actions-row">
+                        <div className="l34-event-actions">
+                          {Boolean(
+                            event.jotformSchema?.action &&
+                              Array.isArray(event.jotformSchema.fields) &&
+                              event.jotformSchema.fields.length
+                          ) ? (
+                            submittedEventSlugs.includes(event.slug) ? (
+                              <span className="l34-submitted-badge" role="status">
+                                <span className="l34-submitted-check" aria-hidden>✓</span> Submitted
+                              </span>
+                            ) : (
+                            <button
+                              type="button"
+                              className="l34-btn"
+                              onClick={() => {
+                                const open = rsvpEventSlug !== event.slug;
+                                setRsvpEventSlug(open ? event.slug : null);
+                                if (open && typeof window.__trackEvent === 'function') {
+                                  window.__trackEvent('actions_rsvp_open', { event_name: event.title, destination: 'jotform' });
+                                }
+                              }}
+                            >
+                              {rsvpEventSlug === event.slug ? 'Close RSVP' : event.rsvpLabel || 'Submit'}
+                            </button>
+                            )
+                          ) : null}
+                          {event.mobilizeUrl ? (
+                            <a
+                              className="l34-btn"
+                              href={event.mobilizeUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={() => {
+                                if (typeof window.__trackEvent === 'function') {
+                                  window.__trackEvent('actions_rsvp_open', { event_name: event.title, destination: 'mobilize' });
+                                }
+                              }}
+                            >
+                              {Boolean(
+                                event.jotformSchema?.action &&
+                                  Array.isArray(event.jotformSchema.fields) &&
+                                  event.jotformSchema.fields.length
+                              )
+                                ? 'Complete Mobilize Sign-up'
+                                : event.rsvpLabel || "I'll Be There on Mobilize"}
+                            </a>
+                          ) : null}
+                        </div>
+                        <button
+                          type="button"
+                          className="l34-event-share-icon-btn"
+                          aria-label={`Share ${event.title}`}
+                          title="Share this event"
+                          onClick={() => {
+                            shareEvent(event);
+                          }}
+                        >
+                          ↗
+                        </button>
+                      </div>
+                    ) : null}
+                    {Boolean(
+                      event.jotformSchema?.action &&
+                        Array.isArray(event.jotformSchema.fields) &&
+                        event.jotformSchema.fields.length
+                    ) &&
+                      rsvpEventSlug === event.slug && (
+                      <div className="l34-form-container fade-in">
+                        {event.jotformSchema?.action && Array.isArray(event.jotformSchema.fields) && event.jotformSchema.fields.length ? (
+                          <form
+                            key={event.slug}
+                            action={event.jotformSchema.action}
+                            method="post"
+                            encType="application/x-www-form-urlencoded"
+                            autoComplete="on"
+                            aria-label={`RSVP form for ${event.title}`}
+                            onChange={(eventObj) => onDynamicFormChange(event.slug, eventObj.target)}
+                            onSubmit={(e) => handleJotformSubmit(e, event.slug, event.title)}
+                          >
+                            <input type="hidden" name="event_slug" value={event.slug} />
+                            <input type="hidden" name="event_title" value={event.title || ''} />
+                            {(event.jotformSchema.hiddenFields || []).map((hiddenField, hiddenIndex) => (
+                              <input
+                                key={`${hiddenField.name}-${hiddenIndex}`}
+                                type="hidden"
+                                name={hiddenField.name}
+                                value={hiddenField.value || ''}
+                              />
+                            ))}
+                            {event.jotformSchema.fields
+                              .filter((field) => isJotformFieldVisible(event, field))
+                              .map((field, fieldIndex) => renderJotformField(event, field, fieldIndex))}
+                            <button
+                              type="submit"
+                              className="l34-btn l34-submit-btn"
+                              disabled={submittingSlug === event.slug}
+                            >
+                              {submittingSlug === event.slug ? 'Submitting…' : 'Submit'}
+                            </button>
+                          </form>
+                        ) : null}
+                      </div>
+                    )}
+                  </>
+                ) : null}
               </div>
             </article>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

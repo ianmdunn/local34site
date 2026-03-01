@@ -9,9 +9,21 @@ import tailwind from '@astrojs/tailwind';
 import mdx from '@astrojs/mdx';
 import icon from 'astro-icon';
 import compress from 'astro-compress';
+import pagefind from 'astro-pagefind';
 import astrowind from './vendor/integration';
 
-import { readingTimeRemarkPlugin, responsiveTablesRehypePlugin, lazyImagesRehypePlugin } from './src/utils/frontmatter';
+import { contractMdxApiPlugin } from './scripts/vite-plugin-contract-mdx-api';
+
+import {
+  readingTimeRemarkPlugin,
+  responsiveTablesRehypePlugin,
+  lazyImagesRehypePlugin,
+  contractFormattingRehypePlugin,
+  contractInlineClauseBreaksRehypePlugin,
+  mergeContractContinuationParagraphsRehypePlugin,
+  contractBulletLevelRehypePlugin,
+  contractSectionIdsRehypePlugin,
+} from './src/utils/frontmatter';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -28,7 +40,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   // Fallback; astrowind integration overwrites from config.yaml
-  site: 'https://local34.org',
+  site: 'https://www.local34.org',
   output: 'static',
   trailingSlash: 'never',
 
@@ -88,6 +100,8 @@ export default defineConfig({
       Logger: 1,
     }),
 
+    // Pagefind is only used by the contract page; skip when contract is excluded
+    ...(process.env.CONTRACT_READER_BUILD === 'true' ? [pagefind()] : []),
     astrowind({
       config: './src/config.yaml',
     }),
@@ -95,10 +109,19 @@ export default defineConfig({
 
   markdown: {
     remarkPlugins: [readingTimeRemarkPlugin],
-    rehypePlugins: [responsiveTablesRehypePlugin, lazyImagesRehypePlugin],
+    rehypePlugins: [
+      responsiveTablesRehypePlugin,
+      lazyImagesRehypePlugin,
+      contractFormattingRehypePlugin,
+      contractInlineClauseBreaksRehypePlugin,
+      mergeContractContinuationParagraphsRehypePlugin,
+      contractBulletLevelRehypePlugin,
+      contractSectionIdsRehypePlugin,
+    ],
   },
 
   vite: {
+    plugins: [contractMdxApiPlugin()],
     envPrefix: ['VITE_', 'PUBLIC_'],
     server: {
       // Allow source map requests from DevTools (fixes Safari "access control checks" on .js.map)

@@ -241,10 +241,14 @@ async function main() {
   }
 
   const files = await getAllFiles(astroDir, astroDir);
-  console.log(`Found ${files.length} optimized asset file(s)\n`);
+  const total = files.length;
+  console.log(`Found ${total} optimized asset file(s)\n`);
 
   // Upload files
+  let idx = 0;
   for (const file of files) {
+    idx++;
+    process.stdout.write(`[${idx}/${total}] `);
     const gcsPath = await uploadFile(file.localPath, file.relativePath);
     if (gcsPath) {
       uploadedFiles.set(gcsPath, true);

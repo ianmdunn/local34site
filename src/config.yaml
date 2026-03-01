@@ -1,6 +1,6 @@
 site:
   name: Local 34-UNITE HERE!
-  site: https://local34.org
+  site: https://www.local34.org
   base: /
   trailingSlash: false
   googleSiteVerificationId: null # Set to your Google Search Console ID when ready

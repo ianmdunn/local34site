@@ -1,0 +1,1792 @@
+---
+/**
+ * 2021 - 2026 Contract (/2021-2026-contract)
+ *
+ * Reader interface: one continuous page, one article at a time.
+ * Chapters load from /2021-2026-contract/sections/ (intro + each article).
+ */
+import path from 'node:path';
+import { readFile } from 'node:fs/promises';
+import PageLayout from '~/layouts/PageLayout.astro';
+import { PAGE_SECTION_CLASS } from '~/lib/layout';
+import { getCollection } from 'astro:content';
+import { CONTRACT_ARTICLE_META } from '~/data/contract-map';
+
+export const prerender = import.meta.env.DEV || import.meta.env.CONTRACT_READER_BUILD === 'true';
+
+if (!import.meta.env.DEV) {
+  return Astro.redirect('/our-contract');
+}
+
+const sitePages = await getCollection('sitePages');
+const contractEntry = sitePages.find((page) => page.slug === '2021-2026-contract');
+const contractData = contractEntry?.data ?? {
+  title: '2021 - 2026 Contract',
+  description: 'Full text of the 2021–2026 collective bargaining agreement between Local 34 and Yale University.',
+};
+
+const contractMdxPath = path.join(process.cwd(), 'src/content/sitePages/2021-2026-contract.mdx');
+const contractMdx = await readFile(contractMdxPath, 'utf-8');
+const sectionRegex = /<details([^>]*)>\s*<summary[^>]*data-title="([^"]+)"[^>]*\s*(?:\/>|><\/summary>)/g;
+const sections: Array<{ id: string; title: string }> = [];
+
+for (const match of contractMdx.matchAll(sectionRegex)) {
+  const attrs = match[1];
+  if (!attrs.includes('contract-accordion')) continue;
+  const idMatch = attrs.match(/id="([^"]+)"/);
+  if (!idMatch) continue;
+  sections.push({ id: idMatch[1], title: match[2] });
+}
+
+const chapters = [
+  {
+    id: 'intro',
+    title: 'Agreement',
+    category: 'Core Rights',
+    summary: 'Opening agreement terms and scope.',
+    related: [],
+  },
+  ...sections.map((section) => {
+    const meta = CONTRACT_ARTICLE_META[section.id];
+    return {
+      id: section.id,
+      title: section.title,
+      category: meta?.category ?? 'Workplace',
+      summary: meta?.summary ?? 'Contract language and implementation details.',
+      related: meta?.related ?? [],
+    };
+  }),
+];
+
+const pageMetadata = {
+  title: contractData.title,
+  description: 'description' in contractData ? contractData.description : undefined,
+};
+
+const proseClass =
+  'prose max-w-none dark:prose-invert prose-headings:font-heading prose-headings:leading-tight prose-headings:tracking-tight prose-headings:font-bold prose-a:text-primary dark:prose-a:text-primary prose-li:my-1 prose-ul:my-3 prose-ol:my-3 prose-p:my-2 prose-table:text-sm';
+---
+
+<PageLayout metadata={pageMetadata}>
+  <section class={PAGE_SECTION_CLASS} data-section="contract-2021-2026" id="contract-2021-2026">
+    <div class="mx-auto max-w-6xl w-full">
+      <div class="page-title-section">
+        <h1 class="font-bold font-heading text-3xl md:text-4xl leading-tighter tracking-tighter">
+          {contractData.title}
+        </h1>
+        {
+          contractData.description ? (
+            <p class="mt-4 text-base text-gray-600 dark:text-gray-400">{contractData.description}</p>
+          ) : null
+        }
+      </div>
+
+      <div class="contract-search-wrap">
+        <label for="contract-search" class="sr-only">Search contract</label>
+        <input
+          id="contract-search"
+          class="contract-search-input"
+          type="search"
+          placeholder="Search this contract (try: grievance, overtime, sick leave)"
+          autocomplete="off"
+          data-contract-search
+        />
+        <div class="contract-search-results" data-contract-search-results aria-live="polite"></div>
+      </div>
+
+      <div class="contract-reader-layout">
+        <aside class="contract-toc" data-contract-toc>
+          <div class="contract-toc-header">
+            <h2>Contents</h2>
+          </div>
+          <ul class="contract-toc-list">
+            {chapters.map((ch) => (
+              <li>
+                <button type="button" class="contract-toc-link" data-contract-open={ch.id}>
+                  <span>{ch.title}</span>
+                  {ch.category !== 'Workplace' ? <small>{ch.category}</small> : null}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </aside>
+
+        <div class="contract-main">
+          <div class="contract-reader-toolbar">
+            <button type="button" class="contract-reader-btn" data-contract-toc-toggle>
+              Contents
+            </button>
+            <div class="contract-breadcrumb" data-contract-breadcrumb>
+              Agreement
+            </div>
+            <div class="contract-reader-tools">
+              <a
+                id="contract-edit-mdx-link"
+                href="/dev/contract-mdx"
+                class="contract-reader-btn"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Edit this section
+              </a>
+              <button type="button" class="contract-reader-btn" data-contract-bookmark>
+                Bookmark
+              </button>
+              <button type="button" class="contract-reader-btn" data-contract-share>
+                Share
+              </button>
+              <button type="button" class="contract-reader-btn" data-contract-print>
+                Print
+              </button>
+            </div>
+          </div>
+
+          <nav class="contract-reader-nav" aria-label="Chapter navigation">
+            <button type="button" class="contract-reader-btn contract-reader-prev" data-contract-prev disabled>
+              ← Previous
+            </button>
+            <div class="contract-reader-select-wrap">
+              <label for="contract-chapter-select" class="sr-only">Jump to chapter</label>
+              <select
+                id="contract-chapter-select"
+                class="contract-reader-select"
+                aria-label="Select chapter"
+              >
+                {chapters.map((ch) => (
+                  <option value={ch.id}>{ch.title}</option>
+                ))}
+              </select>
+              <span class="contract-reader-caret" aria-hidden="true">▼</span>
+            </div>
+            <button type="button" class="contract-reader-btn contract-reader-next" data-contract-next>
+              Next →
+            </button>
+          </nav>
+
+          <div class="contract-related" data-contract-related></div>
+
+          <div
+            class={`contract-reader-content ${proseClass}`}
+            id="contract-content"
+            role="article"
+            aria-busy="true"
+            aria-live="polite"
+          >
+            <p class="text-gray-500">Loading…</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="contract-toc-drawer hidden" data-contract-toc-drawer>
+      <div class="contract-toc-drawer-panel">
+        <div class="contract-toc-header">
+          <h2>Jump to chapter</h2>
+          <button class="contract-reader-btn" type="button" data-contract-toc-close>Close</button>
+        </div>
+        <ul class="contract-toc-list">
+          {chapters.map((ch) => (
+            <li>
+              <button type="button" class="contract-toc-link" data-contract-open={ch.id}>
+                <span>{ch.title}</span>
+                {ch.category !== 'Workplace' ? <small>{ch.category}</small> : null}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  </section>
+</PageLayout>
+
+<script
+  define:vars={{
+    chapters: JSON.stringify(chapters),
+    articleMeta: JSON.stringify(CONTRACT_ARTICLE_META),
+  }}
+>
+  const SECTION_BASE = '/contract-sections';
+  const contentEl = document.getElementById('contract-content');
+  const selectEl = document.getElementById('contract-chapter-select');
+  const prevBtn = document.querySelector('[data-contract-prev]');
+  const nextBtn = document.querySelector('[data-contract-next]');
+  const relatedEl = document.querySelector('[data-contract-related]');
+  const breadcrumbEl = document.querySelector('[data-contract-breadcrumb]');
+  const searchInputEl = document.querySelector('[data-contract-search]');
+  const searchResultsEl = document.querySelector('[data-contract-search-results]');
+  const bookmarkBtn = document.querySelector('[data-contract-bookmark]');
+  const shareBtn = document.querySelector('[data-contract-share]');
+  const printBtn = document.querySelector('[data-contract-print]');
+  const tocDrawer = document.querySelector('[data-contract-toc-drawer]');
+  const tocToggleBtn = document.querySelector('[data-contract-toc-toggle]');
+  const tocCloseBtn = document.querySelector('[data-contract-toc-close]');
+  const tocSidebar = document.querySelector('[data-contract-toc]');
+
+  const chapterList = typeof chapters === 'string' ? JSON.parse(chapters) : chapters;
+  const articleMetaMap = typeof articleMeta === 'string' ? JSON.parse(articleMeta) : articleMeta;
+  const BOOKMARK_KEY = 'contract-reader-bookmarks';
+  const DEBUG_PARSER_FLAG = 'contract-parser-debug';
+
+  function escapeHtml(text) {
+    const s = String(text ?? '');
+    return s
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+  const isParserDebugEnabled = () =>
+    window.location.search.includes('contractDebug=1') || localStorage.getItem(DEBUG_PARSER_FLAG) === '1';
+  let currentChapterId = 'intro';
+  let currentQuery = '';
+  let localTextIndex = null;
+  let pagefindApi = null;
+  let searchDebounce = null;
+
+  function track(name, data = {}) {
+    if (typeof window.__trackEvent === 'function') {
+      window.__trackEvent(name, data);
+    }
+  }
+
+  /** Map "Article IX" -> { id, title } for citation hovers */
+  const articleMap = new Map();
+  for (const ch of chapterList) {
+    if (ch.id.startsWith('article-')) {
+      const m = ch.id.match(/^article-([a-z]+)-/);
+      if (m) {
+        const roman = m[1].toUpperCase();
+        articleMap.set(`Article ${roman}`, { id: ch.id, title: ch.title });
+      }
+    }
+  }
+
+  /** @type {Map<string, Promise<string>>} */
+  const cache = new Map();
+
+  async function loadChapter(id) {
+    let p = cache.get(id);
+    if (!p) {
+      p = fetch(`${SECTION_BASE}/${id}.html`).then((r) => {
+        if (!r.ok) throw new Error(`Failed to load ${id}`);
+        return r.text();
+      });
+      cache.set(id, p);
+    }
+    return p;
+  }
+
+  function chapterFromId(id) {
+    return chapterList.find((ch) => ch.id === id);
+  }
+
+  /** Parse hash like "article-i-recognition-s2-a" into { chapterId, sectionId } */
+  function parseContractHash(hash) {
+    if (!hash) return { chapterId: null, sectionId: null };
+    const ch = chapterList.find((c) => c.id === hash || hash.startsWith(c.id + '-s'));
+    if (!ch) return { chapterId: hash, sectionId: null };
+    return { chapterId: ch.id, sectionId: hash.startsWith(ch.id + '-s') ? hash : null };
+  }
+
+  function updateActiveChapterUi(id) {
+    currentChapterId = id;
+    const chapter = chapterFromId(id);
+    if (breadcrumbEl) {
+      breadcrumbEl.textContent = `Agreement > ${chapter?.title ?? 'Agreement'}`;
+    }
+
+    const editLink = document.getElementById('contract-edit-mdx-link');
+    if (editLink) {
+      editLink.href = `/dev/contract-mdx?section=${encodeURIComponent(id)}`;
+    }
+
+    document.querySelectorAll('[data-contract-open]').forEach((btn) => {
+      const active = btn.getAttribute('data-contract-open') === id;
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-current', active ? 'true' : 'false');
+    });
+
+    renderRelatedLinks(id);
+    updateBookmarkButton();
+  }
+
+  function getBookmarks() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(BOOKMARK_KEY) || '[]');
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function setBookmarks(items) {
+    localStorage.setItem(BOOKMARK_KEY, JSON.stringify(items));
+  }
+
+  function updateBookmarkButton() {
+    if (!bookmarkBtn) return;
+    const bookmarks = getBookmarks();
+    const isBookmarked = bookmarks.includes(currentChapterId);
+    bookmarkBtn.textContent = isBookmarked ? 'Bookmarked' : 'Bookmark';
+  }
+
+  function toggleBookmark() {
+    const bookmarks = getBookmarks();
+    const isBookmarked = bookmarks.includes(currentChapterId);
+    const next = isBookmarked ? bookmarks.filter((id) => id !== currentChapterId) : [...bookmarks, currentChapterId];
+    setBookmarks(next);
+    updateBookmarkButton();
+    track('contract_bookmark_toggle', { chapter_id: currentChapterId, bookmarked: !isBookmarked });
+  }
+
+  function renderRelatedLinks(id) {
+    if (!relatedEl) return;
+    const relatedIds = articleMetaMap?.[id]?.related || [];
+    if (!relatedIds.length) {
+      relatedEl.innerHTML = '';
+      return;
+    }
+
+    const linksHtml = relatedIds
+      .map((relatedId) => {
+        const chapter = chapterFromId(relatedId);
+        if (!chapter) return '';
+        return `<li><button type="button" class="contract-related-link" data-contract-open="${escapeHtml(chapter.id)}">${escapeHtml(chapter.title)}</button></li>`;
+      })
+      .filter(Boolean)
+      .join('');
+
+    relatedEl.innerHTML = `<p class="contract-related-label">Related articles</p><ul class="contract-related-list">${linksHtml}</ul>`;
+  }
+
+  function clearSearchResults(message = '') {
+    if (!searchResultsEl) return;
+    searchResultsEl.innerHTML = message ? `<p class="contract-search-empty">${escapeHtml(message)}</p>` : '';
+  }
+
+  async function getPagefindApi() {
+    if (pagefindApi) return pagefindApi;
+    try {
+      pagefindApi = await import('/pagefind/pagefind.js');
+      return pagefindApi;
+    } catch {
+      return null;
+    }
+  }
+
+  function stripHtml(html) {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    return div.textContent || '';
+  }
+
+  function highlightMatchesInContent(query) {
+    if (!query || query.length < 2) return;
+    const matcher = new RegExp(query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'ig');
+    const walker = document.createTreeWalker(contentEl, NodeFilter.SHOW_TEXT, null, false);
+    const targets = [];
+    let node;
+    let count = 0;
+    while ((node = walker.nextNode()) && count < 25) {
+      if (!node.parentNode || node.parentNode.closest?.('script, style, mark')) continue;
+      const text = node.textContent || '';
+      if (!matcher.test(text)) continue;
+      matcher.lastIndex = 0;
+      targets.push(node);
+      count++;
+    }
+
+    for (const target of targets) {
+      const text = target.textContent || '';
+      const frag = document.createDocumentFragment();
+      let last = 0;
+      let match;
+      matcher.lastIndex = 0;
+      while ((match = matcher.exec(text)) !== null) {
+        if (match.index > last) frag.appendChild(document.createTextNode(text.slice(last, match.index)));
+        const mark = document.createElement('mark');
+        mark.className = 'contract-hit';
+        mark.textContent = match[0];
+        frag.appendChild(mark);
+        last = match.index + match[0].length;
+      }
+      if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+      target.parentNode.replaceChild(frag, target);
+    }
+  }
+
+  async function buildLocalTextIndex() {
+    if (localTextIndex) return localTextIndex;
+    const entries = await Promise.all(
+      chapterList.map(async (ch) => {
+        const html = await loadChapter(ch.id).catch(() => '');
+        return { id: ch.id, title: ch.title, text: stripHtml(html).toLowerCase() };
+      })
+    );
+    localTextIndex = entries;
+    return entries;
+  }
+
+  async function searchContract(query) {
+    if (!query || query.length < 2) {
+      clearSearchResults('');
+      return;
+    }
+
+    currentQuery = query;
+    let normalized = query.trim();
+    let rows = [];
+
+    const api = await getPagefindApi();
+    if (api?.search) {
+      try {
+        const result = await api.search(normalized);
+        rows = await Promise.all(
+          (result.results || []).slice(0, 12).map(async (row) => {
+            const data = await row.data();
+            const url = data.url || '';
+            if (!url.includes('/contract-sections/') && !url.includes('/2021-2026-contract/sections/')) return null;
+            const id = url.split('/').pop()?.replace('.html', '') || '';
+            const chapter = chapterFromId(id);
+            if (!chapter) return null;
+            return {
+              id,
+              title: chapter.title,
+              excerpt: data.excerpt || chapter.summary || '',
+            };
+          })
+        );
+        rows = rows.filter(Boolean);
+      } catch (err) {
+        console.error('[contract-search] pagefind failed', err);
+      }
+    }
+
+    if (!rows.length) {
+      const index = await buildLocalTextIndex();
+      rows = index
+        .filter((entry) => entry.text.includes(normalized.toLowerCase()))
+        .slice(0, 12)
+        .map((entry) => {
+          const snippetStart = Math.max(0, entry.text.indexOf(normalized.toLowerCase()) - 45);
+          return {
+            id: entry.id,
+            title: entry.title,
+            excerpt: entry.text.slice(snippetStart, snippetStart + 140).replace(/\s+/g, ' '),
+          };
+        });
+    }
+
+    if (!rows.length) {
+      clearSearchResults(`No results for "${normalized}"`);
+      track('contract_search_zero_results', { query: normalized });
+      return;
+    }
+
+    const rowsHtml = rows
+      .map(
+        (row) =>
+          `<button type="button" class="contract-search-result" data-contract-open="${escapeHtml(row.id)}">
+             <strong>${escapeHtml(row.title)}</strong>
+             <span>${escapeHtml(row.excerpt)}</span>
+           </button>`
+      )
+      .join('');
+
+    searchResultsEl.innerHTML = `<p class="contract-search-meta">${rows.length} result${rows.length === 1 ? '' : 's'}</p>${rowsHtml}`;
+
+    track('contract_search_results', { query: normalized, count: rows.length });
+  }
+
+  function normalizeContractContinuations(chapterId) {
+    const SECTION_RE = /^\d+\.(?:\s|$)/;
+    const NUM_PAREN_RE = /^\d+\)\s/;
+    const ROMAN_RE = /^\((?:i|ii|iii|iv|v|vi|vii|viii|ix|x|xi|xii|xiii|xiv|xv|xvi|xvii|xviii|xix|xx)\)\s/i;
+    const ALPHA_RE = /^\([a-z]\)\s/i;
+    const startsNewClause = (text) => SECTION_RE.test(text) || NUM_PAREN_RE.test(text) || ROMAN_RE.test(text) || ALPHA_RE.test(text);
+    const MARKER_ONLY_RE =
+      /^(?:\d+\.|\([a-z]\)|\((?:i|ii|iii|iv|v|vi|vii|viii|ix|x|xi|xii|xiii|xiv|xv|xvi|xvii|xviii|xix|xx)\))$/i;
+    const clauseLevelFor = (paragraph) => paragraph.dataset.contractLevel || null;
+    const normalizedText = (paragraph) => (paragraph.textContent || '').replace(/\s+/g, ' ').trim();
+    const setStructuralLevel = (paragraph, level) => {
+      if (level) paragraph.dataset.contractLevel = level;
+      else delete paragraph.dataset.contractLevel;
+    };
+    const markerTypeForText = (text) => {
+      if (
+        /^\d+\.\s*\([a-z]\)\s*\((?:i|ii|iii|iv|v|vi|vii|viii|ix|x|xi|xii|xiii|xiv|xv|xvi|xvii|xviii|xix|xx)\)\s/i.test(
+          text
+        )
+      ) {
+        return 'section-alpha-roman';
+      }
+      if (/^\([a-z]\)\s*\((?:i|ii|iii|iv|v|vi|vii|viii|ix|x|xi|xii|xiii|xiv|xv|xvi|xvii|xviii|xix|xx)\)\s/i.test(text)) {
+        return 'alpha-roman';
+      }
+      if (/^\d+\.\s*\((?:i|ii|iii|iv|v|vi|vii|viii|ix|x|xi|xii|xiii|xiv|xv|xvi|xvii|xviii|xix|xx)\)\s/i.test(text)) {
+        return 'section-roman';
+      }
+      if (/^\d+\.\s*\([a-z]\)\s/i.test(text)) {
+        return 'section-alpha';
+      }
+      if (NUM_PAREN_RE.test(text)) return 'alpha';
+      if (SECTION_RE.test(text)) return 'section';
+      if (ROMAN_RE.test(text)) return 'roman';
+      if (ALPHA_RE.test(text)) return 'alpha';
+      return null;
+    };
+    const annotateMarkerMetadata = (paragraph, markerType, text) => {
+      if (markerType) paragraph.dataset.contractMarkerType = markerType;
+      else delete paragraph.dataset.contractMarkerType;
+
+      if (SECTION_RE.test(text)) paragraph.dataset.contractSectionRoot = '1';
+      else delete paragraph.dataset.contractSectionRoot;
+
+      if (markerType === 'alpha' || markerType === 'section-alpha' || markerType === 'numericParen') {
+        paragraph.dataset.contractListLevel = '2';
+      } else if (markerType === 'roman' || markerType === 'section-roman' || markerType === 'alpha-roman' || markerType === 'section-alpha-roman') {
+        paragraph.dataset.contractListLevel = '3';
+      } else if (markerType === 'section') {
+        paragraph.dataset.contractListLevel = '1';
+      } else {
+        delete paragraph.dataset.contractListLevel;
+      }
+    };
+    /** Convert ol>li (1,2,3…) to p with (a),(b),(c)… when in section>(a)(b)>(i) flow. */
+    const convertOlToAlphaClauses = () => {
+      const SECTION_RE = /^\d+\.(?:\s|$)/;
+      const ROMAN_RE = /^\((?:i|ii|iii|iv|v|vi|vii|viii|ix|x|xi|xii|xiii|xiv|xv|xvi|xvii|xviii|xix|xx)\)\s/i;
+      const ALPHA_RE = /^\([a-z]\)\s/i;
+      const ALPHA_LETTERS = 'abcdefghijklmnopqrstuvwxyz';
+
+      for (const ol of Array.from(contentEl.querySelectorAll('ol'))) {
+        const prev = ol.previousElementSibling;
+        const next = ol.nextElementSibling;
+        if (!prev || prev.tagName !== 'P') continue;
+        if (!next || next.tagName !== 'P') continue;
+
+        const prevText = (prev.textContent || '').replace(/\s+/g, ' ').trim();
+        const nextText = (next.textContent || '').replace(/\s+/g, ' ').trim();
+        if (!SECTION_RE.test(prevText)) continue;
+        if (!ROMAN_RE.test(nextText) && !ALPHA_RE.test(nextText)) continue;
+
+        const items = ol.querySelectorAll(':scope > li');
+        if (!items.length) continue;
+
+        const fragment = document.createDocumentFragment();
+        items.forEach((li, i) => {
+          const marker = `(${i < 26 ? ALPHA_LETTERS[i] : i + 1}) `;
+          const pChild = li.querySelector(':scope > p');
+          let body = pChild ? pChild.innerHTML : li.innerHTML;
+          body = body.replace(/^\s*\d+\.\s*/, '').trim();
+          const p = document.createElement('p');
+          p.innerHTML = marker + body;
+          fragment.appendChild(p);
+        });
+        ol.parentNode.replaceChild(fragment, ol);
+      }
+    };
+
+    const assignClauseClassesByFlow = () => {
+      const paragraphs = Array.from(contentEl.querySelectorAll('p'));
+      let lastClauseLevel = null;
+      let hasActiveSectionRoot = false;
+
+      for (const paragraph of paragraphs) {
+        const text = normalizedText(paragraph);
+        const markerType = markerTypeForText(text);
+        annotateMarkerMetadata(paragraph, markerType, text);
+
+        if (!markerType) {
+          if (!lastClauseLevel && text) {
+            setStructuralLevel(paragraph, 'level-1');
+            lastClauseLevel = 'level-1';
+          } else {
+            setStructuralLevel(paragraph, null);
+          }
+          continue;
+        }
+
+        if (markerType === 'section') {
+          setStructuralLevel(paragraph, 'level-1');
+          lastClauseLevel = 'level-1';
+          hasActiveSectionRoot = true;
+          continue;
+        }
+
+        if (markerType === 'section-alpha') {
+          setStructuralLevel(paragraph, 'level-2');
+          lastClauseLevel = 'level-2';
+          hasActiveSectionRoot = true;
+          continue;
+        }
+
+        if (markerType === 'section-alpha-roman') {
+          setStructuralLevel(paragraph, 'level-1');
+          lastClauseLevel = 'level-3';
+          hasActiveSectionRoot = true;
+          continue;
+        }
+
+        if (markerType === 'alpha') {
+          const alphaLevel = hasActiveSectionRoot ? 'level-2' : 'level-1';
+          setStructuralLevel(paragraph, alphaLevel);
+          lastClauseLevel = alphaLevel;
+          continue;
+        }
+
+        if (markerType === 'alpha-roman') {
+          setStructuralLevel(paragraph, 'level-2');
+          lastClauseLevel = 'level-3';
+          continue;
+        }
+
+        if (markerType === 'section-roman') {
+          setStructuralLevel(paragraph, 'level-2');
+          lastClauseLevel = 'level-2';
+          hasActiveSectionRoot = true;
+          continue;
+        }
+
+        // Roman markers follow alpha lists when available; otherwise keep them readable.
+        const romanLevel =
+          lastClauseLevel === 'level-2' || lastClauseLevel === 'level-3'
+            ? 'level-3'
+            : lastClauseLevel === 'level-1'
+              ? 'level-2'
+              : 'level-1';
+        setStructuralLevel(paragraph, romanLevel);
+        lastClauseLevel = romanLevel;
+      }
+    };
+    const collapseSectionLeadIntoFirstAlphaClause = () => {
+      const paragraphs = Array.from(contentEl.querySelectorAll('p'));
+      for (const paragraph of paragraphs) {
+        const sectionMarker = normalizedText(paragraph);
+        if (!/^\d+\.$/.test(sectionMarker)) continue;
+        const next = paragraph.nextElementSibling;
+        if (!next || next.tagName !== 'P') continue;
+        const nextText = normalizedText(next);
+        if (!ALPHA_RE.test(nextText)) continue;
+
+        next.innerHTML = `${sectionMarker} ${next.innerHTML.trim()}`;
+        paragraph.remove();
+      }
+    };
+    const ensureSectionNumbering = () => {
+      const SECTION_LEAD_RE = /^(\d+)\.(?:\s|$)/;
+      const paragraphs = Array.from(contentEl.querySelectorAll('p'));
+      let sectionCounter = 0;
+
+      for (const paragraph of paragraphs) {
+        const text = normalizedText(paragraph);
+        if (!text) continue;
+
+        const numberedLead = text.match(SECTION_LEAD_RE);
+        if (numberedLead) {
+          sectionCounter = Math.max(sectionCounter, Number(numberedLead[1]));
+          continue;
+        }
+
+        const isTopLevelClause =
+          paragraph.dataset.contractLevel === 'level-1' &&
+          !MARKER_ONLY_RE.test(normalizedText(paragraph));
+        if (!isTopLevelClause) continue;
+
+        sectionCounter += 1;
+        paragraph.innerHTML = `${sectionCounter}. ${paragraph.innerHTML.trim()}`;
+      }
+    };
+    // Some extracted clauses are packed into one paragraph:
+    // "(a) ... (b) ... (c) ...". Split those first so nesting/indent can apply.
+    const splitPackedClauses = () => {
+      const paragraphs = Array.from(contentEl.querySelectorAll('p'));
+      const splitRe =
+        /(?<=[.;:])\s+(?=(?:\d+\.|\d+\)|\([a-z]\)|\((?:i|ii|iii|iv|v|vi|vii|viii|ix|x|xi|xii|xiii|xiv|xv|xvi|xvii|xviii|xix|xx)\))\s)/gi;
+      const splitBeforeAlphaRe = /(?<=[.;:])\s+(?=\([b-z]\)\s+[A-Z])/gi;
+      for (const paragraph of paragraphs) {
+        let originalHtml = (paragraph.innerHTML || '').trim();
+        if (!originalHtml) continue;
+        let parts = originalHtml.split(splitRe).map((part) => part.trim()).filter(Boolean);
+        if (parts.length <= 1) {
+          const alphaParts = originalHtml.split(splitBeforeAlphaRe).map((p) => p.trim()).filter(Boolean);
+          if (alphaParts.length > 1) parts = alphaParts;
+        }
+        // Enforce hierarchy: "1." is top-level; "(a)" starts the nested level.
+        if (parts.length >= 1) {
+          const leadSplit = parts[0].match(
+            /^(\d+\.)\s+(\((?:[a-z]|i|ii|iii|iv|v|vi|vii|viii|ix|x|xi|xii|xiii|xiv|xv|xvi|xvii|xviii|xix|xx)\)\s[\s\S]*)$/i
+          );
+          if (leadSplit) {
+            parts.splice(0, 1, leadSplit[1], leadSplit[2]);
+          }
+        }
+        if (parts.length <= 1) continue;
+
+        paragraph.innerHTML = parts[0];
+        let insertAfter = paragraph;
+        for (let i = 1; i < parts.length; i++) {
+          const nextParagraph = document.createElement('p');
+          nextParagraph.innerHTML = parts[i];
+          insertAfter.insertAdjacentElement('afterend', nextParagraph);
+          insertAfter = nextParagraph;
+        }
+      }
+    };
+
+    convertOlToAlphaClauses();
+    splitPackedClauses();
+    assignClauseClassesByFlow();
+    collapseSectionLeadIntoFirstAlphaClause();
+    assignClauseClassesByFlow();
+    ensureSectionNumbering();
+    assignClauseClassesByFlow();
+
+    let changed = true;
+    while (changed) {
+      changed = false;
+      const paragraphs = Array.from(contentEl.querySelectorAll('p'));
+      for (let i = 0; i < paragraphs.length - 1; i++) {
+        const curr = paragraphs[i];
+        const next = paragraphs[i + 1];
+        if (!curr || !next) continue;
+
+        const isClauseLead = curr.dataset.contractLevel != null;
+        if (!isClauseLead) continue;
+
+        const currText = (curr.textContent || '').replace(/\s+/g, ' ').trim();
+        const nextText = (next.textContent || '').replace(/\s+/g, ' ').trim();
+        if (!currText || !nextText) continue;
+        if (startsNewClause(nextText)) continue;
+        if (/[.;:!?]$/.test(currText)) continue;
+
+        curr.appendChild(document.createTextNode(' '));
+        while (next.firstChild) curr.appendChild(next.firstChild);
+        next.remove();
+        changed = true;
+        break;
+      }
+    }
+
+    const paragraphs = Array.from(contentEl.querySelectorAll('p'));
+
+    /** Referential depth: indent in when preceding is higher level, indent out when lower. Only formatting output. */
+    const assignReferentialDepth = () => {
+      const levelToDepth = { section: 0, 'level-1': 1, 'level-2': 2, 'level-3': 3 };
+      let prevDepth = -1;
+
+      for (const p of paragraphs) {
+        const clauseLevel = clauseLevelFor(p);
+        const isContinuation = !clauseLevel && prevDepth >= 0 && !startsNewClause(normalizedText(p)) && normalizedText(p);
+        if (!clauseLevel && !isContinuation) {
+          p.removeAttribute('data-contract-depth');
+          prevDepth = -1;
+          continue;
+        }
+        if (isContinuation) {
+          p.dataset.contractDepth = String(prevDepth);
+          continue;
+        }
+        const isTopSection = p.dataset.contractMarkerType === 'section';
+        const targetDepth = levelToDepth[isTopSection ? 'section' : clauseLevel];
+        let depth;
+        if (prevDepth < 0) {
+          depth = isTopSection ? 0 : Math.max(0, targetDepth);
+        } else if (isTopSection) {
+          depth = 0;
+        } else {
+          depth = targetDepth > prevDepth ? prevDepth + 1 : targetDepth < prevDepth ? targetDepth : prevDepth;
+          depth = Math.max(0, Math.min(3, depth));
+        }
+        p.dataset.contractDepth = String(depth);
+        prevDepth = depth;
+      }
+
+      for (const p of paragraphs) delete p.dataset.contractLevel;
+    };
+    assignReferentialDepth();
+
+    // Combined bullet starts like "(a) (i) ..." should render as the deeper bullet,
+    // while visually keeping the parent bullet marker at the parent hanging-marker column.
+    const renderInlineParentBulletMarkers = () => {
+      const COMBINED_ALPHA_ROMAN_HTML_RE =
+        /^\s*(\([a-z]\))\s+(\((?:i|ii|iii|iv|v|vi|vii|viii|ix|x|xi|xii|xiii|xiv|xv|xvi|xvii|xviii|xix|xx)\)\s[\s\S]*)$/i;
+      for (const p of paragraphs) {
+        if (p.querySelector('.contract-inline-parent-marker')) continue;
+        const level = p.dataset.contractListLevel || '';
+        if (level !== '3' && level !== '2') continue;
+        const html = (p.innerHTML || '').trim();
+        const match = html.match(COMBINED_ALPHA_ROMAN_HTML_RE);
+        if (!match) continue;
+        p.innerHTML = `<span class="contract-inline-parent-marker" aria-hidden="true">${match[1]}</span> ${match[2]}`;
+        p.classList.add('contract-hanging-marker-combined');
+      }
+    };
+    renderInlineParentBulletMarkers();
+
+    // Ensure marker tokens hang cleanly before paragraph start.
+    const applyHangingMarkerLayout = () => {
+      const LEAD_MARKER_RE =
+        /^(\d+\.|\([a-z]\)|\((?:i|ii|iii|iv|v|vi|vii|viii|ix|x|xi|xii|xiii|xiv|xv|xvi|xvii|xviii|xix|xx)\))/i;
+      for (const p of paragraphs) {
+        const text = normalizedText(p);
+        const markerMatch = text.match(LEAD_MARKER_RE);
+        if (!markerMatch) {
+          p.classList.remove('contract-hanging-marker');
+          p.style.removeProperty('--contract-marker-hang');
+          continue;
+        }
+        const lead = markerMatch[1];
+        const isNumeric = /^\d+\.$/.test(lead);
+        const hangWidth = isNumeric ? Math.max(2.2, lead.length + 0.8) : 2.2;
+        p.classList.add('contract-hanging-marker');
+        p.style.setProperty('--contract-marker-hang', `${hangWidth}ch`);
+      }
+    };
+    applyHangingMarkerLayout();
+
+    // Assign section ids for deep linking (article-x-s1, article-x-s2-a, article-x-s2-a-i)
+    if (chapterId && chapterId !== 'intro') {
+      const ROMAN = 'i|ii|iii|iv|v|vi|vii|viii|ix|x|xi|xii|xiii|xiv|xv|xvi|xvii|xviii|xix|xx';
+      const m = {
+        secAlphaRoman: new RegExp(`^(\\d+)\\.\\s*\\(([a-z])\\)\\s*\\((${ROMAN})\\)`, 'i'),
+        secAlpha: new RegExp(`^(\\d+)\\.\\s*\\(([a-z])\\)`, 'i'),
+        secRoman: new RegExp(`^(\\d+)\\.\\s*\\((${ROMAN})\\)`, 'i'),
+        sec: /^(\d+)\./,
+        alphaRoman: new RegExp(`^\\(([a-z])\\)\\s*\\((${ROMAN})\\)`, 'i'),
+        alpha: /^\(([a-z])\)/i,
+        roman: new RegExp(`^\\((${ROMAN})\\)`, 'i'),
+      };
+      let curSection = 0;
+      let curAlpha = null;
+      let r;
+      for (const p of paragraphs) {
+        const text = normalizedText(p);
+        let path;
+        if ((r = text.match(m.secAlphaRoman))) {
+          curSection = parseInt(r[1], 10);
+          curAlpha = r[2].toLowerCase();
+          path = `s${curSection}-${curAlpha}-${r[3].toLowerCase()}`;
+        } else if ((r = text.match(m.secAlpha))) {
+          curSection = parseInt(r[1], 10);
+          curAlpha = r[2].toLowerCase();
+          path = `s${curSection}-${curAlpha}`;
+        } else if ((r = text.match(m.secRoman))) {
+          curSection = parseInt(r[1], 10);
+          curAlpha = null;
+          path = `s${curSection}-${r[2].toLowerCase()}`;
+        } else if ((r = text.match(m.sec))) {
+          curSection = parseInt(r[1], 10);
+          curAlpha = null;
+          path = `s${curSection}`;
+        } else if ((r = text.match(m.alphaRoman))) {
+          curAlpha = r[1].toLowerCase();
+          path = curSection ? `s${curSection}-${curAlpha}-${r[2].toLowerCase()}` : `s1-${curAlpha}-${r[2].toLowerCase()}`;
+        } else if ((r = text.match(m.alpha))) {
+          curAlpha = r[1].toLowerCase();
+          path = curSection ? `s${curSection}-${curAlpha}` : `s1-${curAlpha}`;
+        } else if ((r = text.match(m.roman))) {
+          const roman = r[1].toLowerCase();
+          path = curSection ? (curAlpha ? `s${curSection}-${curAlpha}-${roman}` : `s${curSection}-${roman}`) : (curAlpha ? `s1-${curAlpha}-${roman}` : `s1-${roman}`);
+        } else {
+          continue;
+        }
+        if (!p.id) p.id = `${chapterId}-${path}`;
+      }
+    }
+  }
+
+  function logParserDebugSummary() {
+    if (!isParserDebugEnabled()) return;
+    const paragraphs = Array.from(contentEl.querySelectorAll('p'));
+    const depthCounts = { 0: 0, 1: 0, 2: 0, 3: 0, none: 0 };
+    for (const p of paragraphs) {
+      const d = p.dataset.contractDepth;
+      if (d in depthCounts) depthCounts[d]++;
+      else depthCounts.none++;
+    }
+    console.info(`[contract-parser] ${currentChapterId} depths:`, depthCounts);
+  }
+
+  function augmentCitations() {
+    const ROMAN_RE = /Article\s+([IVXLCDM]+)(?:\s+\([^)]+\)|\s*,\s*Section\s+[^;.]+)?/gi;
+    const walker = document.createTreeWalker(contentEl, NodeFilter.SHOW_TEXT, null, false);
+    const nodesToProcess = [];
+    let node;
+    while ((node = walker.nextNode())) {
+      const text = node.textContent;
+      const matches = [];
+      let m;
+      ROMAN_RE.lastIndex = 0;
+      while ((m = ROMAN_RE.exec(text)) !== null) {
+        const articleKey = `Article ${m[1].toUpperCase()}`;
+        const info = articleMap.get(articleKey);
+        if (info) matches.push({ index: m.index, length: m[0].length, text: m[0], info });
+      }
+      if (matches.length) nodesToProcess.push({ node, matches });
+    }
+    for (const { node, matches } of nodesToProcess) {
+      const parent = node.parentNode;
+      if (!parent || parent.closest?.('a') || parent.classList?.contains('contract-cite')) continue;
+      let text = node.textContent;
+      const frag = document.createDocumentFragment();
+      let pos = 0;
+      for (const { index, length, text: matchText, info } of matches) {
+        if (index > pos) frag.appendChild(document.createTextNode(text.slice(pos, index)));
+        const span = document.createElement('span');
+        span.className = 'contract-cite';
+        span.dataset.articleId = info.id;
+        span.dataset.articleTitle = info.title;
+        span.textContent = matchText;
+        span.title = info.title;
+        span.setAttribute('role', 'button');
+        span.setAttribute('tabindex', '0');
+        span.addEventListener('click', () => showChapter(info.id));
+        span.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); showChapter(info.id); } });
+        frag.appendChild(span);
+        pos = index + length;
+      }
+      if (pos < text.length) frag.appendChild(document.createTextNode(text.slice(pos)));
+      parent.replaceChild(frag, node);
+    }
+  }
+
+  function showChapter(id, opts = {}) {
+    const idx = chapterList.findIndex((ch) => ch.id === id);
+    if (idx === -1) return;
+
+    contentEl.setAttribute('aria-busy', 'true');
+    selectEl.value = id;
+    prevBtn.disabled = idx <= 0;
+    nextBtn.disabled = idx >= chapterList.length - 1;
+    if (id === 'intro') {
+      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`);
+    } else {
+      window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#${id}`);
+    }
+    updateActiveChapterUi(id);
+    track('contract_article_open', { chapter_id: id });
+
+    loadChapter(id)
+      .then((html) => {
+        contentEl.innerHTML = html;
+        normalizeContractContinuations(id);
+        logParserDebugSummary();
+        augmentCitations();
+        if (opts.highlight || currentQuery) {
+          highlightMatchesInContent(opts.highlight || currentQuery);
+        }
+        if (opts.scrollToSectionId) {
+          const el = contentEl.querySelector(`#${CSS.escape(opts.scrollToSectionId)}`);
+          el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        contentEl.setAttribute('aria-busy', 'false');
+      })
+      .catch((err) => {
+        contentEl.innerHTML = `<p class="text-red-600">Unable to load this chapter. Please refresh the page.</p><button class="contract-reader-btn" type="button" data-contract-retry>Retry</button>`;
+        contentEl.setAttribute('aria-busy', 'false');
+        console.error('[contract]', err);
+      });
+  }
+
+  function init() {
+    const isMobileViewport = () => window.matchMedia('(max-width: 768px)').matches;
+
+    const openTocDrawer = () => {
+      if (!tocDrawer) return;
+      if (!isMobileViewport()) return;
+      tocDrawer.classList.remove('hidden');
+    };
+
+    const closeTocDrawer = () => {
+      if (!tocDrawer) return;
+      tocDrawer.classList.add('hidden');
+    };
+
+    if (!contentEl || !selectEl || !prevBtn || !nextBtn) return;
+    if (contentEl.dataset.contractReaderBound === 'true') return;
+    contentEl.dataset.contractReaderBound = 'true';
+
+    const hash = window.location.hash.slice(1);
+    const { chapterId, sectionId } = parseContractHash(hash);
+    const defaultId = chapterId && chapterList.some((ch) => ch.id === chapterId) ? chapterId : 'intro';
+    showChapter(defaultId, sectionId ? { scrollToSectionId: sectionId } : {});
+
+    selectEl.addEventListener('change', () => showChapter(selectEl.value));
+    prevBtn.addEventListener('click', () => {
+      const idx = chapterList.findIndex((ch) => ch.id === selectEl.value);
+      if (idx > 0) showChapter(chapterList[idx - 1].id);
+    });
+    nextBtn.addEventListener('click', () => {
+      const idx = chapterList.findIndex((ch) => ch.id === selectEl.value);
+      if (idx >= 0 && idx < chapterList.length - 1) showChapter(chapterList[idx + 1].id);
+    });
+
+    document.addEventListener('click', (e) => {
+      const target = e.target;
+      if (!target || !target.closest) return;
+      const openBtn = target.closest('[data-contract-open]');
+      if (openBtn) {
+        showChapter(openBtn.getAttribute('data-contract-open'));
+        closeTocDrawer();
+        return;
+      }
+      const retryBtn = target.closest('[data-contract-retry]');
+      if (retryBtn) showChapter(currentChapterId, { highlight: currentQuery });
+
+      if (tocDrawer && target === tocDrawer) closeTocDrawer();
+    });
+
+    if (bookmarkBtn) bookmarkBtn.addEventListener('click', toggleBookmark);
+    if (shareBtn) {
+      shareBtn.addEventListener('click', async () => {
+        const url = `${window.location.origin}${window.location.pathname}${currentChapterId === 'intro' ? '' : `#${currentChapterId}`}`;
+        if (navigator.share) {
+          try {
+            await navigator.share({ title: document.title, url });
+          } catch {
+            // User canceled share prompt.
+          }
+        } else {
+          await navigator.clipboard.writeText(url);
+        }
+      });
+    }
+    if (printBtn) printBtn.addEventListener('click', () => window.print());
+    if (searchInputEl) {
+      searchInputEl.addEventListener('input', () => {
+        clearTimeout(searchDebounce);
+        searchDebounce = setTimeout(() => searchContract(searchInputEl.value), 200);
+      });
+    }
+
+    if (searchResultsEl) {
+      searchResultsEl.addEventListener('click', (e) => {
+        const target = e.target;
+        if (!target || !target.closest) return;
+        const resultBtn = target.closest('[data-contract-open]');
+        if (!resultBtn) return;
+        const id = resultBtn.getAttribute('data-contract-open');
+        showChapter(id, { highlight: searchInputEl?.value || '' });
+        clearSearchResults('');
+      });
+    }
+
+    if (tocToggleBtn && tocDrawer) {
+      tocToggleBtn.addEventListener('click', () => {
+        if (isMobileViewport()) {
+          if (tocDrawer.classList.contains('hidden')) openTocDrawer();
+          else closeTocDrawer();
+          return;
+        }
+        if (tocSidebar) {
+          tocSidebar.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    }
+    if (tocCloseBtn && tocDrawer) tocCloseBtn.addEventListener('click', closeTocDrawer);
+
+    window.addEventListener('hashchange', () => {
+      const h = window.location.hash.slice(1);
+      const { chapterId, sectionId } = parseContractHash(h);
+      if (chapterId && chapterList.some((ch) => ch.id === chapterId)) {
+        showChapter(chapterId, sectionId ? { scrollToSectionId: sectionId } : {});
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      if (!isMobileViewport()) closeTocDrawer();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '/' && !e.target.closest('input, select, textarea')) {
+        e.preventDefault();
+        searchInputEl?.focus();
+        return;
+      }
+      if (e.key === 'Escape') {
+        closeTocDrawer();
+        return;
+      }
+      if (e.target.closest('input, select, textarea')) return;
+      const idx = chapterList.findIndex((ch) => ch.id === selectEl.value);
+      if (e.key === 'ArrowLeft' && idx > 0) {
+        e.preventDefault();
+        showChapter(chapterList[idx - 1].id);
+      } else if (e.key === 'ArrowRight' && idx >= 0 && idx < chapterList.length - 1) {
+        e.preventDefault();
+        showChapter(chapterList[idx + 1].id);
+      }
+    });
+
+    updateBookmarkButton();
+  }
+
+  document.addEventListener('astro:page-load', init);
+</script>
+
+<style>
+  .contract-reader-layout {
+    display: grid;
+    grid-template-columns: 16rem minmax(0, 1fr);
+    gap: 1.25rem;
+  }
+
+  .contract-main {
+    min-width: 0;
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    border-radius: 0.9rem;
+    background: var(--aw-color-bg-page);
+    padding: 1rem;
+  }
+
+  .contract-search-wrap {
+    margin: 1rem 0 1.25rem;
+    position: relative;
+  }
+
+  .contract-search-input {
+    width: 100%;
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    border-radius: 0.65rem;
+    padding: 0.68rem 0.82rem;
+    background: var(--aw-color-bg-page);
+    color: var(--aw-color-text-page);
+    font-size: 0.95rem;
+  }
+
+  .contract-search-results {
+    margin-top: 0.45rem;
+    display: grid;
+    gap: 0.3rem;
+    max-height: 18rem;
+    overflow: auto;
+  }
+
+  .contract-search-result {
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    border-radius: 0.55rem;
+    padding: 0.52rem 0.68rem;
+    background: var(--aw-color-bg-page);
+    color: var(--aw-color-text-page);
+    text-align: left;
+    display: grid;
+    gap: 0.15rem;
+  }
+
+  .contract-search-result span {
+    font-size: 0.82rem;
+    opacity: 0.8;
+  }
+
+  .contract-search-empty {
+    font-size: 0.85rem;
+    color: var(--aw-color-text-muted);
+  }
+
+  .contract-search-meta {
+    margin: 0;
+    font-size: 0.78rem;
+    color: var(--aw-color-text-muted);
+  }
+
+  .contract-toc {
+    position: sticky;
+    top: 6.5rem;
+    align-self: start;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 0.85rem;
+    padding: 0.8rem;
+    max-height: calc(100vh - 8rem);
+    overflow: auto;
+    background: var(--aw-color-bg-page);
+    color: var(--aw-color-text-page);
+  }
+
+  .contract-toc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .contract-toc-header h2 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--aw-color-text-heading);
+  }
+
+  .contract-toc-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 0.25rem;
+  }
+
+  .contract-toc-link {
+    width: 100%;
+    text-align: left;
+    border: 0;
+    background: transparent;
+    padding: 0.42rem 0.45rem;
+    border-radius: 0.45rem;
+    display: grid;
+    gap: 0.1rem;
+    font-size: 0.93rem;
+    color: var(--aw-color-text-page);
+  }
+
+  .contract-toc-link.is-active {
+    background: rgba(59, 130, 246, 0.12);
+  }
+
+  .contract-toc-link small {
+    color: var(--aw-color-text-muted);
+    opacity: 0.9;
+    font-size: 0.72rem;
+  }
+
+  .contract-reader-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 0;
+    margin-bottom: 0.35rem;
+  }
+
+  [data-contract-toc-toggle] {
+    display: none;
+  }
+
+  .contract-reader-tools {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  .contract-breadcrumb {
+    font-size: 0.84rem;
+    color: var(--aw-color-text-muted);
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .contract-reader-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.8rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .contract-reader-btn,
+  a.contract-reader-btn {
+    padding: 0.45rem 0.8rem;
+    font-size: 0.84rem;
+    font-weight: 500;
+    text-decoration: none;
+    color: inherit;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    border-radius: 0.45rem;
+    background: color-mix(in srgb, var(--aw-color-bg-page) 88%, var(--aw-color-text-page) 12%);
+    color: var(--aw-color-text-page);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .contract-reader-btn:hover:not(:disabled) {
+    border-color: rgba(148, 163, 184, 0.7);
+    background: color-mix(in srgb, var(--aw-color-bg-page) 80%, var(--aw-color-text-page) 20%);
+  }
+
+  .contract-reader-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .contract-reader-select-wrap {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    max-width: 20rem;
+  }
+
+  .contract-reader-select {
+    width: 100%;
+    padding: 0.46rem 2rem 0.46rem 0.72rem;
+    font-size: 0.9rem;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 0.5rem;
+    background: var(--aw-color-bg-page);
+    color: var(--aw-color-text-page);
+    appearance: none;
+    cursor: pointer;
+  }
+
+  .contract-reader-caret {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.65rem;
+    color: var(--aw-color-text-muted);
+    pointer-events: none;
+  }
+
+  .contract-reader-content {
+    min-height: 14rem;
+    line-height: 1.78;
+    border: 1px solid rgba(148, 163, 184, 0.26);
+    border-radius: 0.75rem;
+    padding: 1rem 1.05rem;
+    background: var(--aw-color-bg-page);
+    font-size: 1.02rem;
+    color: var(--aw-color-text-page);
+    font-variant-numeric: oldstyle-nums;
+    --contract-gap-default: 0.26em;
+    --contract-section-gap-top: 0.9em;
+    /* Referential indent: depth 0–3 from base + depth × step — only formatting control */
+    --contract-step: 3ch;
+    --contract-indent-base: 2.5ch;
+  }
+
+  .contract-related {
+    margin-bottom: 0.85rem;
+    border: 1px solid rgba(148, 163, 184, 0.24);
+    border-radius: 0.65rem;
+    background: color-mix(in srgb, var(--aw-color-bg-page) 92%, var(--aw-color-text-page) 8%);
+    padding: 0.55rem 0.65rem;
+  }
+
+  .contract-related-label {
+    margin: 0 0 0.45rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--aw-color-text-muted);
+  }
+
+  .contract-related-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.35rem;
+  }
+
+  .contract-related-link {
+    width: 100%;
+    text-align: left;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-radius: 0.45rem;
+    padding: 0.35rem 0.55rem;
+    font-size: 0.82rem;
+    background: var(--aw-color-bg-page);
+    line-height: 1.35;
+  }
+
+  .contract-hit {
+    background: #fde68a;
+    padding: 0.02rem 0.08rem;
+    border-radius: 0.15rem;
+  }
+
+  .contract-toc-drawer {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    z-index: 110;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .contract-toc-drawer-panel {
+    width: min(36rem, 100%);
+    max-height: 85vh;
+    overflow: auto;
+    background: var(--aw-color-bg-page);
+    border-radius: 0.75rem;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    padding: 0.8rem;
+  }
+
+  /* Base paragraph: default indent; depth overrides below */
+  .contract-reader-content :global(p) {
+    text-align: left;
+    margin: 0;
+    font-weight: 400;
+    padding-left: var(--contract-indent-base);
+  }
+
+  .contract-reader-content :global(p + p) {
+    margin-top: var(--contract-gap-default);
+  }
+
+  /* Referential indent: only formatting control — depth 0–3 from base + depth × step */
+  .contract-reader-content :global(p[data-contract-depth]) {
+    padding-left: calc(var(--contract-indent-base) + var(--contract-depth, 0) * var(--contract-step));
+  }
+  .contract-reader-content :global(p[data-contract-depth="0"]) { --contract-depth: 0; }
+  .contract-reader-content :global(p[data-contract-depth="1"]) { --contract-depth: 1; }
+  .contract-reader-content :global(p[data-contract-depth="2"]) { --contract-depth: 2; }
+  .contract-reader-content :global(p[data-contract-depth="3"]) { --contract-depth: 3; }
+
+  .contract-reader-content :global(p.contract-hanging-marker) {
+    text-indent: calc(-1 * var(--contract-marker-hang, 2.2ch));
+  }
+
+  .contract-reader-content :global(p.contract-hanging-marker-combined) {
+    text-indent: 0;
+  }
+
+  .contract-reader-content :global(.contract-inline-parent-marker) {
+    display: inline-block;
+    min-width: 2.1ch;
+    margin-left: calc(-1 * var(--contract-step));
+    margin-right: 0.45ch;
+    white-space: nowrap;
+    text-indent: 0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .contract-reader-content :global(p[data-contract-depth="0"]:first-of-type),
+  .contract-reader-content :global(p[data-contract-depth]:first-of-type) {
+    margin-top: var(--contract-section-gap-top);
+  }
+
+  /* Article citations: hover tooltip + click to jump */
+  .contract-reader-content :global(.contract-cite) {
+    cursor: pointer;
+    border-bottom: 1px dotted currentColor;
+    text-decoration: none;
+    position: relative;
+  }
+
+  .contract-reader-content :global(.contract-cite:hover) {
+    border-bottom-style: solid;
+  }
+
+  /* Blockquotes = indented continuation/definition */
+  .contract-reader-content :global(blockquote) {
+    margin: 0.25em 0 0.55em calc(var(--contract-indent-base) + 2 * var(--contract-step));
+    padding: 0;
+    border: none;
+    border-left: none;
+    font-style: normal;
+    color: inherit;
+  }
+
+  .contract-reader-content :global(blockquote p) {
+    margin: 0.15em 0;
+  }
+
+  /* DOCX-style legal numbering: 1,2,3 → (a),(b),(c) → (i),(ii),(iii) */
+  @counter-style contract-legal-alpha {
+    system: alphabetic;
+    symbols: a b c d e f g h i j k l m n o p q r s t u v w x y z;
+    prefix: "(";
+    suffix: ") ";
+  }
+
+  @counter-style contract-legal-roman {
+    system: additive;
+    additive-symbols: 10 x, 9 ix, 5 v, 4 iv, 1 i;
+    prefix: "(";
+    suffix: ") ";
+  }
+
+  /* Numbered clauses: 1,2,3 → (a),(b),(c) → (i),(ii),(iii) → 1,2,3 (DOCX flow) */
+  .contract-reader-content :global(ol) {
+    margin: 0.5em 0 0.8em 0;
+    margin-left: calc(var(--contract-indent-base) + var(--contract-step));
+    padding-left: 3ch;
+    list-style-type: decimal; /* 1st level: 1, 2, 3 */
+    list-style-position: outside;
+  }
+
+  .contract-reader-content :global(ol ol) {
+    margin-left: 0;
+    margin-top: 0.25em;
+    padding-left: var(--contract-step);
+    list-style-type: lower-alpha; /* fallback */
+    list-style-type: contract-legal-alpha; /* 2nd: (a), (b), (c) */
+  }
+
+  .contract-reader-content :global(ol ol ol) {
+    list-style-type: lower-roman; /* fallback */
+    list-style-type: contract-legal-roman; /* 3rd: (i), (ii), (iii) */
+  }
+
+  .contract-reader-content :global(ol ol ol ol) {
+    list-style-type: decimal; /* 4th: 1, 2, 3 */
+  }
+
+  .contract-reader-content :global(ol li) {
+    margin: 0.32em 0;
+    text-align: left;
+    font-weight: 400;
+  }
+
+  /* Multi-paragraph clauses: allow multiple <p> per <li> */
+  .contract-reader-content :global(ol li p) {
+    margin: 0.25em 0;
+  }
+
+  .contract-reader-content :global(ol li p:first-child) {
+    margin-top: 0;
+  }
+
+  .contract-reader-content :global(ol li p:last-child) {
+    margin-bottom: 0;
+  }
+
+  .contract-reader-content :global(ul) {
+    margin: 0.5em 0 0.75em calc(var(--contract-indent-base) + 2 * var(--contract-step) - 1.5ch);
+    padding-left: 1.5ch;
+  }
+
+  .contract-reader-content :global(ul li) {
+    margin: 0.35em 0;
+  }
+
+  .contract-reader-content :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.75rem 0 1rem;
+  }
+
+  .contract-reader-content :global(th),
+  .contract-reader-content :global(td) {
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    padding: 0.45rem 0.6rem;
+    vertical-align: top;
+  }
+
+  .contract-reader-content :global(thead th) {
+    background: rgba(148, 163, 184, 0.12);
+    font-weight: 600;
+  }
+
+  .contract-reader-content :global(h2) {
+    margin: 1.35em 0 0.5em;
+    font-size: 1.15rem;
+    letter-spacing: 0.02em;
+    scroll-margin-top: 7rem;
+  }
+
+  /* Split extractor prepends a chapter title; hide it to avoid duplicate top headers. */
+  .contract-reader-content :global(h2:first-child) {
+    display: none;
+  }
+
+  .contract-reader-content :global(h3) {
+    margin: 0.7em 0 0.5em;
+    font-size: 1.03rem;
+    font-weight: 600;
+    scroll-margin-top: 7rem;
+  }
+
+  .contract-reader-content :global(h4) {
+    margin: 0.75em 0 0.35em;
+    font-size: 0.96rem;
+    scroll-margin-top: 7rem;
+  }
+
+
+  .contract-reader-content :global(.signature-line) {
+    display: block;
+    width: 100%;
+    height: 1.1rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.6);
+  }
+
+  @media (max-width: 768px) {
+    .contract-reader-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .contract-toc {
+      display: none;
+    }
+
+    .contract-reader-toolbar {
+      flex-wrap: wrap;
+      align-items: flex-start;
+      gap: 0.45rem;
+    }
+
+    .contract-reader-tools {
+      width: 100%;
+    }
+
+    [data-contract-toc-toggle] {
+      display: inline-flex;
+    }
+
+    .contract-related-list {
+      grid-template-columns: 1fr;
+    }
+
+    .contract-reader-content :global(table) {
+      display: block;
+      overflow-x: auto;
+    }
+
+    .contract-main {
+      padding: 0.75rem;
+    }
+
+    .contract-reader-content {
+      padding: 0.8rem 0.82rem;
+      --contract-gap-default: 0.22em;
+      --contract-section-gap-top: 0.72em;
+      --contract-step: 2.2ch;
+      --contract-indent-base: 1.8ch;
+    }
+  }
+
+  @media (min-width: 769px) {
+    .contract-toc-drawer {
+      display: none !important;
+    }
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /* Dark mode */
+  :global(.dark) [data-section='contract-2021-2026'] {
+    background: var(--aw-color-bg-page-dark);
+    color: var(--aw-color-text-page);
+  }
+
+  :global(.dark) .contract-reader-btn {
+    border-color: rgba(148, 163, 184, 0.35);
+    background: rgba(30, 41, 59, 0.6);
+    color: var(--aw-color-text-page);
+  }
+
+  :global(.dark) .contract-search-input,
+  :global(.dark) .contract-search-result,
+  :global(.dark) .contract-related-link,
+  :global(.dark) .contract-toc,
+  :global(.dark) .contract-toc-drawer-panel {
+    background: var(--aw-color-bg-page-dark);
+    color: var(--aw-color-text-page);
+    border-color: rgba(148, 163, 184, 0.35);
+  }
+
+  :global(.dark) .contract-search-input::placeholder {
+    color: var(--aw-color-text-muted);
+  }
+
+  :global(.dark) .contract-search-result:hover {
+    background: rgba(30, 41, 59, 0.92);
+    border-color: rgba(148, 163, 184, 0.55);
+  }
+
+  :global(.dark) .contract-related {
+    background: color-mix(in srgb, var(--aw-color-bg-page-dark) 88%, var(--aw-color-text-page) 12%);
+    border-color: rgba(148, 163, 184, 0.35);
+  }
+
+  :global(.dark) .contract-related-link:hover {
+    background: rgba(30, 41, 59, 0.92);
+    border-color: rgba(148, 163, 184, 0.55);
+  }
+
+  :global(.dark) .contract-toc-link:hover {
+    background: rgba(30, 41, 59, 0.72);
+  }
+
+  :global(.dark) .contract-toc-link.is-active {
+    background: rgba(59, 130, 246, 0.24);
+  }
+
+  :global(.dark) .contract-breadcrumb,
+  :global(.dark) .contract-search-meta,
+  :global(.dark) .contract-search-empty,
+  :global(.dark) .contract-related-label,
+  :global(.dark) .contract-toc-link small {
+    color: var(--aw-color-text-muted);
+  }
+
+  :global(.dark) .contract-reader-btn:hover:not(:disabled) {
+    border-color: rgba(148, 163, 184, 0.6);
+    background: rgba(30, 41, 59, 0.9);
+  }
+
+  :global(.dark) .contract-reader-select {
+    border-color: rgba(148, 163, 184, 0.35);
+    background: var(--aw-color-bg-page-dark);
+    color: var(--aw-color-text-page);
+  }
+
+  :global(.dark) .contract-main,
+  :global(.dark) .contract-reader-content {
+    background: var(--aw-color-bg-page-dark);
+    border-color: rgba(148, 163, 184, 0.35);
+    color: var(--aw-color-text-page);
+  }
+
+  :global(.dark) .contract-toc-link,
+  :global(.dark) .contract-toc-header h2,
+  :global(.dark) .contract-breadcrumb {
+    color: var(--aw-color-text-page);
+  }
+
+  :global(.dark) .contract-reader-content :global(h2),
+  :global(.dark) .contract-reader-content :global(h3),
+  :global(.dark) .contract-reader-content :global(h4),
+  :global(.dark) .contract-reader-content :global(strong) {
+    color: var(--aw-color-text-heading);
+  }
+
+  :global(.dark) .contract-reader-caret {
+    color: var(--aw-color-text-muted);
+  }
+
+  :global(.dark) .contract-reader-content :global(th),
+  :global(.dark) .contract-reader-content :global(td) {
+    border-color: rgba(148, 163, 184, 0.35);
+  }
+
+  :global(.dark) .contract-reader-content :global(thead th) {
+    background: rgba(148, 163, 184, 0.18);
+  }
+
+  :global(.dark) .contract-reader-content :global(.signature-line) {
+    border-bottom-color: rgba(148, 163, 184, 0.5);
+  }
+
+  :global(.dark) .contract-reader-content :global(.contract-cite) {
+    border-bottom-color: rgba(148, 163, 184, 0.75);
+  }
+
+  :global(.dark) .contract-hit {
+    background: rgba(245, 158, 11, 0.32);
+    color: #fef3c7;
+  }
+</style>

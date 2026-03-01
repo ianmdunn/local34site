@@ -1,0 +1,650 @@
+/**
+ * Actions – layout and toolset for /actions.
+ * Uses adv- prefix; distinct design from ActionCenter.
+ */
+
+.adv-page {
+  color: var(--aw-color-text-default, #111);
+  margin: 0;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Main: events column */
+.adv-main {
+  min-width: 0;
+}
+
+.adv-section-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--aw-color-primary, #ba0c2f);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 0 0 1.25rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 3px solid var(--aw-color-primary, #ba0c2f);
+}
+
+.adv-empty {
+  text-align: center;
+  color: var(--aw-color-text-muted, #555);
+  margin: 2rem 0;
+  font-size: 1rem;
+}
+
+.adv-backgrounds-link {
+  margin: 2rem 0 0;
+  padding-top: 1.5rem;
+  border-top: 1px solid color-mix(in srgb, var(--aw-color-text-muted, #555) 20%, transparent);
+  font-size: 1rem;
+}
+
+.adv-backgrounds-link a {
+  color: var(--aw-color-primary, #ba0c2f);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.adv-backgrounds-link a:hover {
+  color: var(--aw-color-secondary, #960a26);
+}
+
+/* Event cards */
+.adv-events {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.adv-event {
+  background: var(--aw-color-bg-page, #fff);
+  border-radius: 10px;
+  border: none;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.2s ease;
+  scroll-margin-top: 5.5rem;
+}
+
+.adv-event:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.adv-event--cancelled {
+  opacity: 0.75;
+}
+
+/* Portal card – link to meeting-backgrounds, appears first */
+.adv-event--portal {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow 0.2s;
+}
+
+.adv-event--portal:hover {
+  box-shadow: 0 4px 12px rgba(186, 12, 47, 0.12);
+}
+
+.adv-event--portal .adv-event-share {
+  pointer-events: none;
+}
+
+.adv-event-date--portal {
+  background: color-mix(in srgb, var(--aw-color-primary, #ba0c2f) 85%, #fff);
+}
+
+.adv-event-cta {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.adv-event-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem 0;
+}
+
+.adv-event-date {
+  flex-shrink: 0;
+  width: 2.75rem;
+  height: 2.75rem;
+  background: var(--aw-color-primary, #ba0c2f);
+  color: #fff;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.adv-event-month {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1.1;
+}
+
+.adv-event-day {
+  font-size: 1.15rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.adv-event-title-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.adv-event-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--aw-color-text-heading, #111);
+  line-height: 1.25;
+}
+
+.adv-event-meta {
+  margin: 0.2rem 0 0;
+  font-size: 0.85rem;
+  color: var(--aw-color-text-muted, #666);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.adv-event-link {
+  color: var(--aw-color-primary, #ba0c2f);
+  text-decoration: underline;
+}
+
+.adv-event-share {
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: #f9fafb;
+  color: var(--aw-color-primary, #ba0c2f);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.adv-event-share:hover {
+  background: color-mix(in srgb, var(--aw-color-primary, #ba0c2f) 8%, #fff);
+}
+
+.adv-event-img-link {
+  display: block;
+  margin: 0.5rem 1rem 0;
+}
+
+/* Embla carousel – portal card */
+.adv-event-carousel {
+  height: clamp(100px, 18vw, 180px);
+  border-radius: 6px;
+}
+
+.adv-event-carousel .embla__viewport {
+  overflow: hidden;
+  height: 100%;
+  border-radius: 6px;
+}
+
+.adv-event-carousel .embla__container {
+  display: flex;
+  touch-action: pan-y pinch-zoom;
+  height: 100%;
+  gap: 0.5rem;
+}
+
+.adv-event-carousel .embla__slide {
+  flex: 0 0 calc((100% - 1rem) / 3);
+  min-width: 0;
+}
+
+.adv-event-carousel .adv-event-carousel-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  border-radius: 4px;
+}
+
+.adv-event-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: clamp(160px, 28vw, 300px);
+  object-fit: contain;
+  object-position: center;
+  border-radius: 6px;
+  margin: 0 auto;
+}
+
+.adv-event-img--banner {
+  max-height: clamp(140px, 22vw, 240px);
+}
+
+.adv-event-img--float {
+  max-height: min(50vh, 360px);
+}
+
+@media (min-width: 640px) {
+  .adv-event-img--float {
+    float: right;
+    width: 42%;
+    margin: 0 0 1rem 1.25rem;
+  }
+}
+
+.adv-event-cancelled {
+  margin: 0.5rem 1rem 0;
+  padding: 0.5rem 0.75rem;
+  background: color-mix(in srgb, var(--aw-color-primary, #ba0c2f) 8%, transparent);
+  border-left: 3px solid var(--aw-color-primary, #ba0c2f);
+  border-radius: 0 6px 6px 0;
+}
+
+.adv-event-cancelled strong {
+  display: block;
+  color: var(--aw-color-primary, #ba0c2f);
+  margin-bottom: 0.25rem;
+}
+
+.adv-event-cancelled p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--aw-color-text-default, #333);
+}
+
+.adv-event-body {
+  padding: 0.5rem 1rem 0.25rem;
+}
+
+.adv-event-body:not(.adv-event-body--expanded) {
+  max-height: 3.2em;
+  overflow: hidden;
+}
+
+.adv-event-body.adv-event-body--expanded {
+  max-height: none;
+  overflow: visible;
+}
+
+.adv-event-desc,
+.adv-event-detail {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--aw-color-text-default, #333);
+}
+
+.adv-event-expand {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  border-radius: 0;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.adv-event-expand:hover {
+  background: none;
+}
+
+.adv-event-actions .adv-event-expand {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  color: var(--aw-color-primary, #ba0c2f);
+}
+
+.adv-event-actions {
+  padding: 0.6rem 1rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.adv-event-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+}
+
+.adv-event-actions-primary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.adv-event-actions-links {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.adv-event-action-link {
+  background: none;
+  border: none;
+  padding: 0.25rem 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--aw-color-primary, #ba0c2f);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.adv-event-action-link:hover {
+  color: var(--aw-color-secondary, #960a26);
+}
+
+.adv-event-actions .adv-event-share {
+  width: auto;
+  height: auto;
+  background: none;
+  border-radius: 0;
+}
+
+.adv-submitted {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 1rem;
+  background: #0a7a3a;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.875rem;
+  border-radius: 6px;
+}
+
+/* Buttons */
+.adv-btn {
+  display: inline-block;
+  min-height: 2.5rem;
+  padding: 0.6rem 1.15rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+  border: none;
+}
+
+.adv-btn--primary {
+  background: var(--aw-color-primary, #ba0c2f);
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.adv-btn--primary:hover {
+  background: var(--aw-color-secondary, #960a26);
+}
+
+.adv-btn--secondary {
+  background: #f9fafb;
+  color: var(--aw-color-text-heading, #111);
+  border: none;
+}
+
+.adv-btn--secondary:hover {
+  background: #f3f4f6;
+}
+
+.adv-btn--submit {
+  background: var(--aw-color-primary, #ba0c2f);
+  color: #fff;
+  padding: 0.45rem 1rem;
+}
+
+.adv-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Forms */
+.adv-form {
+  margin-top: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  width: 100%;
+}
+
+.adv-field {
+  margin-bottom: 0;
+  min-width: 0;
+}
+
+.adv-field-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.adv-name-part,
+.adv-addr-part {
+  flex: 1 1 0;
+  min-width: 6rem;
+  max-width: 100%;
+}
+
+.adv-addr-part:first-child {
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+.adv-label {
+  display: block;
+  font-weight: 700;
+  font-size: 0.8rem;
+  margin-bottom: 0.1rem;
+  color: var(--aw-color-text-default, #111);
+}
+
+.adv-helper {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--aw-color-text-muted, #666);
+  margin-bottom: 0.1rem;
+}
+
+.adv-input {
+  width: 100%;
+  min-height: 1.9rem;
+  padding: 0.25rem 0.5rem;
+  border: none;
+  border-radius: 6px;
+  background: #f9fafb;
+  font-size: 0.9rem;
+  background: var(--aw-color-bg-page, #fff);
+  color: var(--aw-color-text-default, #111);
+  box-sizing: border-box;
+}
+
+.adv-input::placeholder {
+  color: var(--aw-color-text-muted, #888);
+}
+
+.adv-textarea {
+  min-height: 2.5rem;
+  resize: vertical;
+}
+
+.adv-select {
+  cursor: pointer;
+}
+
+.adv-fieldset {
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.adv-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.adv-option-label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--aw-color-text-default, #111);
+  cursor: pointer;
+}
+
+.adv-option-label input {
+  accent-color: var(--aw-color-primary, #ba0c2f);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Dark mode */
+.dark .adv-event {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.dark .adv-event:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.dark .adv-event--portal:hover {
+  box-shadow: 0 4px 12px rgba(186, 12, 47, 0.25);
+}
+
+.dark .adv-event-date--portal {
+  background: color-mix(in srgb, var(--aw-color-primary) 85%, var(--aw-color-bg-page));
+}
+
+.dark .adv-event-share {
+  background: color-mix(in srgb, white 8%, var(--aw-color-bg-page));
+}
+
+.dark .adv-event-share:hover {
+  background: color-mix(in srgb, var(--aw-color-primary) 15%, var(--aw-color-bg-page));
+}
+
+.dark .adv-btn--secondary {
+  background: color-mix(in srgb, white 8%, var(--aw-color-bg-page));
+  color: var(--aw-color-text-heading);
+}
+
+.dark .adv-btn--secondary:hover {
+  background: color-mix(in srgb, white 12%, var(--aw-color-bg-page));
+}
+
+.dark .adv-input {
+  background: color-mix(in srgb, white 8%, var(--aw-color-bg-page));
+}
+
+/* JotForm modal – form posts to iframe, stays on page */
+.adv-jotform-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.adv-jotform-modal--open {
+  display: flex;
+}
+
+.adv-jotform-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+}
+
+.adv-jotform-modal-content {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  max-height: 85vh;
+  background: var(--aw-color-bg-page, #fff);
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.adv-jotform-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--aw-color-text-muted, #666) 25%, transparent);
+  flex-shrink: 0;
+}
+
+.adv-jotform-modal-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--aw-color-text-heading, #111);
+}
+
+.adv-jotform-modal-close {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--aw-color-text-muted, #666);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.adv-jotform-modal-close:hover {
+  background: color-mix(in srgb, var(--aw-color-text-muted) 15%, transparent);
+  color: var(--aw-color-text-heading);
+}
+
+.adv-jotform-modal-iframe {
+  width: 100%;
+  min-height: 400px;
+  height: 60vh;
+  border: none;
+}

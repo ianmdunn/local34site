@@ -8,6 +8,7 @@ import PageLayout from '~/layouts/PageLayout.astro';
 import { PAGE_SECTION_CLASS } from '~/lib/layout';
 import { getCollection } from 'astro:content';
 import { getAsset } from '~/utils/permalinks';
+import { generateOpenGraphMeta } from '~/utils/seo';
 
 const sitePages = await getCollection('sitePages');
 const contractEntry = sitePages.find((p) => p.slug === 'contract');
@@ -16,14 +17,14 @@ const contractData = contractEntry?.data ?? { title: 'Our Contract', description
 const pageMetadata = {
   title: contractData.title,
   description: 'description' in contractData ? contractData.description : undefined,
-  openGraph: {
+  openGraph: generateOpenGraphMeta({
     images: [
       {
         url: getAsset('our-contract/local-34-contract.png'),
         alt: 'Local 34 contract cover',
       },
     ],
-  },
+  }),
 };
 
 const sectionSlugs = ['contract-1', 'contract-2', 'contract-3'] as const;

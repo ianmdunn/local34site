@@ -11,7 +11,7 @@ if [ -f "$SCRIPT_DIR/.env" ]; then
 fi
 
 BUCKET_NAME="${LEADERBOARD_BUCKET_NAME:-local34-game-leaderboard}"
-ALLOWED_ORIGINS="${LEADERBOARD_ALLOWED_ORIGINS:-https://local34.org,https://dev.local34.org,http://localhost:4321}"
+ALLOWED_ORIGINS="${LEADERBOARD_ALLOWED_ORIGINS:-https://www.local34.org,https://local34.org,https://dev.local34.org,http://localhost:4321}"
 
 # Get project ID
 PROJECT_ID=$(gcloud config get-value project)
@@ -53,7 +53,7 @@ ENVYAML
 echo "Deploying Cloud Function 'leaderboard'..."
 gcloud functions deploy leaderboard \
   --gen2 \
-  --runtime nodejs22 \
+  --runtime nodejs24 \
   --entry-point leaderboard \
   --source ./gcp-function \
   --region $REGION \

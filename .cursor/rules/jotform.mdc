@@ -1,0 +1,13 @@
+---
+description: JotForm API reference – use properties docs when mapping fields
+globs: "**/jotform*"
+alwaysApply: false
+---
+
+# JotForm Integration
+
+Schema is fetched by parsing form HTML (no API key). Proxy forwards form body to JotForm submit URL.
+
+**Properties reference**: https://api.jotform.com/docs/properties/index.php
+
+Field names from HTML: fullname uses q{n}_first, q{n}_last; address uses q{n}_addr_line1, city, etc.

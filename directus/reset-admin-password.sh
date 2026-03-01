@@ -54,7 +54,12 @@ if DB_CLIENT=pg \
    DB_PASSWORD="${DB_PASSWORD}" \
    npx --yes directus@11 users passwd --email "$ADMIN_EMAIL" --password "$ADMIN_PASSWORD"; then
   echo ""
-  echo "Password reset complete. Log in at https://directus-mgdoanjcka-uw.a.run.app with $ADMIN_EMAIL"
+  LOGIN_URL="${PUBLIC_URL:-$PUBLIC_DIRECTUS_URL}"
+  if [ -n "$LOGIN_URL" ]; then
+    echo "Password reset complete. Log in at $LOGIN_URL with $ADMIN_EMAIL"
+  else
+    echo "Password reset complete. Log in at your Directus URL with $ADMIN_EMAIL"
+  fi
 else
   echo ""
   echo "Password reset failed. Check that the admin user exists (Directus must have started at least once)."

@@ -90,12 +90,11 @@ if [ -n "$PUBLIC_LEADERBOARD_API" ] && command -v curl &>/dev/null; then
   [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "405" ] && pass "Leaderboard API reachable" || warn "Leaderboard API unreachable (HTTP $HTTP_CODE)"
 fi
 
-DIRECTUS_URL=$(grep -E "^PUBLIC_URL=" directus/.env 2>/dev/null | cut -d= -f2- | tr -d ' \r' || echo "https://directus-mgdoanjcka-uw.a.run.app")
-# If PUBLIC_URL is localhost, also try Cloud Run URL (local may not be running)
-if [[ "$DIRECTUS_URL" == *"localhost"* ]]; then
-  DIRECTUS_URL="https://directus-mgdoanjcka-uw.a.run.app"
-fi
-if [[ "$DIRECTUS_URL" == http* ]] && command -v curl &>/dev/null; then
+DIRECTUS_URL=$(grep -E "^PUBLIC_URL=" directus/.env 2>/dev/null | cut -d= -f2- | tr -d ' \r')
+[[ -z "$DIRECTUS_URL" ]] && DIRECTUS_URL="$PUBLIC_DIRECTUS_URL"
+# Skip health check if localhost (local dev may not be running)
+[[ "$DIRECTUS_URL" == *"localhost"* ]] && DIRECTUS_URL=""
+if [[ -n "$DIRECTUS_URL" ]] && [[ "$DIRECTUS_URL" == http* ]] && command -v curl &>/dev/null; then
   HEALTH_URL="${DIRECTUS_URL%/}/server/health"
   DIRECTUS_HTTP=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 5 "$HEALTH_URL" 2>/dev/null || echo "000")
   [ "$DIRECTUS_HTTP" = "200" ] && pass "Directus health OK" || warn "Directus health failed (HTTP $DIRECTUS_HTTP) - $HEALTH_URL"

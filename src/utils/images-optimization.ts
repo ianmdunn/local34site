@@ -236,6 +236,7 @@ export const astroAssetsOptimizer: ImagesOptimizer = async (
   // getImage() accepts: (1) ImageMetadata from imports, (2) http(s) URL string. It rejects local file paths (e.g. /@fs/...).
   const rawSrc = typeof image === 'string' ? image : (image as { src?: string })?.src;
   const isUrlString = typeof rawSrc === 'string' && (rawSrc.startsWith('http://') || rawSrc.startsWith('https://'));
+  const isLocalPathString = typeof image === 'string' && !isUrlString;
 
   // Internal/unreachable URLs at build time; skip getImage and use URL as-is to avoid fetch errors.
   // - localhost: dev services
@@ -248,6 +249,14 @@ export const astroAssetsOptimizer: ImagesOptimizer = async (
       (rawSrc.includes('run.app') && rawSrc.includes('?id=')));
 
   if (isUnreachableUrl && typeof rawSrc === 'string') {
+    return breakpoints.map((width) => ({
+      src: rawSrc,
+      width,
+      height: _height || 0,
+    }));
+  }
+
+  if (isLocalPathString && typeof rawSrc === 'string') {
     return breakpoints.map((width) => ({
       src: rawSrc,
       width,

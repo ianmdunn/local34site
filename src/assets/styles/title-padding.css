@@ -1,10 +1,10 @@
 /*
  * Global Page Title Spacing – Local 34
- * Controls padding and placement of page titles, aiming for tight spacing similar to Yale's Wealth page.
+ * Matches Yale's Wealth page: header-to-title gap for consistent layout across pages.
  */
 
 .page-title-section {
-  padding-top: 1.5rem;
+  padding-top: 4.5rem; /* Mobile: clear ~72px sticky header */
   padding-bottom: 0;
   margin-bottom: 0;
 }
@@ -16,12 +16,6 @@
 
 @media (min-width: 768px) {
   .page-title-section {
-    padding-top: 1.5rem;
-  }
-}
-
-@media (min-width: 1024px) {
-  .page-title-section {
-    padding-top: 1.5rem;
+    padding-top: 2.5rem; /* Desktop: match .yale-wealth-header-section */
   }
 }
