@@ -130,7 +130,7 @@
     "astro-pagefind": "^1.8.5",
     "eslint": "^9.39.2",
     "eslint-plugin-astro": "^1.5.0",
-    "globals": "^16.5.0",
+    "globals": "^17.4.0",
     "js-yaml": "^4.1.1",
     "mammoth": "^1.11.0",
     "mdast-util-to-string": "^4.0.0",
