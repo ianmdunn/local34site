@@ -1,0 +1,172 @@
+---
+/**
+ * Contact page (/contact)
+ *
+ * Main content from sitePages/contact.md; right sidebar with Action Network
+ * email subscription widget styled to match the site.
+ */
+import PageLayout from '~/layouts/PageLayout.astro';
+import { PAGE_SECTION_CLASS } from '~/lib/layout';
+import { getCollection, type RenderResult } from 'astro:content';
+
+const sitePages = await getCollection('sitePages');
+const contactEntry = sitePages.find((p) => p.slug === 'contact');
+const contactData = contactEntry?.data ?? { title: 'Contact Us', description: '' };
+
+let Content: RenderResult['Content'] | null = null;
+if (contactEntry) {
+  const rendered = await contactEntry.render();
+  Content = rendered.Content;
+}
+
+const proseClass =
+  'prose prose-sm max-w-none dark:prose-invert dark:prose-headings:text-slate-300 prose-headings:font-heading prose-headings:leading-tighter prose-headings:tracking-tighter prose-headings:font-bold prose-a:text-primary dark:prose-a:text-primary prose-img:rounded-md prose-img:shadow-lg mt-8 prose-p:my-2 prose-ul:my-3 prose-li:my-0.5';
+
+const metadata = {
+  title: contactData.title,
+  description: 'description' in contactData ? contactData.description : undefined,
+};
+---
+
+<PageLayout metadata={metadata}>
+  <link
+    href="https://actionnetwork.org/css/style-embed-whitelabel-v3.css"
+    rel="stylesheet"
+    type="text/css"
+  />
+  <script src="https://actionnetwork.org/widgets/v6/form/email-subscription-form?format=js&source=widget" is:inline />
+  <section class={PAGE_SECTION_CLASS} data-section="page-contact" id="page-contact">
+    <div class="mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col lg:flex-row lg:gap-12 lg:items-start" style="--contact-main: 2fr; --contact-sidebar: 1fr;">
+        <!-- Main content: 66% -->
+        <div class="min-w-0 lg:flex-[2] lg:basis-0">
+          <div class="page-title-section">
+            <h1 class="font-bold font-heading text-3xl md:text-4xl leading-tighter tracking-tighter">
+              {contactData.title}
+            </h1>
+          </div>
+          <div class={proseClass}>
+            {Content ? <Content /> : null}
+          </div>
+        </div>
+
+        <!-- Right sidebar: form only, 25% -->
+        <aside
+          class="contact-sidebar w-full lg:w-1/4 lg:flex-shrink-0 mt-10 lg:mt-0 lg:sticky lg:top-24"
+          aria-label="Stay in touch"
+        >
+          <div class="contact-sidebar__card rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-gray-800/95 shadow-lg dark:shadow-none overflow-hidden p-6 border-l-4 border-l-primary">
+            <div id="can-form-area-email-subscription-form" class="contact-sidebar__widget" style="width: 33%"></div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+  <style>
+    /* Lock sidebar at 25% – override Action Network / inline styles */
+    .contact-sidebar {
+      width: 25% !important;
+      min-width: 0 !important;
+      max-width: 25% !important;
+      flex: 0 0 25% !important;
+    }
+    @media (max-width: 1023px) {
+      .contact-sidebar {
+        width: 100% !important;
+        max-width: none !important;
+        flex: none !important;
+      }
+    }
+    /* Override Action Network: single column so form stays in 25% sidebar */
+    .contact-sidebar__widget,
+    #can-form-area-email-subscription-form {
+      width: 100% !important;
+      max-width: 100% !important;
+      min-width: 0 !important;
+    }
+    .contact-sidebar__card {
+      min-width: 0 !important;
+    }
+    /* Hide widget's redundant intro – "Local 34 Email Sign-Up" + "Sign up here..." */
+    .contact-sidebar__card #can_embed_form > h2,
+    .contact-sidebar__card #can_embed_form > h2 + p,
+    .contact-sidebar__card .can_embed > h2,
+    .contact-sidebar__card .can_embed > h2 + p {
+      display: none !important;
+    }
+    /* Hide "SPONSORED BY" block and "SIGN-UP TO RECEIVE EMAIL UPDATES" heading */
+    .contact-sidebar__card #action_info,
+    .contact-sidebar__card #can_sidebar #action_info,
+    .contact-sidebar__card .lined_after_title,
+    .contact-sidebar__card #can_embed_form .lined_after_title,
+    .contact-sidebar__card #can_embed_form_inner > h2 + h4 {
+      display: none !important;
+    }
+    .contact-sidebar__card #can_embed_form .w50,
+    .contact-sidebar__card #can_embed_form .form_col1,
+    .contact-sidebar__card #can_embed_form .form_col2,
+    .contact-sidebar__card #can_embed_form [class*='form_col'],
+    .contact-sidebar__card .can_embed .w50 {
+      max-width: 100% !important;
+      width: 100% !important;
+    }
+    .contact-sidebar__card .can_embed,
+    .contact-sidebar__card #can_embed_form {
+      font-family: var(--aw-font-sans), sans-serif !important;
+      color: var(--aw-color-text-page) !important;
+    }
+    .contact-sidebar__card #can_embed_form input[type='text'],
+    .contact-sidebar__card #can_embed_form input[type='email'],
+    .contact-sidebar__card #can_embed_form input[type='tel'],
+    .contact-sidebar__card #can_embed_form select,
+    .contact-sidebar__card #can_embed_form textarea {
+      font-family: var(--aw-font-sans), sans-serif !important;
+      color: var(--aw-color-text-default) !important;
+      border-color: color-mix(in srgb, var(--aw-color-text-muted) 35%, transparent) !important;
+      border-radius: 0.375rem !important;
+    }
+    .contact-sidebar__card #can_embed_form input:focus,
+    .contact-sidebar__card #can_embed_form select:focus,
+    .contact-sidebar__card #can_embed_form textarea:focus {
+      border-color: var(--aw-color-primary) !important;
+      outline: 2px solid var(--aw-color-primary) !important;
+      outline-offset: 2px !important;
+    }
+    .contact-sidebar__card input[type='submit'],
+    .contact-sidebar__card .can_button,
+    .contact-sidebar__card #can_embed_form input[type='submit'],
+    .contact-sidebar__card #can_embed_form .button {
+      font-family: var(--aw-font-heading), sans-serif !important;
+      font-weight: 600 !important;
+      background-color: var(--aw-color-primary) !important;
+      color: white !important;
+      border: none !important;
+      border-radius: 9999px !important;
+      padding: 0.875rem 1.5rem !important;
+      letter-spacing: 0.02em !important;
+      text-transform: none !important;
+      transition: all 0.2s ease !important;
+    }
+    .contact-sidebar__card input[type='submit']:hover,
+    .contact-sidebar__card .can_button:hover,
+    .contact-sidebar__card #can_embed_form input[type='submit']:hover,
+    .contact-sidebar__card #can_embed_form .button:hover {
+      background-color: var(--aw-color-secondary) !important;
+      color: white !important;
+    }
+    .contact-sidebar__card h2,
+    .contact-sidebar__card h3,
+    .contact-sidebar__card h4 {
+      font-family: var(--aw-font-heading), sans-serif !important;
+      color: var(--aw-color-text-heading) !important;
+    }
+    .dark .contact-sidebar__card #can_embed_form input[type='text'],
+    .dark .contact-sidebar__card #can_embed_form input[type='email'],
+    .dark .contact-sidebar__card #can_embed_form input[type='tel'],
+    .dark .contact-sidebar__card #can_embed_form select,
+    .dark .contact-sidebar__card #can_embed_form textarea {
+      background-color: var(--aw-color-bg-page-dark) !important;
+      border-color: rgba(255, 255, 255, 0.2) !important;
+    }
+  </style>
+</PageLayout>

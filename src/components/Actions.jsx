@@ -3,9 +3,11 @@
  * Ported from ActionCenter with a fresh design system.
  */
 import { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import { sanitizeHtml } from '~/utils/sanitize';
+import { getAutocompleteForField, getAutocompleteForSubfield } from '~/utils/jotform';
 import './Actions.css';
 
 const hasHtmlTag = (text) => /<\/?[a-z][\s\S]*>/i.test(String(text || ''));
@@ -33,13 +35,27 @@ const plainTextLength = (value) =>
 
 const isExternalUrl = (v) => /^https?:\/\/\S+$/i.test(String(v || '').trim());
 
-const shuffleArray = (arr) => {
+/** Deterministic shuffle – same order on server and client to avoid hydration mismatch */
+const shuffleArraySeeded = (arr, seed) => {
   const out = [...arr];
+  let s = seed;
+  const rand = () => {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    return s / 0xffffffff;
+  };
   for (let i = out.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(rand() * (i + 1));
     [out[i], out[j]] = [out[j], out[i]];
   }
   return out;
+};
+
+const simpleHash = (str) => {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+  }
+  return Math.abs(h) || 1;
 };
 
 const isValidImageUrl = (v) => {
@@ -60,7 +76,9 @@ const Actions = ({
     } else if (backgroundsPortalImage && isValidImageUrl(backgroundsPortalImage)) {
       arr = [backgroundsPortalImage];
     }
-    return arr.length > 1 ? shuffleArray(arr) : arr;
+    if (arr.length <= 1) return arr;
+    const seed = simpleHash(arr.join('|'));
+    return shuffleArraySeeded(arr, seed);
   }, [backgroundsPortalImages, backgroundsPortalImage]);
 
   const [failedImageUrls, setFailedImageUrls] = useState(() => new Set());
@@ -91,6 +109,7 @@ const Actions = ({
   }, [emblaApi, displayedImages.length]);
 
   const [rsvpEventSlug, setRsvpEventSlug] = useState(null);
+  const [autofillPhaseComplete, setAutofillPhaseComplete] = useState(false);
   const [submittedEventSlugs, setSubmittedEventSlugs] = useState([]);
   const [submittingSlug, setSubmittingSlug] = useState(null);
   const [jotformModalSlug, setJotformModalSlug] = useState(null);
@@ -168,6 +187,53 @@ const Actions = ({
     if (jotformModalSlug) closeJotformModal(jotformModalSlug);
   };
 
+  useEffect(() => {
+    const handleMessage = (event) => {
+      if (event?.data?.type === 'JOTFORM_SUCCESS') {
+        closeJotformModal(event.data.slug);
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  // Safari autofill: cycle through each form briefly (visible) so Safari can scan each one,
+  // then collapse. Safari ignores hidden forms. Focus first input to trigger autofill.
+  useEffect(() => {
+    const withForms = events.filter(hasJotform);
+    if (!withForms.length) {
+      setAutofillPhaseComplete(true);
+      return;
+    }
+    const delay = 350;
+    let i = 0;
+    const timers = [];
+    const advance = () => {
+      if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+      if (i < withForms.length) {
+        const slug = withForms[i].slug;
+        setRsvpEventSlug(slug);
+        i++;
+        timers.push(
+          setTimeout(() => {
+            const form = document.getElementById(`adv-rsvp-form-${slug}`);
+            const wrap = form?.closest('.adv-form-wrap');
+            if (wrap?.scrollIntoView) wrap.scrollIntoView({ behavior: 'instant', block: 'nearest' });
+            const first = form?.querySelector('input:not([type="hidden"]), select, textarea');
+            if (first && typeof first.focus === 'function') first.focus();
+          }, 80)
+        );
+      } else {
+        setRsvpEventSlug(null);
+        setAutofillPhaseComplete(true);
+        return;
+      }
+      timers.push(setTimeout(advance, delay));
+    };
+    advance();
+    return () => timers.forEach((t) => clearTimeout(t));
+  }, [events]);
+
   const toId = (v = '') =>
     String(v)
       .toLowerCase()
@@ -177,29 +243,6 @@ const Actions = ({
   const buildFieldId = (slug, name, suf = '') => {
     const b = `adv-rsvp-${toId(slug)}-${toId(name)}`;
     return suf ? `${b}-${toId(suf)}` : b;
-  };
-
-  const getAutocomplete = (field) => {
-    if (field.type === 'email') return 'email';
-    if (field.type === 'tel') return 'tel';
-    const s = `${(field.name || '')} ${(field.label || '')}`.toLowerCase();
-    if (/\b(organization|org|company|department|dept)\b/.test(s)) return 'organization';
-    if (/\b(name|full name|fullname)\b/.test(s)) return 'name';
-    return 'on';
-  };
-
-  const getSubfieldAutocomplete = (subfieldName) => {
-    const n = String(subfieldName || '').toLowerCase();
-    if (/first|given/.test(n)) return 'given-name';
-    if (/last|family|surname/.test(n)) return 'family-name';
-    if (/middle|additional/.test(n)) return 'additional-name';
-    if (/addr_line1|addr_line_1|street/.test(n)) return 'street-address';
-    if (/addr_line2|addr_line_2/.test(n)) return 'address-line2';
-    if (/city|address-level2/.test(n)) return 'address-level2';
-    if (/state|address-level1/.test(n)) return 'address-level1';
-    if (/postal|zip/.test(n)) return 'postal-code';
-    if (/country/.test(n)) return 'country-name';
-    return 'on';
   };
 
   const defaultFieldValue = (field) => {
@@ -343,9 +386,13 @@ const Actions = ({
     }
   };
 
-  const renderField = (event, field, idx) => {
+  const isFirstFocusableField = (field) =>
+    field.type === 'fullname' || field.type === 'address' || field.type === 'email' || field.type === 'tel' || field.type === 'text' || field.type === 'textarea' || field.type === 'select';
+
+  const renderField = (event, field, idx, visibleFields, firstFocusableIdx) => {
     const label = (String(field.label || 'Field').replace(/\s*\*+\s*$/, '').trim()) || 'Field';
     const helper = field.helperText || '';
+    const isFirstInput = rsvpEventSlug === event.slug && firstFocusableIdx === idx && isFirstFocusableField(field);
 
     if (
       (field.type === 'fullname' || field.type === 'address') &&
@@ -353,7 +400,7 @@ const Actions = ({
       field.subFields.length
     ) {
       return (
-        <div key={`${event.slug}-${field.name}-${idx}`} className="adv-field">
+        <div key={`${event.slug}-${field.name}-${idx}`} className="adv-field adv-field--full">
           <label className="adv-label">{label}{field.required ? ' *' : ''}</label>
           {helper ? <small className="adv-helper">{helper}</small> : null}
           <div className="adv-field-row">
@@ -369,8 +416,9 @@ const Actions = ({
                   placeholder={sf.placeholder || sf.label}
                   required={Boolean(sf.required)}
                   className="adv-input"
-                  autoComplete={getSubfieldAutocomplete(sf.name)}
+                  autoComplete={getAutocompleteForSubfield(sf)}
                   defaultValue={sf.defaultValue || ''}
+                  autoFocus={isFirstInput && si === 0}
                   onChange={(e) => onFormChange(event.slug, e.target)}
                 />
               </div>
@@ -382,7 +430,7 @@ const Actions = ({
 
     if ((field.type === 'radio' || field.type === 'checkbox') && Array.isArray(field.options) && field.options.length) {
       return (
-        <fieldset key={`${event.slug}-${field.name}-${idx}`} className="adv-fieldset">
+        <fieldset key={`${event.slug}-${field.name}-${idx}`} className="adv-fieldset adv-field--full">
           <legend className="adv-label">{label}{field.required ? ' *' : ''}</legend>
           {helper ? <small className="adv-helper">{helper}</small> : null}
           <div className="adv-options">
@@ -416,8 +464,9 @@ const Actions = ({
             name={field.name}
             className="adv-input adv-select"
             required={Boolean(field.required)}
-            autoComplete={/\b(organization|org|company)\b/.test(`${(field.name||'')} ${(field.label||'')}`.toLowerCase()) ? 'organization' : 'on'}
+            autoComplete={getAutocompleteForField(field)}
             defaultValue={field.defaultValue || ''}
+            autoFocus={isFirstInput}
             onChange={(e) => onFormChange(event.slug, e.target)}
           >
             {(field.options || []).map((o, oi) => (
@@ -431,7 +480,7 @@ const Actions = ({
     if (field.type === 'textarea') {
       const id = buildFieldId(event.slug, field.name, idx);
       return (
-        <div key={`${event.slug}-${field.name}-${idx}`} className="adv-field">
+        <div key={`${event.slug}-${field.name}-${idx}`} className="adv-field adv-field--full">
           <label htmlFor={id} className="adv-label">{label}{field.required ? ' *' : ''}</label>
           {helper ? <small className="adv-helper">{helper}</small> : null}
           <textarea
@@ -441,8 +490,9 @@ const Actions = ({
             className="adv-input adv-textarea"
             placeholder={field.placeholder || ''}
             rows={4}
-            autoComplete={getAutocomplete(field)}
+            autoComplete={getAutocompleteForField(field)}
             defaultValue={field.defaultValue || ''}
+            autoFocus={isFirstInput}
             onChange={(e) => onFormChange(event.slug, e.target)}
           />
         </div>
@@ -462,8 +512,9 @@ const Actions = ({
           required={Boolean(field.required)}
           className="adv-input"
           placeholder={field.placeholder || (hasPhoneMask ? '(000) 000-0000' : '') || ''}
-          autoComplete={getAutocomplete(field)}
+          autoComplete={getAutocompleteForField(field)}
           defaultValue={field.defaultValue || ''}
+          autoFocus={isFirstInput}
           onChange={(e) => onFormChange(event.slug, e.target)}
           onBlur={hasPhoneMask ? (e) => formatPhoneForMask(e.target) : undefined}
         />
@@ -600,12 +651,25 @@ const Actions = ({
                     )}
 
                     <div id={bodyId} className={`adv-event-body ${expanded ? 'adv-event-body--expanded' : ''}`}>
-                      {event.desc && (
-                        <div className="adv-event-desc" dangerouslySetInnerHTML={{ __html: toEventHtml(event.desc) }} />
+                      <div className="adv-event-body-text">
+                        {event.desc && (
+                          <div className="adv-event-desc" dangerouslySetInnerHTML={{ __html: toEventHtml(event.desc) }} />
+                        )}
+                        {event.details?.map((d, i) => (
+                          <div key={i} className="adv-event-detail" dangerouslySetInnerHTML={{ __html: toEventHtml(d) }} />
+                        ))}
+                      </div>
+                      {expandable && (
+                        <button
+                          type="button"
+                          className="adv-event-expand adv-event-action-link"
+                          aria-expanded={expanded}
+                          aria-controls={bodyId}
+                          onClick={() => setExpandedTextBySlug((p) => ({ ...p, [event.slug]: !expanded }))}
+                        >
+                          {expanded ? 'Show less' : 'Read more'}
+                        </button>
                       )}
-                      {event.details?.map((d, i) => (
-                        <div key={i} className="adv-event-detail" dangerouslySetInnerHTML={{ __html: toEventHtml(d) }} />
-                      ))}
                     </div>
                     {(expandable || !event.cancelled) && (
                       <div className="adv-event-actions">
@@ -643,58 +707,67 @@ const Actions = ({
                                 </a>
                               )
                             )}
-                          </div>
-                          <div className="adv-event-actions-links">
-                            {expandable && (
-                              <button
-                                type="button"
-                                className="adv-event-expand adv-event-action-link"
-                                aria-expanded={expanded}
-                                aria-controls={bodyId}
-                                onClick={() => setExpandedTextBySlug((p) => ({ ...p, [event.slug]: !expanded }))}
-                              >
-                                {expanded ? 'Show less' : 'Read more'}
-                              </button>
-                            )}
                             <button
                               type="button"
-                              className="adv-event-share adv-event-action-link"
+                              className="adv-event-share"
                               aria-label={`Share ${event.title}`}
                               title="Share"
                               onClick={() => shareEvent(event)}
                             >
-                              Share
+                              <svg aria-hidden width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/></svg>
                             </button>
                           </div>
                         </div>
-                        {hasForm && openRsvp && (
-                          <form
-                            className="adv-form"
-                            action={event.jotformSchema.action}
-                            method="post"
-                            target="jotform-response"
-                            encType="application/x-www-form-urlencoded"
-                            autoComplete="on"
-                            aria-label={`RSVP for ${event.title}`}
-                            data-l34-no-guard
-                            onSubmit={(ev) => handleJotformSubmit(ev, event.slug, event.title)}
+                        {hasForm && (
+                          <div
+                            className={`adv-form-wrap ${autofillPhaseComplete && !openRsvp ? 'adv-form-wrap--collapsed' : ''} ${!autofillPhaseComplete && !openRsvp ? 'adv-form-wrap--autofill-hidden' : ''}`}
+                            aria-hidden={autofillPhaseComplete ? !openRsvp : false}
                           >
-                            <input type="hidden" name="event_slug" value={event.slug} />
-                            <input type="hidden" name="event_title" value={event.title || ''} />
-                            {(event.jotformSchema.hiddenFields || []).map((hf, hi) => (
-                              <input key={hi} type="hidden" name={hf.name} value={hf.value || ''} />
-                            ))}
-                            {event.jotformSchema.fields
-                              .filter((f) => isFieldVisible(event, f))
-                              .map((f, fi) => renderField(event, f, fi))}
-                            <button
-                              type="submit"
-                              className="adv-btn adv-btn--submit"
-                              disabled={submittingSlug === event.slug}
+                            <form
+                              id={`adv-rsvp-form-${event.slug}`}
+                              className="adv-form"
+                              action={event.jotformSchema.action}
+                              method="post"
+                              target="jotform-response"
+                              encType="application/x-www-form-urlencoded"
+                              autoComplete="on"
+                              aria-label={`RSVP for ${event.title}`}
+                              data-l34-no-guard
+                              onSubmit={(ev) => handleJotformSubmit(ev, event.slug, event.title)}
                             >
-                              {submittingSlug === event.slug ? 'Submitting…' : 'Submit'}
-                            </button>
-                          </form>
+                              <input type="hidden" name="event_slug" value={event.slug} />
+                              <input type="hidden" name="event_title" value={event.title || ''} />
+                              {(event.jotformSchema.hiddenFields || []).map((hf, hi) => (
+                                <input key={hi} type="hidden" name={hf.name} value={hf.value || ''} />
+                              ))}
+                              {(() => {
+                                const hiddenNames = new Set(
+                                  (event.jotformSchema.hiddenFields || []).map((h) => (h.name || '').toLowerCase())
+                                );
+                                const isEventSlugField = (f) => {
+                                  const name = (f.name || '').toLowerCase();
+                                  const label = (f.label || '').toLowerCase();
+                                  return (
+                                    hiddenNames.has(name) ||
+                                    /event[-_]?slug/.test(name) ||
+                                    /^event\s*slug$/i.test(label)
+                                  );
+                                };
+                                const visible = event.jotformSchema.fields.filter(
+                                  (f) => !isEventSlugField(f) && isFieldVisible(event, f)
+                                );
+                                const firstIdx = visible.findIndex(isFirstFocusableField);
+                                return visible.map((f, fi) => renderField(event, f, fi, visible, firstIdx >= 0 ? firstIdx : 0));
+                              })()}
+                              <button
+                                type="submit"
+                                className="adv-btn adv-btn--submit"
+                                disabled={submittingSlug === event.slug}
+                              >
+                                {submittingSlug === event.slug ? 'Submitting…' : 'Submit'}
+                              </button>
+                            </form>
+                          </div>
                         )}
                       </div>
                     )}
@@ -705,34 +778,38 @@ const Actions = ({
             )}
           </div>
         </main>
-      <div
-        className={`adv-jotform-modal ${jotformModalSlug ? 'adv-jotform-modal--open' : ''}`}
-        role="dialog"
-        aria-labelledby="jotform-modal-title"
-        aria-modal="true"
-        aria-hidden={!jotformModalSlug}
-      >
-        <div className="adv-jotform-modal-backdrop" onClick={handleBackdropClick} />
-        <div className="adv-jotform-modal-content">
-          <div className="adv-jotform-modal-header">
-            <h2 id="jotform-modal-title" className="adv-jotform-modal-title">Completing RSVP</h2>
-            <button
-              type="button"
-              className="adv-jotform-modal-close"
-              onClick={() => closeJotformModal(jotformModalSlug)}
-              aria-label="Close"
-            >
-              ×
-            </button>
-          </div>
-          <iframe
-            name="jotform-response"
-            title="JotForm submission"
-            className="adv-jotform-modal-iframe"
-            sandbox="allow-forms allow-scripts allow-same-origin"
-          />
-        </div>
-      </div>
+      {typeof document !== 'undefined' &&
+        createPortal(
+          <div
+            className={`adv-jotform-modal ${jotformModalSlug ? 'adv-jotform-modal--open' : ''}`}
+            role="dialog"
+            aria-labelledby="jotform-modal-title"
+            aria-modal="true"
+            aria-hidden={!jotformModalSlug}
+          >
+            <div className="adv-jotform-modal-backdrop" onClick={handleBackdropClick} />
+            <div className="adv-jotform-modal-content">
+              <div className="adv-jotform-modal-header">
+                <h2 id="jotform-modal-title" className="adv-jotform-modal-title">Completing RSVP</h2>
+                <button
+                  type="button"
+                  className="adv-jotform-modal-close"
+                  onClick={() => closeJotformModal(jotformModalSlug)}
+                  aria-label="Close"
+                >
+                  ×
+                </button>
+              </div>
+              <iframe
+                name="jotform-response"
+                title="JotForm submission"
+                className="adv-jotform-modal-iframe"
+                sandbox="allow-forms allow-scripts allow-same-origin"
+              />
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 };

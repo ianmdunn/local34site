@@ -45,6 +45,17 @@ async function main() {
     console.log('   Form action:', formAction);
     console.log('   Form target:', formTarget);
 
+    console.log('3a. Checking autocomplete attributes...');
+    const textInputs = await form.locator('input[type="text"], input[type="email"], input[type="tel"]').all();
+    for (const input of textInputs) {
+      const name = await input.getAttribute('name');
+      const autocomplete = await input.getAttribute('autocomplete');
+      const id = await input.getAttribute('id');
+      if (name && !name.includes('event_') && !name.includes('website')) {
+        console.log(`   - ${name}: autocomplete="${autocomplete || '(none)'}"`);
+      }
+    }
+
     console.log('4. Filling form fields...');
     const inputs = await form.locator('input[type="text"], input[type="email"], input[type="tel"], select, textarea').all();
     for (const input of inputs) {

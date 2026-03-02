@@ -22,6 +22,8 @@ export interface JotformSubField {
   required: boolean;
   placeholder?: string;
   defaultValue?: string;
+  /** HTML autocomplete token for browser autofill; parsed from JotForm when present */
+  autocomplete?: string;
 }
 
 export interface JotformField {
@@ -39,6 +41,8 @@ export interface JotformField {
   subFields?: JotformSubField[];
   /** Phone mask from JotForm.setPhoneMaskingValidator – e.g. "(###) ###-####" */
   phoneMask?: string;
+  /** HTML autocomplete token for browser autofill; parsed from JotForm when present */
+  autocomplete?: string;
 }
 
 export interface JotformConditionTerm {
@@ -275,7 +279,7 @@ const parseVisibleFields = (html: string, phoneMasks?: Map<string, string>): Jot
     const helperText = getHelperText(blockHtml) || undefined;
     const required = /required=|form-required/i.test(blockHtml);
 
-    if (dataType === 'control_button' || dataType === 'control_text') continue;
+    if (dataType === 'control_button' || dataType === 'control_text' || dataType === 'control_hidden') continue;
 
     if (dataType === 'control_fullname') {
       const subFields: JotformSubField[] = [];
@@ -296,6 +300,7 @@ const parseVisibleFields = (html: string, phoneMasks?: Map<string, string>): Jot
           required,
           placeholder: attrs.placeholder || '',
           defaultValue: attrs.value || '',
+          ...(attrs.autocomplete && attrs.autocomplete !== 'off' && { autocomplete: attrs.autocomplete }),
         });
       }
       if (subFields.length) {
@@ -352,6 +357,7 @@ const parseVisibleFields = (html: string, phoneMasks?: Map<string, string>): Jot
           required,
           placeholder: attrs.placeholder || '',
           defaultValue: attrs.value || '',
+          ...(attrs.autocomplete && attrs.autocomplete !== 'off' && { autocomplete: attrs.autocomplete }),
         });
       }
       if (subFields.length) {
@@ -385,6 +391,7 @@ const parseVisibleFields = (html: string, phoneMasks?: Map<string, string>): Jot
         helperText,
         options: parseSelectOptions(blockHtml),
         defaultValue: parseSelectOptions(blockHtml).find((option) => option.selected)?.value || '',
+        ...(attrs.autocomplete && attrs.autocomplete !== 'off' && { autocomplete: attrs.autocomplete }),
       });
       continue;
     }
@@ -403,6 +410,7 @@ const parseVisibleFields = (html: string, phoneMasks?: Map<string, string>): Jot
         helperText,
         defaultValue: decodeHtml(blockHtml.match(/<textarea\b[^>]*>([\s\S]*?)<\/textarea>/i)?.[1] || ''),
         placeholder: attrs.placeholder || '',
+        ...(attrs.autocomplete && attrs.autocomplete !== 'off' && { autocomplete: attrs.autocomplete }),
       });
       continue;
     }
@@ -431,6 +439,7 @@ const parseVisibleFields = (html: string, phoneMasks?: Map<string, string>): Jot
         defaultValue: attrs.value || '',
         placeholder: attrs.placeholder || '',
         ...(phoneMask && { phoneMask }),
+        ...(attrs.autocomplete && attrs.autocomplete !== 'off' && { autocomplete: attrs.autocomplete }),
       });
     }
   }
@@ -471,6 +480,62 @@ export async function fetchJotformSchema(jotformId: string): Promise<JotformSche
 }
 
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** Standard autofill tokens – Safari and others match on these; section prefixes can break autofill */
+const STANDARD_AUTOFILL_TOKENS = new Set([
+  'given-name', 'family-name', 'additional-name', 'name', 'honorific-prefix', 'honorific-suffix',
+  'email', 'tel', 'tel-country-code', 'tel-national', 'tel-area-code', 'tel-local', 'tel-extension',
+  'street-address', 'address-line1', 'address-line2', 'address-level1', 'address-level2', 'address-level3', 'address-level4',
+  'postal-code', 'country-name', 'country',
+  'organization', 'organization-title', 'off', 'on'
+]);
+
+/** Strip section-* prefix from JotForm autocomplete; Safari needs plain tokens like "given-name" not "section-input_3 given-name" */
+function normalizeAutocompleteForAutofill(value: string): string {
+  const trimmed = String(value || '').trim();
+  if (!trimmed) return 'on';
+  const parts = trimmed.split(/\s+/);
+  for (const p of parts) {
+    if (p.toLowerCase().startsWith('section-')) continue;
+    if (p === 'off') return 'off';
+    if (STANDARD_AUTOFILL_TOKENS.has(p)) return p;
+    if (/^address-|^tel-|^cc-/.test(p)) return p;
+  }
+  return 'on';
+}
+
+/**
+ * Infer HTML autocomplete token for a JotForm field. Use when schema does not provide autocomplete.
+ * Enables browser autofill for name, email, tel, address, etc.
+ */
+export function getAutocompleteForField(field: JotformField): string {
+  if (field.type === 'email') return 'email';
+  if (field.type === 'tel') return 'tel'; // Safari prefers plain "tel" over "tel-national"
+  if (field.autocomplete) return normalizeAutocompleteForAutofill(field.autocomplete);
+  const s = `${(field.name || '')} ${(field.label || '')}`.toLowerCase();
+  if (/\b(organization|org|company|department|dept)\b/.test(s)) return 'organization';
+  if (/\b(name|full name|fullname)\b/.test(s)) return 'name';
+  return 'on';
+}
+
+/**
+ * Infer HTML autocomplete token for fullname/address subfields. Use when subField does not provide autocomplete.
+ * Maps JotForm names (e.g. q5_fullname[first], q7_address[addr_line1]) to standard tokens.
+ */
+export function getAutocompleteForSubfield(subField: JotformSubField): string {
+  if (subField.autocomplete) return normalizeAutocompleteForAutofill(subField.autocomplete);
+  const n = String(subField.name || '').toLowerCase();
+  if (/first|given/.test(n)) return 'given-name';
+  if (/last|family|surname/.test(n)) return 'family-name';
+  if (/middle|additional/.test(n)) return 'additional-name';
+  if (/addr_line1|addr_line_1|street/.test(n)) return 'address-line1';
+  if (/addr_line2|addr_line_2/.test(n)) return 'address-line2';
+  if (/city/.test(n)) return 'address-level2';
+  if (/state/.test(n)) return 'address-level1';
+  if (/postal|zip/.test(n)) return 'postal-code';
+  if (/country/.test(n)) return 'country-name';
+  return 'on';
+}
 
 async function pollJotformSchema(jotformId: string): Promise<JotformSchema | null> {
   for (let attempt = 1; attempt <= POLL_ATTEMPTS; attempt += 1) {

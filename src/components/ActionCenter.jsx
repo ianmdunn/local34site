@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { sanitizeHtml } from '~/utils/sanitize';
 import './ActionCenter.css';
+import { getAutocompleteForField, getAutocompleteForSubfield } from '~/utils/jotform';
 
 const DEFAULT_ZOOM_BASE = '/zoom-backgrounds';
 
@@ -315,18 +316,6 @@ const ActionCenter = ({ zoomBase = DEFAULT_ZOOM_BASE, upcomingEvents, layout = '
     return suffix ? `${base}-${toIdToken(suffix)}` : base;
   };
 
-  const getAutocompleteForField = (field) => {
-    if (field.type === 'email') return 'email';
-    if (field.type === 'tel') return 'tel';
-    const name = String(field.name || '').toLowerCase();
-    const label = String(field.label || '').toLowerCase();
-    const combined = `${name} ${label}`;
-    if (/\b(organization|org|company)\b/.test(combined)) return 'organization';
-    if (/\b(department|dept)\b/.test(combined)) return 'organization';
-    if (field.type === 'text' || field.type === 'textarea') return 'on';
-    return 'on';
-  };
-
   const defaultFieldValue = (field) => {
     if (field.type === 'checkbox') return Array.isArray(field.defaultValues) ? field.defaultValues : [];
     if (field.type === 'radio') return Array.isArray(field.defaultValues) ? field.defaultValues[0] || '' : '';
@@ -479,10 +468,6 @@ const ActionCenter = ({ zoomBase = DEFAULT_ZOOM_BASE, upcomingEvents, layout = '
       Array.isArray(field.subFields) &&
       field.subFields.length
     ) {
-      const autoCompleteMap =
-        field.type === 'address'
-          ? { 0: 'street-address', 1: 'address-line2', 2: 'address-level2', 3: 'address-level1', 4: 'postal-code', 5: 'country-name' }
-          : { 0: 'given-name', 1: 'family-name' };
       return (
         <div key={`${event.slug}-${field.name}-${index}`} className="l34-dynamic-field">
           <label className="l34-label">{labelText}{field.required ? ' *' : ''}</label>
@@ -491,7 +476,7 @@ const ActionCenter = ({ zoomBase = DEFAULT_ZOOM_BASE, upcomingEvents, layout = '
             {field.subFields.map((subField, subIndex) => {
               const inputId = buildFieldId(event.slug, subField.name, `${index}-${subIndex}`);
               const subLabel = subField.label || `Part ${subIndex + 1}`;
-              const autoComplete = autoCompleteMap[subIndex] || 'on';
+              const autoComplete = getAutocompleteForSubfield(subField);
               return (
                 <div key={`${subField.name}-${subIndex}`} className={field.type === 'address' ? 'l34-address-part' : 'l34-name-part'}>
                   <label htmlFor={inputId} className="sr-only">
@@ -560,7 +545,7 @@ const ActionCenter = ({ zoomBase = DEFAULT_ZOOM_BASE, upcomingEvents, layout = '
             name={field.name}
             className="l34-input"
             required={Boolean(field.required)}
-            autoComplete={/\b(organization|org|company)\b/.test(`${(field.name || '')} ${(field.label || '')}`.toLowerCase()) ? 'organization' : 'on'}
+            autoComplete={getAutocompleteForField(field)}
             defaultValue={field.defaultValue || ''}
           >
             {(field.options || []).map((option, optionIndex) => (
@@ -1035,6 +1020,7 @@ const ActionCenter = ({ zoomBase = DEFAULT_ZOOM_BASE, upcomingEvents, layout = '
                             method="post"
                             encType="application/x-www-form-urlencoded"
                             autoComplete="on"
+                            data-l34-no-guard
                             aria-label={`RSVP form for ${event.title}`}
                             onChange={(eventObj) => onDynamicFormChange(event.slug, eventObj.target)}
                             onSubmit={(e) => handleJotformSubmit(e, event.slug, event.title)}

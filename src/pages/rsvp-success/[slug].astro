@@ -1,0 +1,46 @@
+---
+/**
+ * RSVP success page – loaded in iframe after JotForm redirect.
+ * Sends postMessage to parent so the Actions component can update success state.
+ *
+ * Configure JotForm's "Redirect to a URL" to: /rsvp-success/EVENT_SLUG
+ * (e.g. https://www.local34.org/rsvp-success/solidarity-summit)
+ */
+import { fetchUpcomingActionEvents } from '~/utils/directus-events';
+
+export async function getStaticPaths() {
+  const events = await fetchUpcomingActionEvents(25);
+  return events.map((e) => ({ params: { slug: e.slug } }));
+}
+
+const { slug } = Astro.params;
+---
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RSVP Successful</title>
+  </head>
+  <body>
+    <div id="fallback-ui" style="display: none; font-family: sans-serif; padding: 2rem; text-align: center;">
+      <p><strong>RSVP Successful!</strong></p>
+      <p>You can close this window.</p>
+    </div>
+    <script is:inline define:vars={{ slug: slug ?? '' }}>
+      (function () {
+        var eventSlug = typeof slug === 'string' ? slug : '';
+
+        if (window.parent !== window) {
+          try {
+            window.parent.postMessage({ type: 'JOTFORM_SUCCESS', slug: eventSlug }, '*');
+          } catch (e) {
+            document.getElementById('fallback-ui').style.display = 'block';
+          }
+        } else {
+          document.getElementById('fallback-ui').style.display = 'block';
+        }
+      })();
+    </script>
+  </body>
+</html>

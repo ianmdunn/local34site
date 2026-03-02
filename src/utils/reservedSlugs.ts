@@ -6,6 +6,7 @@
 export const RESERVED_SLUGS: readonly string[] = [
   'about',
   'actions',
+  'contact',
   'meeting-backgrounds',
   'how-we-win',
   'our-contract',
