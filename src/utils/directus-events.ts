@@ -7,6 +7,7 @@ const EVENTS_COLLECTION = (import.meta.env.PUBLIC_DIRECTUS_EVENTS_COLLECTION || 
 const EVENTS_TITLE_FIELD = (import.meta.env.PUBLIC_DIRECTUS_EVENTS_TITLE_FIELD || 'title').trim();
 const EVENTS_COLLECTION_CANDIDATES = [EVENTS_COLLECTION, 'events', 'upcoming_events', 'action_events', 'actions_events'];
 const REQUEST_TIMEOUT_MS = 7000;
+const PAGE_SIZE = 100;
 
 interface DirectusEventsResponse {
   data: Record<string, unknown>[];
@@ -123,13 +124,16 @@ const humanizeSlug = (value: string): string =>
     .trim()
     .replace(/\b\w/g, (char) => char.toUpperCase());
 
+const MONTHS_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
 const formatMonthDay = (dateInput: unknown): { month: string; day: string } => {
   const dateText = toStringValue(dateInput);
   const date = dateText ? new Date(dateText) : null;
   if (!date || Number.isNaN(date.getTime())) return { month: 'TBD', day: '--' };
+  // Use UTC for deterministic output (avoids React hydration mismatch server vs client)
   return {
-    month: date.toLocaleString('en-US', { month: 'short' }),
-    day: String(date.getDate()),
+    month: MONTHS_SHORT[date.getUTCMonth()] ?? 'TBD',
+    day: String(date.getUTCDate()),
   };
 };
 
@@ -234,30 +238,45 @@ export async function fetchUpcomingActionEvents(limit = 3): Promise<ActionEventI
 
   for (const collection of uniqueCollections) {
     try {
-      const params = new URLSearchParams({
-        limit: '25',
-        fields: '*',
-      });
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-      const response = await fetch(`${DIRECTUS_URL}/items/${collection}?${params}`, {
-        headers,
-        signal: controller.signal,
-      });
-      clearTimeout(timeout);
-      if (!response.ok) continue;
+      const allRows: Record<string, unknown>[] = [];
+      let offset = 0;
 
-      const json = (await response.json()) as DirectusEventsResponse;
-      const rows = Array.isArray(json.data) ? json.data : [];
-      if (!rows.length) continue;
+      // Paginate to fetch all items (handles QUERY_LIMIT_MAX on Directus server)
+      while (true) {
+        const params = new URLSearchParams({
+          limit: String(PAGE_SIZE),
+          offset: String(offset),
+          fields: '*',
+        });
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+        const response = await fetch(`${DIRECTUS_URL}/items/${collection}?${params}`, {
+          headers,
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
+        if (!response.ok) break;
 
-      const mapped = rows
+        const json = (await response.json()) as DirectusEventsResponse;
+        const rows = Array.isArray(json.data) ? json.data : [];
+        allRows.push(...rows);
+        if (rows.length < PAGE_SIZE) break;
+        offset += PAGE_SIZE;
+      }
+
+      if (!allRows.length) continue;
+
+      const mapped = allRows
         .filter((row) => {
           const status = toStringValue(row.status).toLowerCase();
-          return !status || ['published', 'active', 'live', 'scheduled'].includes(status);
+          // Only exclude draft and archived; allow all other statuses including empty
+          if (!status) return true;
+          if (['draft', 'archived', 'deleted'].includes(status)) return false;
+          return true;
         })
         .filter((row) => {
           const eventDate = getEventDate(row);
+          // Include events with no date, or within last 12 hours through future
           return !eventDate || eventDate.getTime() >= now - 12 * 60 * 60 * 1000;
         })
         .sort((a, b) => {
@@ -270,11 +289,7 @@ export async function fetchUpcomingActionEvents(limit = 3): Promise<ActionEventI
         })
         .map(mapEvent)
         .filter((item): item is ActionEventItem => !!item)
-        .filter(
-          (item) =>
-            hasValue(item.title) &&
-            (hasValue(item.mobilizeUrl) || hasValue(item.jotformEmbedUrl) || hasValue(item.jotformId) || hasValue(item.desc))
-        );
+        .filter((item) => hasValue(item.title));
 
       if (mapped.length) return mapped.slice(0, limit);
     } catch {

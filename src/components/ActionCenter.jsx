@@ -826,7 +826,6 @@ const ActionCenter = ({ zoomBase = DEFAULT_ZOOM_BASE, upcomingEvents, layout = '
 
           {events.map((event) => {
             const isBanner = isBannerImageBySlug[event.slug] ?? true;
-            const imageLinkClass = `l34-event-image-link ${isBanner ? 'l34-event-image-link-banner' : 'l34-event-image-link-float'}`;
             const imageClass = `l34-event-image ${isBanner ? 'l34-event-image-banner' : 'l34-event-image-float'}`;
             return (
             <article key={event.slug} id={`event-${event.slug}`} className="l34-event-card">
@@ -837,25 +836,13 @@ const ActionCenter = ({ zoomBase = DEFAULT_ZOOM_BASE, upcomingEvents, layout = '
               <div className="l34-event-details">
                 <h3 className="l34-event-title">{event.title}</h3>
                 {event.imageUrl ? (
-                  event.eventUrl ? (
-                    <a href={event.eventUrl} target="_blank" rel="noopener noreferrer" className={imageLinkClass}>
-                      <img
-                        src={event.imageUrl}
-                        alt={event.imageAlt || `${event.title} image`}
-                        loading="lazy"
-                        className={imageClass}
-                        onLoad={(eventObj) => markImageKind(event.slug, eventObj.currentTarget)}
-                      />
-                    </a>
-                  ) : (
-                    <img
-                      src={event.imageUrl}
-                      alt={event.imageAlt || `${event.title} image`}
-                      loading="lazy"
-                      className={imageClass}
-                      onLoad={(eventObj) => markImageKind(event.slug, eventObj.currentTarget)}
-                    />
-                  )
+                  <img
+                    src={event.imageUrl}
+                    alt={event.imageAlt || `${event.title} image`}
+                    loading="lazy"
+                    className={imageClass}
+                    onLoad={(eventObj) => markImageKind(event.slug, eventObj.currentTarget)}
+                  />
                 ) : null}
                 {event.cancelled ? (
                   <div className="l34-event-cancelled-banner" role="status" aria-live="polite">

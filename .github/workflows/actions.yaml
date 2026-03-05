@@ -26,6 +26,32 @@ jobs:
       - run: npm run build
       - run: npm test
 
+  deploy:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Deploy (build + FTP upload)
+        env:
+          DEPLOY_FTP_HOST: ${{ secrets.DEPLOY_FTP_HOST }}
+          DEPLOY_FTP_USER: ${{ secrets.DEPLOY_FTP_USER }}
+          DEPLOY_FTP_PASSWORD: ${{ secrets.DEPLOY_FTP_PASSWORD }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          DEPLOY_FTP_PORT: ${{ secrets.DEPLOY_FTP_PORT || '21' }}
+          DEPLOY_FTP_SECURE: ${{ secrets.DEPLOY_FTP_SECURE }}
+          PUBLIC_DIRECTUS_URL: ${{ secrets.PUBLIC_DIRECTUS_URL }}
+          DIRECTUS_TOKEN: ${{ secrets.DIRECTUS_TOKEN }}
+        run: npm run deploy
+        # Requires repo secrets: DEPLOY_FTP_HOST, DEPLOY_FTP_USER, DEPLOY_FTP_PASSWORD,
+        # DEPLOY_PATH. Optional: DEPLOY_FTP_PORT, DEPLOY_FTP_SECURE, PUBLIC_DIRECTUS_URL, DIRECTUS_TOKEN.
+
   check:
     runs-on: ubuntu-latest
     steps:

@@ -12,7 +12,7 @@ import { fetchUpcomingActionEvents } from '~/utils/directus-events';
 import { hydrateEventsWithJotformSchemas } from '~/utils/jotform';
 import { generateOpenGraphMeta } from '~/utils/seo';
 
-const directusEvents = await fetchUpcomingActionEvents(3);
+const directusEvents = await fetchUpcomingActionEvents(Number.POSITIVE_INFINITY);
 const upcomingEvents = await hydrateEventsWithJotformSchemas(directusEvents);
 
 const portalCarouselImages = [
@@ -78,7 +78,7 @@ const metadata = {
   <section class={PAGE_SECTION_CLASS} data-section="actions-content" id="actions-content">
     <div class="mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8">
       <ActionsComponent
-        client:visible
+        client:load
         upcomingEvents={upcomingEvents}
         backgroundsHref="/meeting-backgrounds"
         backgroundsPortalImages={portalCarouselImages}

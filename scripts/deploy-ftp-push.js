@@ -44,8 +44,9 @@ const SECURE = (process.env.DEPLOY_FTP_SECURE || '').toLowerCase() === 'true';
 const isDryRun = process.argv.includes('--dry-run');
 
 if (!HOST || !USER || !PASS || !REMOTE_PATH) {
-  console.log('>>> Skipping FTP push: DEPLOY_FTP_HOST, DEPLOY_FTP_USER, DEPLOY_FTP_PASSWORD, DEPLOY_PATH required');
-  process.exit(0);
+  console.error('>>> FTP push skipped: DEPLOY_FTP_HOST, DEPLOY_FTP_USER, DEPLOY_FTP_PASSWORD, DEPLOY_PATH required in .env');
+  console.error('    Deploy cannot complete without FTP upload. Add credentials and re-run.');
+  process.exit(process.argv.includes('--dry-run') ? 0 : 1);
 }
 
 async function getAllFiles(dir, base = dir) {

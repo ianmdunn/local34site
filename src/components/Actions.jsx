@@ -108,12 +108,23 @@ const Actions = ({
     }
   }, [emblaApi, displayedImages.length]);
 
-  const [rsvpEventSlug, setRsvpEventSlug] = useState(null);
-  const [autofillPhaseComplete, setAutofillPhaseComplete] = useState(false);
   const [submittedEventSlugs, setSubmittedEventSlugs] = useState([]);
   const [submittingSlug, setSubmittingSlug] = useState(null);
   const [jotformModalSlug, setJotformModalSlug] = useState(null);
   const [formValuesBySlug, setFormValuesBySlug] = useState({});
+  /** Shared across all event forms so users fill name/email/phone/address once */
+  const [sharedFormValues, setSharedFormValues] = useState({
+    givenName: '',
+    familyName: '',
+    email: '',
+    tel: '',
+    addressLine1: '',
+    addressLine2: '',
+    addressCity: '',
+    addressState: '',
+    addressZip: '',
+    addressCountry: '',
+  });
   const [expandedTextBySlug, setExpandedTextBySlug] = useState({});
   const [isBannerBySlug, setIsBannerBySlug] = useState({});
 
@@ -179,7 +190,6 @@ const Actions = ({
     setJotformModalSlug(null);
     if (eventSlug) {
       setSubmittedEventSlugs((p) => (p.includes(eventSlug) ? p : [...p, eventSlug]));
-      setRsvpEventSlug(null);
     }
   };
 
@@ -197,42 +207,21 @@ const Actions = ({
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
-  // Safari autofill: cycle through each form briefly (visible) so Safari can scan each one,
-  // then collapse. Safari ignores hidden forms. Focus first input to trigger autofill.
-  useEffect(() => {
-    const withForms = events.filter(hasJotform);
-    if (!withForms.length) {
-      setAutofillPhaseComplete(true);
-      return;
-    }
-    const delay = 350;
-    let i = 0;
-    const timers = [];
-    const advance = () => {
-      if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
-      if (i < withForms.length) {
-        const slug = withForms[i].slug;
-        setRsvpEventSlug(slug);
-        i++;
-        timers.push(
-          setTimeout(() => {
-            const form = document.getElementById(`adv-rsvp-form-${slug}`);
-            const wrap = form?.closest('.adv-form-wrap');
-            if (wrap?.scrollIntoView) wrap.scrollIntoView({ behavior: 'instant', block: 'nearest' });
-            const first = form?.querySelector('input:not([type="hidden"]), select, textarea');
-            if (first && typeof first.focus === 'function') first.focus();
-          }, 80)
-        );
-      } else {
-        setRsvpEventSlug(null);
-        setAutofillPhaseComplete(true);
-        return;
-      }
-      timers.push(setTimeout(advance, delay));
-    };
-    advance();
-    return () => timers.forEach((t) => clearTimeout(t));
-  }, [events]);
+  /** Map autocomplete token to shared state key for cross-form sync */
+  const canonicalKeyFromAutocomplete = (ac) => {
+    const t = String(ac || '').trim().toLowerCase();
+    if (t === 'given-name') return 'givenName';
+    if (t === 'family-name') return 'familyName';
+    if (t === 'email') return 'email';
+    if (t === 'tel' || t === 'tel-national') return 'tel';
+    if (t === 'address-line1' || t === 'street-address') return 'addressLine1';
+    if (t === 'address-line2') return 'addressLine2';
+    if (t === 'address-level2') return 'addressCity';
+    if (t === 'address-level1') return 'addressState';
+    if (t === 'postal-code') return 'addressZip';
+    if (t === 'country-name' || t === 'country') return 'addressCountry';
+    return null;
+  };
 
   const toId = (v = '') =>
     String(v)
@@ -360,9 +349,13 @@ const Actions = ({
     return visible;
   };
 
-  const onFormChange = (slug, target) => {
+  const onFormChange = (slug, target, canonicalKey = null) => {
     const name = String(target?.name || '').trim();
     if (!name) return;
+    const value = target.type === 'checkbox' ? (target.checked ? target.value : '') : target.value;
+    if (canonicalKey && typeof value === 'string') {
+      setSharedFormValues((p) => ({ ...p, [canonicalKey]: value }));
+    }
     setFormValuesBySlug((p) => {
       const cur = { ...(p[slug] || {}) };
       if (target.type === 'checkbox') {
@@ -386,13 +379,9 @@ const Actions = ({
     }
   };
 
-  const isFirstFocusableField = (field) =>
-    field.type === 'fullname' || field.type === 'address' || field.type === 'email' || field.type === 'tel' || field.type === 'text' || field.type === 'textarea' || field.type === 'select';
-
-  const renderField = (event, field, idx, visibleFields, firstFocusableIdx) => {
+  const renderField = (event, field, idx) => {
     const label = (String(field.label || 'Field').replace(/\s*\*+\s*$/, '').trim()) || 'Field';
     const helper = field.helperText || '';
-    const isFirstInput = rsvpEventSlug === event.slug && firstFocusableIdx === idx && isFirstFocusableField(field);
 
     if (
       (field.type === 'fullname' || field.type === 'address') &&
@@ -404,25 +393,30 @@ const Actions = ({
           <label className="adv-label">{label}{field.required ? ' *' : ''}</label>
           {helper ? <small className="adv-helper">{helper}</small> : null}
           <div className="adv-field-row">
-            {field.subFields.map((sf, si) => (
-              <div key={sf.name} className={field.type === 'address' ? 'adv-addr-part' : 'adv-name-part'}>
-                <label htmlFor={buildFieldId(event.slug, sf.name, `${idx}-${si}`)} className="sr-only">
-                  {sf.label || `Part ${si + 1}`}
-                </label>
-                <input
-                  id={buildFieldId(event.slug, sf.name, `${idx}-${si}`)}
-                  type="text"
-                  name={sf.name}
-                  placeholder={sf.placeholder || sf.label}
-                  required={Boolean(sf.required)}
-                  className="adv-input"
-                  autoComplete={getAutocompleteForSubfield(sf)}
-                  defaultValue={sf.defaultValue || ''}
-                  autoFocus={isFirstInput && si === 0}
-                  onChange={(e) => onFormChange(event.slug, e.target)}
-                />
-              </div>
-            ))}
+            {field.subFields.map((sf, si) => {
+              const ac = getAutocompleteForSubfield(sf);
+              const canonicalKey = canonicalKeyFromAutocomplete(ac);
+              const useShared = Boolean(canonicalKey);
+              return (
+                <div key={sf.name} className={field.type === 'address' ? 'adv-addr-part' : 'adv-name-part'}>
+                  <label htmlFor={buildFieldId(event.slug, sf.name, `${idx}-${si}`)} className="sr-only">
+                    {sf.label || `Part ${si + 1}`}
+                  </label>
+                  <input
+                    id={buildFieldId(event.slug, sf.name, `${idx}-${si}`)}
+                    type="text"
+                    name={sf.name}
+                    placeholder={sf.placeholder || sf.label}
+                    required={Boolean(sf.required)}
+                    className="adv-input"
+                    autoComplete={ac}
+                    value={useShared ? (sharedFormValues[canonicalKey] ?? '') : undefined}
+                    defaultValue={useShared ? undefined : (sf.defaultValue || '')}
+                    onChange={(e) => onFormChange(event.slug, e.target, canonicalKey)}
+                  />
+                </div>
+              );
+            })}
           </div>
         </div>
       );
@@ -466,7 +460,6 @@ const Actions = ({
             required={Boolean(field.required)}
             autoComplete={getAutocompleteForField(field)}
             defaultValue={field.defaultValue || ''}
-            autoFocus={isFirstInput}
             onChange={(e) => onFormChange(event.slug, e.target)}
           >
             {(field.options || []).map((o, oi) => (
@@ -492,7 +485,6 @@ const Actions = ({
             rows={4}
             autoComplete={getAutocompleteForField(field)}
             defaultValue={field.defaultValue || ''}
-            autoFocus={isFirstInput}
             onChange={(e) => onFormChange(event.slug, e.target)}
           />
         </div>
@@ -501,6 +493,9 @@ const Actions = ({
 
     const id = buildFieldId(event.slug, field.name, idx);
     const hasPhoneMask = field.type === 'tel' && field.phoneMask;
+    const ac = getAutocompleteForField(field);
+    const canonicalKey = canonicalKeyFromAutocomplete(ac);
+    const useShared = Boolean(canonicalKey);
     return (
       <div key={`${event.slug}-${field.name}-${idx}`} className="adv-field">
         <label htmlFor={id} className="adv-label">{label}{field.required ? ' *' : ''}</label>
@@ -512,11 +507,21 @@ const Actions = ({
           required={Boolean(field.required)}
           className="adv-input"
           placeholder={field.placeholder || (hasPhoneMask ? '(000) 000-0000' : '') || ''}
-          autoComplete={getAutocompleteForField(field)}
-          defaultValue={field.defaultValue || ''}
-          autoFocus={isFirstInput}
-          onChange={(e) => onFormChange(event.slug, e.target)}
-          onBlur={hasPhoneMask ? (e) => formatPhoneForMask(e.target) : undefined}
+          autoComplete={ac}
+          value={useShared ? (sharedFormValues[canonicalKey] ?? '') : undefined}
+          defaultValue={useShared ? undefined : (field.defaultValue || '')}
+          onChange={(e) => onFormChange(event.slug, e.target, canonicalKey)}
+          onBlur={
+            hasPhoneMask
+              ? (e) => {
+                  formatPhoneForMask(e.target);
+                  if (canonicalKey) {
+                    const formatted = e.target.value;
+                    setSharedFormValues((p) => ({ ...p, [canonicalKey]: formatted }));
+                  }
+                }
+              : undefined
+          }
         />
       </div>
     );
@@ -580,11 +585,10 @@ const Actions = ({
               <p className="adv-empty">No upcoming events. Please check back soon.</p>
             ) : (
               <>
-              {events.map((event) => {
+              {              events.map((event) => {
                 const isBanner = isBannerBySlug[event.slug] ?? true;
                 const hasForm = hasJotform(event);
                 const submitted = submittedEventSlugs.includes(event.slug);
-                const openRsvp = rsvpEventSlug === event.slug;
                 const bodyLen =
                   plainTextLength(event.desc) +
                   (event.details || []).reduce((s, d) => s + plainTextLength(d), 0);
@@ -622,25 +626,13 @@ const Actions = ({
                     </div>
 
                     {event.imageUrl && (
-                      event.eventUrl ? (
-                        <a href={event.eventUrl} target="_blank" rel="noopener noreferrer" className="adv-event-img-link">
-                          <img
-                            src={event.imageUrl}
-                            alt={event.imageAlt || `${event.title} image`}
-                            loading="lazy"
-                            className={`adv-event-img ${isBanner ? 'adv-event-img--banner' : 'adv-event-img--float'}`}
-                            onLoad={(ev) => markImageKind(event.slug, ev.currentTarget)}
-                          />
-                        </a>
-                      ) : (
-                        <img
-                          src={event.imageUrl}
-                          alt={event.imageAlt || `${event.title} image`}
-                          loading="lazy"
-                          className={`adv-event-img ${isBanner ? 'adv-event-img--banner' : 'adv-event-img--float'}`}
-                          onLoad={(ev) => markImageKind(event.slug, ev.currentTarget)}
-                        />
-                      )
+                      <img
+                        src={event.imageUrl}
+                        alt={event.imageAlt || `${event.title} image`}
+                        loading="lazy"
+                        className={`adv-event-img ${isBanner ? 'adv-event-img--banner' : 'adv-event-img--float'}`}
+                        onLoad={(ev) => markImageKind(event.slug, ev.currentTarget)}
+                      />
                     )}
 
                     {event.cancelled && (
@@ -681,20 +673,7 @@ const Actions = ({
                                   <span className="adv-submitted">
                                     <span aria-hidden>✓</span> Submitted
                                   </span>
-                                ) : (
-                                  <button
-                                    type="button"
-                                    className="adv-btn adv-btn--primary"
-                                    onClick={() => {
-                                      setRsvpEventSlug(openRsvp ? null : event.slug);
-                                      if (!openRsvp && window.__trackEvent) {
-                                        window.__trackEvent('actions_rsvp_open', { event_name: event.title, destination: 'jotform' });
-                                      }
-                                    }}
-                                  >
-                                    {openRsvp ? 'Close' : event.rsvpLabel || 'RSVP'}
-                                  </button>
-                                )
+                                ) : null
                               ) : (
                                 <a
                                   className="adv-btn adv-btn--primary"
@@ -718,11 +697,8 @@ const Actions = ({
                             </button>
                           </div>
                         </div>
-                        {hasForm && (
-                          <div
-                            className={`adv-form-wrap ${autofillPhaseComplete && !openRsvp ? 'adv-form-wrap--collapsed' : ''} ${!autofillPhaseComplete && !openRsvp ? 'adv-form-wrap--autofill-hidden' : ''}`}
-                            aria-hidden={autofillPhaseComplete ? !openRsvp : false}
-                          >
+                        {hasForm && !submitted && (
+                          <div className="adv-form-wrap">
                             <form
                               id={`adv-rsvp-form-${event.slug}`}
                               className="adv-form"
@@ -756,8 +732,7 @@ const Actions = ({
                                 const visible = event.jotformSchema.fields.filter(
                                   (f) => !isEventSlugField(f) && isFieldVisible(event, f)
                                 );
-                                const firstIdx = visible.findIndex(isFirstFocusableField);
-                                return visible.map((f, fi) => renderField(event, f, fi, visible, firstIdx >= 0 ? firstIdx : 0));
+                                return visible.map((f, fi) => renderField(event, f, fi));
                               })()}
                               <button
                                 type="submit"
